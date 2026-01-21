@@ -9,7 +9,8 @@ const CONFIG = {
     githubRepo: "frelon-la-comte.github.io",
     githubFilePath: "data.json", // Le nom du fichier à modifier
 
-    // Hash SHA256 du mot de passe "frelon62"
-    adminHash: "07123e1f482356c415f684407a3b8723e10b2cbbc0b8fcd6282c49d37c9c1abc",
+    // Hash SHA256 du mot de passe ""
+    adminHash: "2f839fd56456c98a773f73f24543f772110d2721aadc367ab81edc406ad2fa19",
     emailDest: "lacomteaucoeurdelaruche@gmail.com"
+
 };
