@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Administration - La Comté</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Un peu de style spécifique pour l'admin */
+        .local-data { background: #fff3cd; padding: 10px; margin-bottom: 10px; border-left: 5px solid #ffc107; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="admin-container" style="max-width: 800px;"> <h2>Zone Administration</h2>
+        
+        <div id="login-panel">
+            <input type="password" id="admin-pass" placeholder="Mot de passe du site">
+            <button onclick="checkLogin()">Connexion</button>
+            <p id="error-msg" style="color:red; display:none;">Mot de passe incorrect</p>
+        </div>
+
+        <div id="admin-panel" style="display:none; text-align: left;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3>Gestion des Piégeages</h3>
+                <button onclick="logout()" style="width:auto; background:#666;">Déconnexion</button>
+            </div>
+
+            <fieldset>
+                <legend>Configuration Sécurité</legend>
+                <p><small>Entrez votre Token GitHub ici une seule fois. Il sera sauvegardé dans votre navigateur.</small></p>
+                <input type="password" id="github-token" placeholder="Collez votre token ghp_..." onchange="saveToken()">
+                <span id="token-status"></span>
+            </fieldset>
+
+            <hr>
+
+            <h4>Ajouter un nouveau signalement</h4>
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr auto; gap:10px;">
+                <input type="date" id="new-date">
+                <input type="text" id="new-lieu" placeholder="Lieu (ex: Rue du bois)">
+                <input type="number" id="new-nombre" placeholder="Nb" min="1" value="1">
+                <button onclick="addToLocal()" style="margin:0;">Ajouter</button>
+            </div>
+
+            <h4>Données en attente d'envoi (Local)</h4>
+            <ul id="pending-list" class="local-data">
+                <li>Aucune donnée en attente.</li>
+            </ul>
+
+            <button onclick="syncToGithub()" id="btn-sync" style="background-color: #27ae60;">
+                <i class="fas fa-cloud-upload-alt"></i> Envoyer vers GitHub (Mise en ligne)
+            </button>
+            <p id="sync-status"></p>
+
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="auth.js"></script> <script>
+        // Initialisation de la date d'aujourd'hui
+        document.getElementById('new-date').valueAsDate = new Date();
+        
+        // Charger le token s'il existe déjà
+        if(localStorage.getItem('gh_token')) {
+            document.getElementById('github-token').value = localStorage.getItem('gh_token');
+        }
+    </script>
+</body>
+</html>

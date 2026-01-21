@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lutte Frelon Asiatique - La Comté</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <header>
+        <h1><i class="fas fa-bug"></i> Vigilance Frelon Asiatique</h1>
+        <p>Commune de La Comté (62150)</p>
+	<a href="dashboard.html">Voir les statistiques détaillées</a>
+    </header>
+
+    <main>
+        <section id="meteo-indicator" class="card">
+            <h2>Indicateur de Vol des Fondatrices</h2>
+            <div id="weather-status">Chargement de la météo...</div>
+            <p><small>Basé sur la moyenne des températures des 5 derniers jours (>10°C).</small></p>
+        </section>
+
+        <section class="card">
+            <h2><i class="fas fa-chart-bar"></i> Suivi des Piégeages</h2>
+            <div id="stats-container">
+                <p>Chargement des données...</p>
+            </div>
+            <p><strong>Total fondatrices piégées : <span id="total-count">0</span></strong></p>
+        </section>
+
+        <section class="card">
+            <h2>Signalement & Contact</h2>
+            <p>Vous avez piégé une fondatrice ? Signalez-le nous.</p>
+            
+            <form action="https://formspree.io/f/maqqanoy" method="POST">
+                <label>Votre Nom :</label>
+                <input type="text" name="nom" required>
+                
+                <label>Lieu du piégeage :</label>
+                <input type="text" name="lieu" required>
+                
+                <label>Nombre de frelons :</label>
+                <input type="number" name="nombre" min="1" required>
+
+                <label>Votre Email :</label>
+                <input type="email" name="email" required>
+
+                <button type="submit">Envoyer le signalement</button>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <a href="admin.html">Accès Administration</a>
+    </footer>
+
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

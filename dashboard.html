@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de Bord - Frelon La Comté</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        /* Styles spécifiques au dashboard */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        /* Sur grand écran, on met le graphe et la carte côte à côte ou l'un sous l'autre */
+        @media (min-width: 768px) {
+            .dashboard-grid { grid-template-columns: 1fr 1fr; }
+            .full-width { grid-column: span 2; }
+        }
+
+        .chart-container {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+            height: 300px; /* Hauteur fixe pour les graphes */
+        }
+
+        #map {
+            height: 400px; /* La carte doit avoir une hauteur définie */
+            border-radius: 8px;
+            z-index: 1; /* S'assure que la carte reste sous le menu s'il y en a un */
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><i class="fas fa-chart-line"></i> Statistiques de Piégeage</h1>
+        <p>Commune de La Comté (62150)</p>
+        <nav>
+            <a href="index.html" class="button">← Retour Accueil</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="dashboard-grid">
+            
+            <div class="card full-width">
+                <h2>Cartographie des prises</h2>
+                <div id="map"></div>
+                <p><small>La localisation est approximative selon le lieu-dit renseigné.</small></p>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="timeChart"></canvas>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="locationChart"></canvas>
+            </div>
+            
+            <div class="card">
+                <h2>Résumé</h2>
+                <p>Total piégé : <strong id="total-stat" style="font-size: 1.5em; color: #d35400;">0</strong></p>
+                <p>Dernière prise : <span id="last-date">Aucune</span></p>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="dashboard.js"></script>
+
+</body>
+</html>
