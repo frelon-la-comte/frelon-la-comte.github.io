@@ -66,18 +66,24 @@ async function verifyParticipant() {
     const street = document.getElementById('user-street-nb').value.trim();
     const combined = id + street;
     
-    // Génère le hash de la saisie
-    const hashedInput = await sha256(combined);
-    
-    // Charge la liste des utilisateurs autorisés
-    const response = await fetch('users.json');
-    const authorizedUsers = await response.json();
+    try {
+        // Génère le hash de la saisie en utilisant la fonction de auth.js
+        const hashedInput = await sha256(combined);
+        
+        // Charge la liste des utilisateurs autorisés
+        const response = await fetch('users.json');
+        const authorizedUsers = await response.json();
 
-    if (authorizedUsers.includes(hashedInput)) {
-        // Succès : on montre le formulaire et on cache l'auth
-        document.getElementById('auth-section').style.display = 'none';
-        document.getElementById('signalement-form').style.display = 'block';
-    } else {
-        document.getElementById('auth-error').style.display = 'block';
+        if (authorizedUsers.includes(hashedInput)) {
+            // Succès : on montre le formulaire et on cache l'auth
+            document.getElementById('auth-section').style.display = 'none';
+            document.getElementById('signalement-form').style.display = 'block';
+        } else {
+            // Échec
+            document.getElementById('auth-error').style.display = 'block';
+        }
+    } catch (error) {
+        console.error("Erreur technique :", error);
+        alert("Le système de vérification ne peut pas fonctionner en local. Veuillez tester sur le site GitHub (HTTPS).");
     }
 }
