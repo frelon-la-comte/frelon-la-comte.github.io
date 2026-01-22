@@ -31,6 +31,9 @@
         </section>
 
         <section class="card">
+
+            <h2>Signalement & Contact</h2>
+            <p>Vous avez piégé une fondatrice ? Signalez-le nous.</p>
 			<div id="auth-section">
     			<p>Veuillez vous identifier pour signaler une prise :</p>
     			<input type="text" id="user-id" placeholder="3 premières lettres de votre nom" maxlength="3">
@@ -38,9 +41,6 @@
     			<button type="button" onclick="verifyParticipant()">Valider</button>
     			<p id="auth-error" style="color:red; display:none;">Identifiants non reconnus.</p>
 			</div>
-            <h2>Signalement & Contact</h2>
-            <p>Vous avez piégé une fondatrice ? Signalez-le nous.</p>
-            
             <form id="signalement-form" style="display:none;" action="https://formspree.io/f/maqqanoy" method="POST">
                 <label>Votre Nom :</label>
                 <input type="text" name="nom" required>
@@ -68,3 +68,4 @@
 </body>
 
 </html>
+
