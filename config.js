@@ -10,7 +10,8 @@ const CONFIG = {
     githubFilePath: "data.json", // Le nom du fichier à modifier
 
     // Hash SHA256 du mot de passe ""
-    adminHash: "2f839fd56456c98a773f73f24543f772110d2721aadc367ab81edc406ad2fa19",
+    adminHash: "d618f05387e6c6e5ca497f984c36549ee69b5c47e6e81a2c0466790057d3997b",
     emailDest: "lacomteaucoeurdelaruche@gmail.com"
 
 };
+
