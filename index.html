@@ -3,103 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lutte Frelon Asiatique - La Comté</title>
+    <title>Site en Travaux - La Comté</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+        }
+        .maintenance-card {
+            text-align: center;
+            border-top: 8px solid #d35400;
+        }
+        .icon-box {
+            font-size: 4em;
+            color: #d35400;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .badge {
+            display: inline-block;
+            background: #2c3e50;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+        h1 { margin-top: 0; color: #2c3e50; }
+        p { color: #666; line-height: 1.6; }
+        .footer-note {
+            margin-top: 30px;
+            font-size: 0.8em;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+    </style>
 </head>
 <body>
 
-    <header>
-        <h1><i class="fas fa-bug"></i> Vigilance Frelon Asiatique</h1>
-        <!--<p>Commune de La Comté (62150)</p>-->
-		<H2>Ensemble, protégeons notre biodiversité à La Comté</H2>
-		<section class="card accueil">
-			<p>	La lutte contre le frelon asiatique est l'affaire de tous. Au printemps, chaque fondatrice piégée évite la naissance d'un futur nid et protège nos abeilles ainsi que les insectes pollinisateurs de notre commune.<br>
-				<ul>
-				<li><strong>Comment participer ?</strong></li> Pour garantir la qualité de notre suivi scientifique, l'accès au formulaire de signalement est réservé aux habitants volontaires ayant reçu leur kit de piégeage.<br>
-				<li><strong>Identification :</strong></li> Munissez-vous du courrier qui vous a été transmis. Vos identifiants correspondent aux 3 premières lettres de votre nom suivies de votre numéro de rue (ex: si M. DURAND habite au n°12, son code est dur12).<br>
-				<li>Vos données sont traitées de manière confidentielle et servent uniquement à cartographier la présence du frelon sur notre territoire.</li>
-				</ul>
-			</p>
-		</section>
-	<a href="dashboard.html">Voir les statistiques détaillées</a>
-	<a href="ressources.html">Ressources PDF</a> </nav>
-    </header>
+    <main class="card maintenance-card">
+        <div class="badge">Lancement incertain</div>
+        <div class="icon-box">
+            <i class="fas fa-tools"></i>
+        </div>
+        
+        <h1>Site en Maintenance</h1>
+        
+        <p>Le dispositif <strong>Vigilance Frelon La Comté</strong> prépare sa mise en ligne pour la campagne de piégeage 2026.</p>
+        
+        <p>Nous finalisons les outils de cartographie et de signalement pour mieux protéger notre biodiversité.</p>
 
-    <main>
-        <section id="meteo-indicator" class="card">
-            <h2>Indicateur de Vol des Fondatrices</h2>
-            <div id="weather-status">Chargement de la météo...</div>
-            <p><small>Basé sur la moyenne des températures des 5 derniers jours (>10°C).</small></p>
-        </section>
-
-        <section class="card">
-            <h2><i class="fas fa-chart-bar"></i> Suivi des Piégeages</h2>
-            <div id="stats-container">
-                <p>Chargement des données...</p>
-            </div>
-            <p><strong>Total fondatrices piégées : <span id="total-count">0</span></strong></p>
-        </section>
-
-        <section class="card">
-
-            <h2>Signalement & Contact</h2>
-            <p>Vous avez piégé une fondatrice ? Signalez-le nous.</p>
-			<div id="auth-section">
-    			<p>Veuillez vous identifier pour signaler une prise :</p>
-    			<input type="text" id="user-id" placeholder="3 premières lettres de votre nom" maxlength="3">
-    			<input type="text" id="user-street-nb" placeholder="Votre numéro de rue">
-    			<button type="button" onclick="verifyParticipant()">Valider</button>
-    			<p id="auth-error" style="color:red; display:none;">Identifiants non reconnus.</p>
-			</div>
-			
-            <form id="signalement-form" style="display:none;" action="https://formspree.io/f/maqqanoy" method="POST">
-                <label>Votre Nom :</label>
-                <input type="text" name="nom" required>
-                
-                <label>Lieu du piégeage :</label>
-                <input type="text" name="lieu" required>
-                
-                <label>Nombre de frelons :</label>
-                <input type="number" name="nombre" min="1" required>
-
-                <label>Votre Email :</label>
-                <input type="email" name="email" required>
-		
-		<label>Photo du frelon (Obligatoire) :</label>
-                <p style="font-size: 0.8em; color: #666; margin-top: -10px;">Une photo nette permet de confirmer l'espèce.</p><input type="file" name="upload" accept="image/*" required>
-
-				<label style="font-size: 0.8em; display: flex; align-items: flex-start; gap: 10px;">
-    			<input type="checkbox" name="rgpd_consent" required style="width: auto; margin-top: 5px;">
-    			<span>J'accepte que mes données (nom, email, lieu) soient utilisées par La Comté au coeur de la ruche pour le suivi de la lutte contre le frelon asiatique.</span>
-				</label>
-
-                <button type="submit">Envoyer le signalement</button>
-            </form>
-        </section>
+       <!-- <div class="footer-note">
+            <p><i class="fas fa-envelope"></i> Contact : lacomteaucoeurdelaruche@gmail.com</p>
+            <p>&copy; 2026 - Commune de La Comté</p>
+        </div>-->
     </main>
 
-    <footer>
-        <a href="admin.html">Accès Administration</a>
-	    <p>&copy; 2026 - La Comté au coeur de la ruche</p>
-        <p><a href="mentions-legales.html" style="color: #666; text-decoration: underline; font-size: 0.8em;">Mentions Légales & RGPD</a></p>	
-    </footer>
-
-    <script src="config.js"></script>
-	<script src="auth.js"></script>
-    <script src="script.js"></script>
 </body>
-
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
