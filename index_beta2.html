@@ -45,43 +45,38 @@
 
             <h2>Signalement & Contact</h2>
             <p>Vous avez piégé une fondatrice ? Signalez-le nous.</p>
-			<div id="auth-section">
+		<div id="auth-section">
     			<p>Veuillez vous identifier pour signaler une prise :</p>
-    			<input type="text" id="user-id" placeholder="3 premières lettres de votre nom" maxlength="3">
-    			<input type="text" id="user-street-nb" placeholder="Votre numéro de rue">
-    			<button type="button" onclick="verifyParticipant()">Valider</button>
+    				<input type="text" id="user-id" placeholder="3 premières lettres de votre nom" maxlength="3">
+    				<input type="text" id="user-street-nb" placeholder="Votre numéro de rue">
+    				<button type="button" onclick="verifyParticipant()">Valider</button>
     			<p id="auth-error" style="color:red; display:none;">Identifiants non reconnus.</p>
-			</div>
+		</div>
 			
-  <form id="signalement-form" 
-      style="display:none;" 
-      action="https://docs.google.com/forms/d/e/1FAIpQLSf_XmjqXUbIqaRY-pKDnJSQzDbEt-hfyLHe9VwjlDMpY_LJxg/formResponse" 
-      method="POST" 
-      target="hidden_iframe" 
-      onsubmit="submitted=true;">
+ 		<form id="signalement-form" style="display:none;" action="https://docs.google.com/forms/d/e/1FAIpQLSf_XmjqXUbIqaRY-pKDnJSQzDbEt-hfyLHe9VwjlDMpY_LJxg/formResponse" method="POST" target="hidden_iframe" onsubmit="submitted=true;">
 
-    <label>Votre Nom :</label>
-    <input type="text" name="entry.402633101" required>
+    			<label>Votre Nom :</label>
+    			<input type="text" name="entry.402633101" required>
     
-    <label>Lieu du piégeage :</label>
-    <input type="text" name="entry.891157190" required>
+    			<label>Lieu du piégeage :</label>
+    			<input type="text" name="entry.891157190" required>
     
-    <label>Nombre de frelons :</label>
-    <input type="number" name="entry.1195598964" min="1" required>
+    			<label>Nombre de frelons :</label>
+    			<input type="number" name="entry.1195598964" min="1" required>
 
-    <label>Votre Email :</label>
-    <input type="email" name="entry.903503386" required>
+   			<label>Votre Email :</label>
+    			<input type="email" name="entry.903503386" required>
     
-    <label style="font-size: 0.8em; display: flex; align-items: flex-start; gap: 10px;">
-        <input type="checkbox" name="entry.1543789392" value="J'accepte" required style="width: auto; margin-top: 5px;">
-        <span>J'accepte que mes données soient utilisées pour le suivi de la lutte contre le frelon asiatique.</span>
-    </label>
+    			<label style="font-size: 0.8em; display: flex; align-items: flex-start; gap: 10px;">
+        		<input type="checkbox" name="entry.516454124" value="J'accepte" required style="width: auto; margin-top: 5px;">
+        		<span>J'accepte que mes données soient utilisées pour le suivi de la lutte contre le frelon asiatique.</span>
+    			</label>
 
-    <button type="submit">Envoyer le signalement</button>
-</form>
+    			<button type="submit">Envoyer le signalement</button>
+		</form>
 
 <script type="text/javascript">var submitted=false;</script>
-<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted) {window.location='merci.html';}"></iframe>
+<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted){window.location='merci.html';}"></iframe>
 
         </section>
     </main>
