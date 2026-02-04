@@ -6,53 +6,77 @@
     <title>Signalement Reçu - La Comté</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Quelques styles spécifiques pour embellir cette page sans toucher à votre style.css */
+        .success-icon { font-size: 4em; color: #27ae60; margin-bottom: 20px; animation: popIn 0.5s ease; }
+        .action-box { background: #fff3e0; border-left: 5px solid #d35400; padding: 20px; margin: 30px 0; text-align: left; border-radius: 4px; }
+        .btn-photo { display: block; width: 100%; text-decoration: none; padding: 15px; border-radius: 8px; font-weight: bold; margin-bottom: 10px; text-align: center; transition: transform 0.2s; color: white !important;}
+        .btn-photo:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .btn-whatsapp { background-color: #25D366; }
+        .btn-email { background-color: #3498db; }
+        
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
 </head>
 <body>
 
     <header>
-        <h1><i class="fas fa-check-circle"></i> Signalement Enregistré</h1>
+        <h1><i class="fas fa-bug"></i> Vigilance Frelon Asiatique</h1>
+        <h2>Commune de La Comté</h2>
     </header>
 
     <main>
-        <section class="card" style="text-align: center;">
-            <div style="color: #27ae60; font-size: 4em; margin-bottom: 20px;">
-                <i class="fas fa-clipboard-check"></i>
+        <section class="card" style="text-align: center; max-width: 600px; margin: 0 auto;">
+            
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
             </div>
 
-            <h2 style="color: #2c3e50;">Merci ! Vos données sont transmises.</h2>
+            <h2 style="color: #2c3e50; margin-top: 0;">Bien reçu !</h2>
             
             <p style="font-size: 1.1em; color: #555;">
-                Les informations du piégeage (Lieu, Nombre, Date) ont bien été reçues.
+                Votre signalement a été enregistré dans notre base de données.
             </p>
 
-            <div style="background: #e8f5e9; border: 2px dashed #27ae60; padding: 25px; border-radius: 12px; margin: 30px 0; text-align: center;">
-                
-                <h3 style="margin-top: 0; color: #2e7d32; font-size: 1.3em;">
-                    <i class="fas fa-camera"></i> Encore une petite action...
+            <div class="action-box">
+                <h3 style="margin-top: 0; color: #d35400; font-size: 1.2em;">
+                    <i class="fas fa-camera"></i> Dernière étape : La preuve photo
                 </h3>
-                
-                <p style="margin-bottom: 20px; color: #444;">
-                    Pour valider définitivement ce signalement et éviter les erreurs d'identification, <strong>merci de nous envoyer la photo de votre prise par mail.</strong>
+                <p style="color: #444; font-size: 0.95em; margin-bottom: 20px;">
+                    Pour valider scientifiquement votre prise, merci de nous envoyer une photo du frelon ou du nid par le moyen qui vous arrange :
                 </p>
 
-                <a href="mailto:lacomteaucoeurdelaruche@gmail.com?subject=Photo Preuve - Signalement Frelon&body=Bonjour, voici la photo correspondant à mon signalement de ce jour." class="button" style="background-color: #27ae60; font-size: 1.1em; padding: 15px 30px;">
-                    <i class="fas fa-paper-plane"></i> Envoyer la photo maintenant
+                <a href="https://wa.me/33626857855?text=Bonjour,%20voici%20la%20photo%20pour%20mon%20signalement%20Frelon%20à%20La%20Comté." 
+                   target="_blank"
+                   class="btn-photo btn-whatsapp">
+                    <i class="fab fa-whatsapp"></i> Envoyer via WhatsApp
                 </a>
-                
-                <p style="font-size: 0.8em; margin-top: 15px; color: #666;">
-                    <em>(Cela ouvrira directement votre application mail)</em>
-                </p>
+
+                <a href="mailto:lacomteaucoeurdelaruche@gmail.com?subject=Photo Signalement Frelon&body=Bonjour, voici la photo de ma prise." 
+                   class="btn-photo btn-email">
+                    <i class="fas fa-envelope"></i> Envoyer par Email
+                </a>
             </div>
 
-            <div style="margin-top: 40px; display: flex; gap: 10px; justify-content: center;">
-                <a href="index.html" class="button" style="background-color: #7f8c8d;">Retour à l'accueil</a>
-                <a href="dashboard.html" class="button" style="background-color: #d35400;">Voir la carte</a>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                <a href="index.html" class="button" style="background-color: #7f8c8d; width: auto; flex: 1;">
+                    <i class="fas fa-home"></i> Accueil
+                </a>
+                <a href="dashboard.html" class="button" style="background-color: #d35400; width: auto; flex: 1;">
+                    <i class="fas fa-chart-line"></i> Voir les stats
+                </a>
             </div>
         </section>
     </main>
 
     <footer>
-        <p>&copy; 2026 - La Comté au coeur de la ruche</p>
+        <p>&copy; 2026 - La Comté au cœur de la ruche</p>
     </footer>
 
 </body>
