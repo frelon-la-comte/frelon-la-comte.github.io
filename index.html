@@ -92,6 +92,33 @@
         }
         .step-active { color: #d35400; font-weight: bold; }
 
+	/* Compte à rebours */
+#countdown {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 20px 0;
+}
+.time-box {
+    background: #fdf2e9; /* Fond très léger orange */
+    border: 1px solid #e67e22;
+    padding: 10px;
+    border-radius: 8px;
+    min-width: 60px;
+    text-align: center;
+}
+.time-box span {
+    display: block;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #d35400;
+}
+.time-box small {
+    font-size: 0.7em;
+    color: #7f8c8d;
+    text-transform: uppercase;
+}
+
     </style>
 </head>
 <body>
@@ -108,7 +135,14 @@
         <p class="description">
             Le dispositif <strong>Vigilance Frelon La Comté</strong> est dans sa phase finale de préparation. Nous organisons actuellement la logistique pour le déploiement des pièges.
         </p>
-
+	
+	<div id="countdown">
+    <div class="time-box"><span id="days">00</span><small>Jours</small></div>
+    <div class="time-box"><span id="hours">00</span><small>Heures</small></div>
+    <div class="time-box"><span id="minutes">00</span><small>Min</small></div>
+    <div class="time-box"><span id="seconds">00</span><small>Sec</small></div>
+</div>
+	
         <div class="progress-container">
             <div class="progress-bar">95%</div>
         </div>
@@ -129,6 +163,34 @@
         </div>
     </main>
 
+	<script>
+    // Date cible : 13 Février 2026 à 18h00
+    const launchDate = new Date('Feb 13, 2026 18:00:00').getTime();
+
+    const timer = setInterval(function() {
+        const now = new Date().getTime();
+        const distance = launchDate - now;
+
+        // Calculs du temps
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        // Affichage
+        document.getElementById("days").innerHTML = days;
+        document.getElementById("hours").innerHTML = hours < 10 ? "0" + hours : hours;
+        document.getElementById("minutes").innerHTML = minutes < 10 ? "0" + minutes : minutes;
+        document.getElementById("seconds").innerHTML = seconds < 10 ? "0" + seconds : seconds;
+
+        // Si le compte à rebours est fini
+        if (distance < 0) {
+            clearInterval(timer);
+            document.getElementById("countdown").innerHTML = "<h3 style='color:#d35400'>Lancement en cours !</h3>";
+        }
+    }, 1000);
+</script>
+	
 </body>
 
 </html>
