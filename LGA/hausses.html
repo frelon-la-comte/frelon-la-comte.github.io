@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LGA - Gestion des Hausses</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/hausses.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>📦 LGA - Gestion des Hausses</h1>
+            <nav class="header-nav">
+                <a href="index.html" class="header-link">← Retour au tableau de bord</a>
+            </nav>
+        </header>
+
+        <!-- Statistiques hausses -->
+        <div class="stats-grid">
+            <div class="stat-card stat-hausses-total">
+                <div class="stat-header">
+                    <span class="stat-label">Hausses Totales</span>
+                    <span class="stat-icon">📦</span>
+                </div>
+                <div class="stat-value" id="total-hausses">0</div>
+            </div>
+            
+            <div class="stat-card stat-hausses-ruches">
+                <div class="stat-header">
+                    <span class="stat-label">Sur Ruches</span>
+                    <span class="stat-icon">🐝</span>
+                </div>
+                <div class="stat-value" id="hausses-sur-ruches">0</div>
+            </div>
+            
+            <div class="stat-card stat-hausses-stock">
+                <div class="stat-header">
+                    <span class="stat-label">En Stock</span>
+                    <span class="stat-icon">🏪</span>
+                </div>
+                <div class="stat-value" id="hausses-stock">0</div>
+            </div>
+
+            <div class="stat-card stat-production-estimee">
+                <div class="stat-header">
+                    <span class="stat-label">Production Estimée</span>
+                    <span class="stat-icon">🍯</span>
+                </div>
+                <div class="stat-value" id="production-estimee">0 kg</div>
+            </div>
+        </div>
+
+        <main class="main-content">
+            
+            <!-- Section Ajout Hausse -->
+            <section class="card">
+                <h2>➕ Ajouter une Hausse</h2>
+                <form id="form-hausse" class="form-grid-hausse">
+                    <input type="text" id="hausse-numero" placeholder="N° Hausse (ex: H001)" required>
+                    <select id="hausse-type" required>
+                        <option value="">Type de hausse</option>
+                        <option value="Dadant">Dadant</option>
+                        <option value="Langstroth">Langstroth</option>
+                        <option value="Voirnot">Voirnot</option>
+                    </select>
+                    <input type="number" id="hausse-tare" placeholder="Tare (kg)" step="0.1" min="0" required>
+                    <input type="number" id="hausse-annee" placeholder="Année acquisition" min="2000" max="2099">
+                    <select id="hausse-statut">
+                        <option value="Stock">En stock</option>
+                        <option value="Sur ruche">Sur ruche</option>
+                        <option value="Entretien">En entretien</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">Ajouter la hausse</button>
+                </form>
+            </section>
+
+            <!-- Filtres -->
+            <section class="card">
+                <h2>🔍 Filtres</h2>
+                <div class="filtres-container">
+                    <button class="btn-filtre active" data-filtre="tous" onclick="filtrerHausses('tous')">
+                        Toutes (<span id="count-tous">0</span>)
+                    </button>
+                    <button class="btn-filtre" data-filtre="Stock" onclick="filtrerHausses('Stock')">
+                        En Stock (<span id="count-stock">0</span>)
+                    </button>
+                    <button class="btn-filtre" data-filtre="Sur ruche" onclick="filtrerHausses('Sur ruche')">
+                        Sur Ruches (<span id="count-ruche">0</span>)
+                    </button>
+                    <button class="btn-filtre" data-filtre="Entretien" onclick="filtrerHausses('Entretien')">
+                        En Entretien (<span id="count-entretien">0</span>)
+                    </button>
+                </div>
+                <input type="text" id="search-hausse" placeholder="🔍 Rechercher par numéro..." class="search-input">
+            </section>
+
+            <!-- Liste des hausses -->
+            <section class="card">
+                <h2>📋 Mes Hausses</h2>
+                <div id="liste-hausses" class="hausses-container">
+                    <p class="empty-message">Aucune hausse enregistrée. Ajoutez votre première hausse ci-dessus.</p>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Modal Détails Hausse -->
+        <div id="modal-hausse" class="modal">
+            <div class="modal-content modal-hausse-large">
+                <div class="modal-header">
+                    <h2 id="modal-titre-hausse">Détails de la hausse</h2>
+                    <button class="modal-close" onclick="fermerModalHausse()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    
+                    <!-- Info et QR Code -->
+                    <div class="hausse-header-section">
+                        <div class="hausse-info-principale">
+                            <div class="info-row">
+                                <span class="info-label">Type :</span>
+                                <strong id="info-type">-</strong>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Tare :</span>
+                                <strong id="info-tare">-</strong>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Statut :</span>
+                                <select id="info-statut" onchange="changerStatutHausse()">
+                                    <option value="Stock">En stock</option>
+                                    <option value="Sur ruche">Sur ruche</option>
+                                    <option value="Entretien">En entretien</option>
+                                </select>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Ruche actuelle :</span>
+                                <select id="info-ruche-actuelle" onchange="associerRuche()">
+                                    <option value="">Aucune</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="qr-code-section">
+                            <div id="qrcode-container"></div>
+                            <button class="btn btn-primary btn-small" onclick="telechargerQRCode()">
+                                💾 Télécharger QR Code
+                            </button>
+                            <button class="btn btn-primary btn-small" onclick="imprimerEtiquette()">
+                                🖨️ Imprimer Étiquette
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Navigation des onglets -->
+                    <div class="modal-tabs">
+                        <button class="modal-tab active" data-tab="entretien">Entretien</button>
+                        <button class="modal-tab" data-tab="poses">Poses/Récoltes</button>
+                        <button class="modal-tab" data-tab="historique">Historique</button>
+                        <button class="modal-tab" data-tab="stats">Statistiques</button>
+                    </div>
+
+                    <!-- Onglet Entretien -->
+                    <div id="tab-entretien-hausse" class="modal-tab-content active">
+                        <h3>🧹 Entretien</h3>
+                        
+                        <form id="form-entretien" class="form-modal">
+                            <input type="date" id="entretien-date" required>
+                            <select id="entretien-action" required>
+                                <option value="">Type d'action</option>
+                                <option value="Grattage">Grattage</option>
+                                <option value="Désinfection">Désinfection</option>
+                                <option value="Nettoyage">Nettoyage</option>
+                                <option value="Réparation">Réparation</option>
+                                <option value="Remplacement cadres">Remplacement cadres</option>
+                            </select>
+                            <input type="text" id="entretien-produit" placeholder="Produit utilisé (optionnel)">
+                            <input type="text" id="entretien-lot" placeholder="N° Lot produit (optionnel)">
+                            <textarea id="entretien-notes" placeholder="Notes" rows="2"></textarea>
+                            <button type="submit" class="btn btn-success">Ajouter</button>
+                        </form>
+
+                        <div class="table-container">
+                            <table id="table-entretien-hausse">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Action</th>
+                                        <th>Produit</th>
+                                        <th>N° Lot</th>
+                                        <th>Notes</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Poses/Récoltes -->
+                    <div id="tab-poses-hausse" class="modal-tab-content">
+                        <h3>📍 Poses et Récoltes</h3>
+                        
+                        <div class="pose-actions">
+                            <div class="pose-card">
+                                <h4>📤 Poser sur Ruche</h4>
+                                <form id="form-pose" class="pose-form">
+                                    <select id="pose-ruche" required>
+                                        <option value="">Sélectionner ruche</option>
+                                    </select>
+                                    <input type="date" id="pose-date" required>
+                                    <input type="number" id="pose-tare" placeholder="Tare à la pose (kg)" step="0.1" min="0" required>
+                                    <small class="info-text">⚠️ Peser la hausse + cadres avant pose</small>
+                                    <button type="submit" class="btn btn-warning">Poser</button>
+                                </form>
+                            </div>
+
+                            <div class="pose-card">
+                                <h4>📥 Récolter</h4>
+                                <form id="form-recolte" class="pose-form">
+                                    <input type="date" id="recolte-date" required>
+                                    <input type="number" id="recolte-poids-plein" placeholder="Poids plein (kg)" step="0.1" min="0" required>
+                                    <small class="info-text">Hausse pleine avant extraction</small>
+                                    <input type="number" id="recolte-poids-vide" placeholder="Poids vide après extraction (kg)" step="0.1" min="0" required>
+                                    <small class="info-text">Hausse vide après extraction</small>
+                                    <input type="text" id="recolte-lot" placeholder="N° Lot production (optionnel)">
+                                    <button type="submit" class="btn btn-success">Récolter</button>
+                                </form>
+                                <div class="production-info" id="production-info" style="display: none;">
+                                    <strong>Poids miel dans hausse:</strong> <span id="poids-miel-hausse">0 kg</span><br>
+                                    <strong>Miel extrait:</strong> <span id="miel-extrait">0 kg</span><br>
+                                    <strong>Rendement extraction:</strong> <span id="rendement-extraction">0%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-container">
+                            <table id="table-poses-hausse">
+                                <thead>
+                                    <tr>
+                                        <th>Date Pose</th>
+                                        <th>Ruche</th>
+                                        <th>Tare Pose</th>
+                                        <th>Date Récolte</th>
+                                        <th>Poids Plein</th>
+                                        <th>Poids Vide</th>
+                                        <th>Miel Extrait</th>
+                                        <th>Rendement</th>
+                                        <th>Lot</th>
+                                        <th>Durée</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Historique -->
+                    <div id="tab-historique-hausse" class="modal-tab-content">
+                        <h3>📜 Historique Complet</h3>
+                        <div id="historique-timeline" class="timeline-container">
+                            <p class="empty-message">Aucun événement enregistré</p>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Statistiques -->
+                    <div id="tab-stats-hausse" class="modal-tab-content">
+                        <h3>📊 Statistiques de la Hausse</h3>
+                        <div class="stats-hausse-container">
+                            <div class="stat-hausse-card">
+                                <h4>📦 Utilisation</h4>
+                                <div class="stat-hausse-info">
+                                    <p>Nombre de poses : <strong id="stat-nb-poses">0</strong></p>
+                                    <p>Nombre de récoltes : <strong id="stat-nb-recoltes">0</strong></p>
+                                    <p>Production totale : <strong id="stat-prod-totale">0 kg</strong></p>
+                                    <p>Moyenne par récolte : <strong id="stat-prod-moyenne">0 kg</strong></p>
+                                </div>
+                            </div>
+
+                            <div class="stat-hausse-card">
+                                <h4>🔧 Entretien</h4>
+                                <div class="stat-hausse-info">
+                                    <p>Dernier entretien : <strong id="stat-dernier-entretien">-</strong></p>
+                                    <p>Nombre d'entretiens : <strong id="stat-nb-entretiens">0</strong></p>
+                                    <p>Actions les plus fréquentes : <strong id="stat-actions-freq">-</strong></p>
+                                </div>
+                            </div>
+
+                            <div class="stat-hausse-card">
+                                <h4>⏱️ Performances</h4>
+                                <div class="stat-hausse-info">
+                                    <p>Meilleure récolte : <strong id="stat-meilleure-recolte">0 kg</strong></p>
+                                    <p>Production/kg tare : <strong id="stat-prod-par-tare">0</strong></p>
+                                    <p>Durée moy. sur ruche : <strong id="stat-duree-moyenne">0 jours</strong></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-danger" onclick="supprimerHausseActive()">🗑️ Supprimer cette hausse</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Étiquette (pour impression) -->
+        <div id="modal-etiquette" class="modal">
+            <div class="modal-content modal-etiquette">
+                <div class="etiquette-print" id="etiquette-print">
+                    <div class="etiquette-header">
+                        <h1 id="etiquette-numero">H001</h1>
+                        <p id="etiquette-type">Dadant</p>
+                    </div>
+                    <div class="etiquette-qr" id="etiquette-qr"></div>
+                    <div class="etiquette-info">
+                        <p>Tare: <span id="etiquette-tare">0 kg</span></p>
+                        <p>Année: <span id="etiquette-annee">2024</span></p>
+                    </div>
+                    <div class="etiquette-footer">
+                        🐝 LGA - Gestion Apicole
+                    </div>
+                </div>
+                <div class="etiquette-actions">
+                    <button class="btn btn-primary" onclick="window.print()">🖨️ Imprimer</button>
+                    <button class="btn" onclick="fermerModalEtiquette()">Fermer</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="js/hausses.js"></script>
+</body>
+</html>

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LGA - Gestion Clients</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/clients.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>👥 LGA - Gestion Clients</h1>
+            <nav class="header-nav">
+                <a href="index.html" class="header-link">← Retour au tableau de bord</a>
+            </nav>
+        </header>
+
+        <!-- Statistiques clients -->
+        <div class="stats-grid">
+            <div class="stat-card stat-clients">
+                <div class="stat-header">
+                    <span class="stat-label">Clients Actifs</span>
+                    <span class="stat-icon">👥</span>
+                </div>
+                <div class="stat-value" id="total-clients">0</div>
+            </div>
+            
+            <div class="stat-card stat-commandes">
+                <div class="stat-header">
+                    <span class="stat-label">Commandes en Cours</span>
+                    <span class="stat-icon">📋</span>
+                </div>
+                <div class="stat-value" id="total-commandes">0</div>
+            </div>
+            
+            <div class="stat-card stat-consignes">
+                <div class="stat-header">
+                    <span class="stat-label">Pots en Consigne</span>
+                    <span class="stat-icon">🏺</span>
+                </div>
+                <div class="stat-value" id="total-consignes">0</div>
+            </div>
+
+            <div class="stat-card stat-impact">
+                <div class="stat-header">
+                    <span class="stat-label">Impact Consignes</span>
+                    <span class="stat-icon">📉</span>
+                </div>
+                <div class="stat-value" id="impact-consignes">0.00 €</div>
+            </div>
+        </div>
+
+        <main class="main-content">
+            
+            <!-- Section Ajout Client -->
+            <section class="card">
+                <h2>➕ Ajouter un Client</h2>
+                <form id="form-client" class="form-grid-client">
+                    <input type="text" id="client-nom" placeholder="Nom" required>
+                    <input type="text" id="client-prenom" placeholder="Prénom" required>
+                    <input type="email" id="client-email" placeholder="Email (optionnel)">
+                    <input type="tel" id="client-tel" placeholder="Téléphone (optionnel)">
+                    <textarea id="client-notes" placeholder="Notes (préférences, allergies...)" rows="2"></textarea>
+                    <button type="submit" class="btn btn-primary">Ajouter le client</button>
+                </form>
+            </section>
+
+            <!-- Liste des clients -->
+            <section class="card">
+                <h2>📋 Mes Clients</h2>
+                <div class="search-bar">
+                    <input type="text" id="search-client" placeholder="🔍 Rechercher un client..." class="search-input">
+                </div>
+                <div id="liste-clients" class="clients-container">
+                    <p class="empty-message">Aucun client enregistré. Ajoutez votre premier client ci-dessus.</p>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Modal Détails Client -->
+        <div id="modal-client" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modal-titre-client">Détails du client</h2>
+                    <button class="modal-close" onclick="fermerModalClient()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    
+                    <!-- Info client -->
+                    <div class="client-info-section">
+                        <div class="client-info-card">
+                            <p><strong>📧 Email :</strong> <span id="info-email">-</span></p>
+                            <p><strong>📱 Téléphone :</strong> <span id="info-tel">-</span></p>
+                            <p><strong>📝 Notes :</strong> <span id="info-notes">-</span></p>
+                        </div>
+                        <div class="client-stats-card">
+                            <div class="client-stat-item">
+                                <span>Commandes totales :</span>
+                                <strong id="stat-commandes-total">0</strong>
+                            </div>
+                            <div class="client-stat-item">
+                                <span>Chiffre d'affaires :</span>
+                                <strong id="stat-ca-client">0.00 €</strong>
+                            </div>
+                            <div class="client-stat-item">
+                                <span>Pots en consigne :</span>
+                                <strong id="stat-consignes-client">0</strong>
+                            </div>
+                            <div class="client-stat-item">
+                                <span>Pots rendus :</span>
+                                <strong id="stat-rendus-client">0</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation des onglets -->
+                    <div class="modal-tabs">
+                        <button class="modal-tab active" data-tab="commandes">Commandes</button>
+                        <button class="modal-tab" data-tab="consignes">Consignes</button>
+                        <button class="modal-tab" data-tab="historique">Historique</button>
+                        <button class="modal-tab" data-tab="habitudes">Habitudes</button>
+                    </div>
+
+                    <!-- Onglet Commandes -->
+                    <div id="tab-commandes-client" class="modal-tab-content active">
+                        <h3>🛒 Commandes</h3>
+                        
+                        <form id="form-commande" class="form-modal">
+                            <select id="cmd-produit" required>
+                                <option value="">Produit</option>
+                                <option value="Miel 250g">Miel 250g</option>
+                                <option value="Miel 500g">Miel 500g</option>
+                                <option value="Miel 1kg">Miel 1kg</option>
+                                <option value="Pain d'épices">Pain d'épices</option>
+                                <option value="Bougie cire">Bougie cire</option>
+                                <option value="Propolis">Propolis</option>
+                            </select>
+                            <input type="number" id="cmd-quantite" placeholder="Quantité" min="1" required>
+                            <input type="date" id="cmd-date-livraison" placeholder="Date livraison souhaitée">
+                            <select id="cmd-statut">
+                                <option value="En attente">En attente</option>
+                                <option value="En préparation">En préparation</option>
+                                <option value="Prête">Prête</option>
+                                <option value="Livrée">Livrée</option>
+                            </select>
+                            <textarea id="cmd-notes" placeholder="Notes (ex: pour Noël)"></textarea>
+                            <button type="submit" class="btn btn-success">Ajouter commande</button>
+                        </form>
+
+                        <div class="table-container">
+                            <table id="table-commandes-client">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Produit</th>
+                                        <th>Quantité</th>
+                                        <th>Livraison</th>
+                                        <th>Statut</th>
+                                        <th>Notes</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Consignes -->
+                    <div id="tab-consignes-client" class="modal-tab-content">
+                        <h3>🏺 Gestion des Consignes</h3>
+                        
+                        <div class="consigne-info">
+                            <p>💰 <strong>Réduction :</strong> 0.50€ par pot rendu</p>
+                            <p>⚠️ <strong>Impact sur bénéfice :</strong> Les consignes réduisent votre marge</p>
+                        </div>
+
+                        <div class="consigne-actions">
+                            <div class="consigne-action-card">
+                                <h4>📤 Pots Donnés en Consigne</h4>
+                                <form id="form-donner-consigne" class="consigne-form">
+                                    <input type="number" id="consigne-donner-nb" placeholder="Nombre de pots" min="1" required>
+                                    <select id="consigne-donner-type">
+                                        <option value="250g">250g</option>
+                                        <option value="500g">500g</option>
+                                        <option value="1kg">1kg</option>
+                                    </select>
+                                    <input type="date" id="consigne-donner-date" required>
+                                    <button type="submit" class="btn btn-warning">Donner pots</button>
+                                </form>
+                            </div>
+
+                            <div class="consigne-action-card">
+                                <h4>📥 Pots Rendus (avec réduction)</h4>
+                                <form id="form-rendre-consigne" class="consigne-form">
+                                    <input type="number" id="consigne-rendre-nb" placeholder="Nombre de pots" min="1" required>
+                                    <select id="consigne-rendre-type">
+                                        <option value="250g">250g</option>
+                                        <option value="500g">500g</option>
+                                        <option value="1kg">1kg</option>
+                                    </select>
+                                    <input type="date" id="consigne-rendre-date" required>
+                                    <button type="submit" class="btn btn-success">Rendre pots</button>
+                                </form>
+                                <div class="reduction-info" id="reduction-info" style="display: none;">
+                                    Réduction accordée : <strong id="reduction-montant">0.00 €</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-container">
+                            <table id="table-consignes-client">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Action</th>
+                                        <th>Type</th>
+                                        <th>Quantité</th>
+                                        <th>Réduction</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+
+                        <div class="total-section">
+                            <strong>Pots actuellement en consigne : <span id="total-consigne-client">0</span></strong>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Historique -->
+                    <div id="tab-historique-client" class="modal-tab-content">
+                        <h3>📜 Historique des Achats</h3>
+                        <div class="table-container">
+                            <table id="table-historique-client">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Produit</th>
+                                        <th>Quantité</th>
+                                        <th>Prix Unit.</th>
+                                        <th>Réduction</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div class="total-section">
+                            <strong>Total dépensé : <span id="total-depense-client">0.00 €</span></strong><br>
+                            <strong>Total réductions : <span id="total-reductions-client">0.00 €</span></strong>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Habitudes -->
+                    <div id="tab-habitudes-client" class="modal-tab-content">
+                        <h3>📊 Habitudes d'Achat</h3>
+                        <div class="habitudes-container">
+                            <div class="habitude-card">
+                                <h4>🍯 Produits Préférés</h4>
+                                <div id="produits-preferes" class="habitude-list">
+                                    <p class="empty-message">Aucun achat enregistré</p>
+                                </div>
+                            </div>
+
+                            <div class="habitude-card">
+                                <h4>📅 Fréquence d'Achat</h4>
+                                <div id="frequence-achat" class="habitude-info">
+                                    <p>Premier achat : <strong id="premier-achat">-</strong></p>
+                                    <p>Dernier achat : <strong id="dernier-achat">-</strong></p>
+                                    <p>Nombre d'achats : <strong id="nb-achats">0</strong></p>
+                                    <p>Panier moyen : <strong id="panier-moyen">0.00 €</strong></p>
+                                </div>
+                            </div>
+
+                            <div class="habitude-card">
+                                <h4>🎯 Recommandations</h4>
+                                <div id="recommandations" class="recommandations-list">
+                                    <p class="empty-message">Les recommandations apparaîtront après quelques achats</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-danger" onclick="supprimerClientActif()">🗑️ Supprimer ce client</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="js/clients.js"></script>
+</body>
+</html>

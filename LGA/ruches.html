@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LGA - Consommation des Ressources</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/ruches.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🐝 LGA - Consommation des Ressources</h1>
+            <nav class="header-nav">
+                <a href="index.html" class="header-link">← Retour au tableau de bord</a>
+            </nav>
+        </header>
+
+        <!-- Statistiques globales -->
+        <div class="stats-grid">
+            <div class="stat-card stat-ruches">
+                <div class="stat-header">
+                    <span class="stat-label">Nombre de Ruches</span>
+                    <span class="stat-icon">🏠</span>
+                </div>
+                <div class="stat-value" id="total-ruches">0</div>
+            </div>
+            
+            <div class="stat-card stat-conso">
+                <div class="stat-header">
+                    <span class="stat-label">Coût Total Ressources</span>
+                    <span class="stat-icon">💶</span>
+                </div>
+                <div class="stat-value" id="cout-total-ressources">0.00 €</div>
+            </div>
+            
+            <div class="stat-card stat-production">
+                <div class="stat-header">
+                    <span class="stat-label">Production Totale</span>
+                    <span class="stat-icon">🍯</span>
+                </div>
+                <div class="stat-value" id="production-totale">0 kg</div>
+            </div>
+
+            <div class="stat-card stat-benefice">
+                <div class="stat-header">
+                    <span class="stat-label">Marge Moyenne/Ruche</span>
+                    <span class="stat-icon">📊</span>
+                </div>
+                <div class="stat-value" id="marge-moyenne">0.00 €</div>
+            </div>
+        </div>
+
+        <main class="main-content">
+            
+            <!-- Section Ajout de ruche -->
+            <section class="card">
+                <h2>➕ Ajouter une Ruche</h2>
+                <form id="form-ruche" class="form-grid-ruche">
+                    <input type="text" id="ruche-nom" placeholder="Nom/Numéro de la ruche" required>
+                    <input type="text" id="ruche-rucher" placeholder="Rucher" required>
+                    <select id="ruche-type" required>
+                        <option value="">Type de ruche</option>
+                        <option value="Dadant">Dadant</option>
+                        <option value="Langstroth">Langstroth</option>
+                        <option value="Voirnot">Voirnot</option>
+                        <option value="Warré">Warré</option>
+                    </select>
+                    <input type="number" id="ruche-annee" placeholder="Année installation" min="2000" max="2099">
+                    <button type="submit" class="btn btn-primary">Ajouter la ruche</button>
+                </form>
+            </section>
+
+            <!-- Liste des ruches -->
+            <section class="card">
+                <h2>📋 Mes Ruches</h2>
+                <div id="liste-ruches" class="ruches-container">
+                    <p class="empty-message">Aucune ruche enregistrée. Ajoutez votre première ruche ci-dessus.</p>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Modal Détails Ruche -->
+        <div id="modal-ruche" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modal-titre">Détails de la ruche</h2>
+                    <button class="modal-close" onclick="fermerModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    
+                    <!-- Navigation des onglets -->
+                    <div class="modal-tabs">
+                        <button class="modal-tab active" data-tab="nourrissement">Nourrissement</button>
+                        <button class="modal-tab" data-tab="traitements">Traitements</button>
+                        <button class="modal-tab" data-tab="materiel">Matériel</button>
+                        <button class="modal-tab" data-tab="reines">Reines</button>
+                        <button class="modal-tab" data-tab="production">Production</button>
+                        <button class="modal-tab" data-tab="bilan">Bilan</button>
+                    </div>
+
+                    <!-- Onglet Nourrissement -->
+                    <div id="tab-nourrissement" class="modal-tab-content active">
+                        <h3>🍯 Nourrissement</h3>
+                        <form id="form-nourrissement" class="form-modal">
+                            <select id="nourr-type" required>
+                                <option value="">Type</option>
+                                <option value="Sirop">Sirop</option>
+                                <option value="Fondant">Fondant</option>
+                                <option value="Candi">Candi</option>
+                            </select>
+                            <input type="number" id="nourr-quantite" placeholder="Quantité (kg)" step="0.1" min="0" required>
+                            <input type="number" id="nourr-cout" placeholder="Coût unitaire (€/kg)" step="0.01" min="0" required>
+                            <input type="date" id="nourr-date" required>
+                            <button type="submit" class="btn btn-success">Ajouter</button>
+                        </form>
+                        <div class="table-container">
+                            <table id="table-nourrissement">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Quantité</th>
+                                        <th>Coût</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div class="total-section">
+                            <strong>Total nourrissement : <span id="total-nourr">0.00 €</span></strong>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Traitements -->
+                    <div id="tab-traitements" class="modal-tab-content">
+                        <h3>💊 Traitements Vétérinaires</h3>
+                        <form id="form-traitement" class="form-modal">
+                            <input type="text" id="trait-nom" placeholder="Nom du traitement" required>
+                            <input type="number" id="trait-quantite" placeholder="Quantité" step="1" min="1" required>
+                            <input type="number" id="trait-cout" placeholder="Coût total (€)" step="0.01" min="0" required>
+                            <input type="date" id="trait-date" required>
+                            <button type="submit" class="btn btn-success">Ajouter</button>
+                        </form>
+                        <div class="table-container">
+                            <table id="table-traitements">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Traitement</th>
+                                        <th>Quantité</th>
+                                        <th>Coût</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div class="total-section">
+                            <strong>Total traitements : <span id="total-trait">0.00 €</span></strong>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Matériel -->
+                    <div id="tab-materiel" class="modal-tab-content">
+                        <h3>🔨 Matériel (Cadres)</h3>
+                        <form id="form-materiel" class="form-modal">
+                            <input type="number" id="mat-cadres" placeholder="Nombre de cadres" min="1" required>
+                            <input type="number" id="mat-cout" placeholder="Coût total (€)" step="0.01" min="0" required>
+                            <input type="date" id="mat-date" required>
+                            <button type="submit" class="btn btn-success">Ajouter</button>
+                        </form>
+                        <div class="table-container">
+                            <table id="table-materiel">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Nombre de cadres</th>
+                                        <th>Coût</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div class="total-section">
+                            <strong>Total cadres : <span id="total-mat">0.00 €</span></strong>
+                            <br>
+                            <strong>Cadres installés : <span id="total-cadres">0</span></strong>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Reines -->
+                    <div id="tab-reines" class="modal-tab-content">
+                        <h3>👑 Reines</h3>
+                        <form id="form-reine" class="form-modal">
+                            <select id="reine-action" required>
+                                <option value="">Action</option>
+                                <option value="Remplacement">Remplacement reine</option>
+                                <option value="Introduction">Introduction reine</option>
+                            </select>
+                            <input type="number" id="reine-cout" placeholder="Coût (€)" step="0.01" min="0" required>
+                            <input type="date" id="reine-date" required>
+                            <input type="text" id="reine-origine" placeholder="Origine (optionnel)">
+                            <button type="submit" class="btn btn-success">Ajouter</button>
+                        </form>
+                        <div class="table-container">
+                            <table id="table-reines">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Action</th>
+                                        <th>Origine</th>
+                                        <th>Coût</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div class="total-section">
+                            <strong>Total reines : <span id="total-reines">0.00 €</span></strong>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Production -->
+                    <div id="tab-production" class="modal-tab-content">
+                        <h3>🍯 Production de Miel</h3>
+                        <form id="form-production-ruche" class="form-modal">
+                            <input type="number" id="prod-quantite" placeholder="Quantité (kg)" step="0.1" min="0" required>
+                            <input type="date" id="prod-date" required>
+                            <input type="text" id="prod-type-miel" placeholder="Type de miel" required>
+                            <input type="text" id="prod-lot" placeholder="N° Lot (optionnel)">
+                            <button type="submit" class="btn btn-success">Ajouter</button>
+                        </form>
+                        <div class="table-container">
+                            <table id="table-production-ruche">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Quantité (kg)</th>
+                                        <th>N° Lot</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div class="total-section">
+                            <strong>Production totale : <span id="total-prod">0 kg</span></strong>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Bilan -->
+                    <div id="tab-bilan" class="modal-tab-content">
+                        <h3>📊 Bilan Financier de la Ruche</h3>
+                        <div class="bilan-container">
+                            <div class="bilan-card bilan-couts">
+                                <h4>Coûts Totaux</h4>
+                                <div class="bilan-ligne">
+                                    <span>Nourrissement :</span>
+                                    <span id="bilan-nourr">0.00 €</span>
+                                </div>
+                                <div class="bilan-ligne">
+                                    <span>Traitements :</span>
+                                    <span id="bilan-trait">0.00 €</span>
+                                </div>
+                                <div class="bilan-ligne">
+                                    <span>Matériel (cadres) :</span>
+                                    <span id="bilan-mat">0.00 €</span>
+                                </div>
+                                <div class="bilan-ligne">
+                                    <span>Reines :</span>
+                                    <span id="bilan-reines">0.00 €</span>
+                                </div>
+                                <div class="bilan-ligne bilan-total">
+                                    <strong>Total Dépenses :</strong>
+                                    <strong id="bilan-total-depenses">0.00 €</strong>
+                                </div>
+                            </div>
+
+                            <div class="bilan-card bilan-production">
+                                <h4>Production</h4>
+                                <div class="bilan-ligne">
+                                    <span>Production totale :</span>
+                                    <span id="bilan-prod-kg">0 kg</span>
+                                </div>
+                                <div class="bilan-ligne">
+                                    <span>Valeur estimée (20€/kg) :</span>
+                                    <span id="bilan-prod-valeur">0.00 €</span>
+                                </div>
+                            </div>
+
+                            <div class="bilan-card bilan-resultat">
+                                <h4>Résultat</h4>
+                                <div class="bilan-ligne bilan-total">
+                                    <strong>Marge de la ruche :</strong>
+                                    <strong id="bilan-marge" class="marge-positive">0.00 €</strong>
+                                </div>
+                                <div class="bilan-ligne">
+                                    <span>Rentabilité :</span>
+                                    <span id="bilan-rentabilite">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="js/ruches.js"></script>
+</body>
+</html>
