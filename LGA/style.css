@@ -1,0 +1,210 @@
+body { 
+    font-family: 'Segoe UI', sans-serif; 
+    background-color: #f4f4f9; 
+    color: #333; 
+    margin: 0; 
+    padding: 20px; 
+}
+
+header { 
+    text-align: center; 
+    margin-bottom: 30px; 
+}
+
+h1 { 
+    color: #d35400; 
+    margin-bottom: 5px;
+} /* Orange frelon */
+
+h2 {
+    color: #d35400;
+    margin-top: 0;
+}
+
+h3 {
+    color: #d35400;
+    font-size: 1.1em;
+    margin-bottom: 15px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+input[type="file"] {
+    background: #f8f9fa;
+    border: 2px dashed #d35400;
+    padding: 20px;
+    cursor: pointer;
+    text-align: center;
+    border-radius: 5px;
+}
+
+input[type="file"]:hover {
+    background: #fff3e0;
+}
+
+/* Indicateur Météo */
+.status-go { 
+    background-color: #d4edda; 
+    color: #155724; 
+    border: 1px solid #c3e6cb; 
+    padding: 15px; 
+    border-radius: 5px; 
+    font-weight: bold;
+}
+
+.status-stop { 
+    background-color: #f8d7da; 
+    color: #721c24; 
+    border: 1px solid #f5c6cb; 
+    padding: 15px; 
+    border-radius: 5px; 
+    font-weight: bold;
+}
+
+/* Formulaire */
+label {
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #555;
+}
+
+input, 
+select, 
+textarea { 
+    width: 100%; 
+    padding: 10px; 
+    margin-top: 5px; 
+    margin-bottom: 10px; 
+    box-sizing: border-box; 
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 14px;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+button { 
+    width: 100%; 
+    padding: 12px; 
+    margin-top: 5px; 
+    margin-bottom: 15px; 
+    box-sizing: border-box; 
+    background-color: #d35400; 
+    color: white; 
+    border: none; 
+    cursor: pointer; 
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+button:hover { 
+    background-color: #e67e22; 
+}
+
+/* Admin */
+.admin-container { 
+    max-width: 400px; 
+    margin: 50px auto; 
+    text-align: center; 
+    background: white; 
+    padding: 30px; 
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* Types d'intervention - Checkboxes */
+.intervention-types {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.intervention-checkbox {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background-color: #f8f9fa;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: normal;
+    margin: 0;
+}
+
+.intervention-checkbox:hover {
+    background-color: #fff3e0;
+    border-color: #d35400;
+}
+
+.intervention-checkbox input[type="checkbox"] {
+    width: auto;
+    margin: 0 10px 0 0;
+    cursor: pointer;
+}
+
+.intervention-checkbox input[type="checkbox"]:checked + .intervention-label {
+    font-weight: bold;
+}
+
+.intervention-checkbox:has(input:checked) {
+    background-color: #fff3e0;
+    border-color: #d35400;
+    border-width: 2px;
+}
+
+.intervention-label {
+    flex: 1;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .intervention-types {
+        grid-template-columns: 1fr;
+    }
+    
+    body {
+        padding: 10px;
+    }
+    
+    .card {
+        padding: 15px;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.status-go,
+.status-stop {
+    animation: fadeIn 0.3s ease;
+}

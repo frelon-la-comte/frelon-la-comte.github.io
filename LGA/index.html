@@ -3,335 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LGA - Logiciel de Gestion Apicole</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>Gestion Ruches Verquigneul - Connexion</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <h1>🐝 LGA - Logiciel de Gestion Apicole</h1>
+    <div class="admin-container">
+        <header>
+            <h1>🐝 Gestion des Ruches</h1>
+            <p style="color: #666;">Verquigneul (62113)</p>
         </header>
-
-        <!-- Navigation -->
-        <nav class="navigation">
-            <button class="nav-btn active" data-tab="dashboard">Tableau de Bord</button>
-            <button class="nav-btn" data-tab="caisse">Caisse & Ventes</button>
-            <button class="nav-btn" data-tab="depenses">Dépenses</button>
-            <button class="nav-btn" data-tab="stocks">Stocks</button>
-            <button class="nav-btn" data-tab="production">Production</button>
-            <a href="ruches.html" class="nav-btn nav-link">🐝 Consommation Ruches</a>
-            <a href="clients.html" class="nav-btn nav-link">👥 Clients & Consignes</a>
-            <a href="hausses.html" class="nav-btn nav-link">📦 Gestion Hausses</a>
-        </nav>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            
-            <!-- Dashboard Tab -->
-            <section id="dashboard" class="tab-content active">
-                <h2>Tableau de Bord</h2>
+        
+        <div class="card">
+            <h2>Connexion</h2>
+            <form id="loginForm">
+                <label for="username">Identifiant</label>
+                <input type="text" id="username" required autocomplete="username">
                 
-                <!-- Configuration Solde Initial -->
-                <div class="card" style="background: #e7f3ff; border: 2px solid #2196F3;">
-                    <h3>⚙️ Configuration du Solde Initial</h3>
-                    <p style="margin-bottom: 10px; color: #666;">
-                        Si vous ne partez pas de zéro, indiquez votre solde de départ (peut être positif ou négatif).
-                    </p>
-                    <div style="display: flex; gap: 15px; align-items: center;">
-                        <input 
-                            type="number" 
-                            id="solde-initial" 
-                            placeholder="Solde initial (€)" 
-                            step="0.01" 
-                            style="flex: 1;"
-                            value="0"
-                        >
-                        <button onclick="sauvegarderSoldeInitial()" class="btn btn-primary">
-                            💾 Enregistrer le solde initial
-                        </button>
-                        <span id="solde-initial-info" style="font-weight: bold; color: #2196F3;"></span>
-                    </div>
-                </div>
+                <label for="password">Mot de passe</label>
+                <input type="password" id="password" required autocomplete="current-password">
                 
-                <div class="stats-grid">
-                    <div class="stat-card stat-recettes">
-                        <div class="stat-header">
-                            <span class="stat-label">Recettes</span>
-                            <span class="stat-icon">📈</span>
-                        </div>
-                        <div class="stat-value" id="total-recettes">0.00 €</div>
-                    </div>
-                    
-                    <div class="stat-card stat-depenses">
-                        <div class="stat-header">
-                            <span class="stat-label">Dépenses</span>
-                            <span class="stat-icon">📉</span>
-                        </div>
-                        <div class="stat-value" id="total-depenses">0.00 €</div>
-                    </div>
-                    
-                    <div class="stat-card stat-solde">
-                        <div class="stat-header">
-                            <span class="stat-label" id="solde-label">Solde</span>
-                            <span class="stat-icon">💰</span>
-                        </div>
-                        <div class="stat-value" id="total-solde">0.00 €</div>
-                    </div>
-
-                    <div class="stat-card stat-stocks">
-                        <div class="stat-header">
-                            <span class="stat-label">Valeur Stock</span>
-                            <span class="stat-icon">📦</span>
-                        </div>
-                        <div class="stat-value" id="valeur-stock">0.00 €</div>
-                    </div>
-                </div>
-
-                <div class="dashboard-grid">
-                    <div class="card">
-                        <h3>🛒 Dernières Ventes</h3>
-                        <div id="dernieres-ventes" class="list-container">
-                            <p class="empty-message">Aucune vente enregistrée</p>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <h3>📦 État des Stocks</h3>
-                        <div id="etat-stocks" class="stock-summary">
-                            <div class="stock-item">
-                                <span>Pots vides:</span>
-                                <strong id="total-pots">0 unités</strong>
-                            </div>
-                            <div class="stock-item">
-                                <span>Fournitures:</span>
-                                <strong id="total-fournitures">0 références</strong>
-                            </div>
-                            <div class="stock-item">
-                                <span>Lots production:</span>
-                                <strong id="total-lots">0 lots</strong>
-                            </div>
-                            <div class="stock-item alert-peremption" id="alert-peremption" style="display:none;">
-                                <span>⚠️ Produits périmés:</span>
-                                <strong id="nb-perimes">0</strong>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Caisse Tab -->
-            <section id="caisse" class="tab-content">
-                <h2>Caisse & Ventes</h2>
-                
-                <div class="card">
-                    <h3>Nouvelle Vente</h3>
-                    <form id="form-vente" class="form-grid">
-                        <select id="vente-client">
-                            <option value="">Client (optionnel)</option>
-                        </select>
-                        
-                        <select id="vente-produit" required>
-                            <option value="">Sélectionner produit</option>
-                            <option value="Miel 250g" data-prix="6.5">Miel 250g - 6.50€</option>
-                            <option value="Miel 500g" data-prix="12">Miel 500g - 12.00€</option>
-                            <option value="Miel 1kg" data-prix="22">Miel 1kg - 22.00€</option>
-                            <option value="Pain d'épices" data-prix="8">Pain d'épices - 8.00€</option>
-                            <option value="Bougie cire" data-prix="15">Bougie cire - 15.00€</option>
-                            <option value="Propolis" data-prix="10">Propolis - 10.00€</option>
-                        </select>
-                        
-                        <input type="number" id="vente-quantite" placeholder="Quantité" min="1" value="1" required>
-                        <input type="number" id="vente-prix" placeholder="Prix unitaire" step="0.01" min="0" required>
-                        
-                        <input type="number" id="vente-pots-rendus" placeholder="Pots rendus" min="0" value="0">
-                        
-                        <select id="vente-lot">
-                            <option value="">Lot (optionnel)</option>
-                        </select>
-                        <button type="submit" class="btn btn-primary">➕ Ajouter Vente</button>
-                    </form>
-                    <div id="vente-total" class="total-preview"></div>
-                    <div id="vente-reduction" class="reduction-preview" style="display: none;"></div>
-                </div>
-
-                <div class="card">
-                    <h3>Journal de Caisse</h3>
-                    <div class="table-container">
-                        <table id="table-ventes">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Client</th>
-                                    <th>Produit</th>
-                                    <th>Qté</th>
-                                    <th>Prix Unit.</th>
-                                    <th>Réduction</th>
-                                    <th>Lot</th>
-                                    <th>Montant</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Dépenses Tab -->
-            <section id="depenses" class="tab-content">
-                <h2>Dépenses</h2>
-                
-                <div class="card">
-                    <h3>Nouvelle Dépense</h3>
-                    <form id="form-depense" class="form-grid">
-                        <input type="text" id="depense-description" placeholder="Description" required class="span-2">
-                        <input type="number" id="depense-montant" placeholder="Montant" step="0.01" min="0" required>
-                        <button type="submit" class="btn btn-danger">➕ Ajouter Dépense</button>
-                    </form>
-                </div>
-
-                <div class="card">
-                    <h3>Liste des Dépenses</h3>
-                    <div class="table-container">
-                        <table id="table-depenses">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Description</th>
-                                    <th>Montant</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Stocks Tab -->
-            <section id="stocks" class="tab-content">
-                <h2>Gestion des Stocks</h2>
-                
-                <div class="sub-navigation">
-                    <button class="sub-nav-btn active" data-subtab="pots">Pots Vides</button>
-                    <button class="sub-nav-btn" data-subtab="fournitures">Produits d'Entretien</button>
-                </div>
-
-                <!-- Pots Vides -->
-                <div id="pots" class="sub-tab-content active">
-                    <div class="card">
-                        <h3>Ajouter des Pots Vides</h3>
-                        <form id="form-pot" class="form-grid">
-                            <select id="pot-type" required>
-                                <option value="">Type de pot</option>
-                                <option value="250g">250g</option>
-                                <option value="500g">500g</option>
-                                <option value="1kg">1kg</option>
-                            </select>
-                            <input type="number" id="pot-quantite" placeholder="Quantité" min="1" required>
-                            <input type="text" id="pot-lot" placeholder="N° Lot" required>
-                            <button type="submit" class="btn btn-success">➕ Ajouter</button>
-                        </form>
-                    </div>
-
-                    <div class="card">
-                        <h3>Stock de Pots Vides</h3>
-                        <div class="table-container">
-                            <table id="table-pots">
-                                <thead>
-                                    <tr>
-                                        <th>Type</th>
-                                        <th>Quantité</th>
-                                        <th>N° Lot</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Fournitures -->
-                <div id="fournitures" class="sub-tab-content">
-                    <div class="card">
-                        <h3>Ajouter Produit d'Entretien</h3>
-                        <form id="form-fourniture" class="form-grid-5">
-                            <input type="text" id="fourniture-nom" placeholder="Nom produit" required>
-                            <input type="number" id="fourniture-quantite" placeholder="Quantité" min="1" required>
-                            <select id="fourniture-unite" required>
-                                <option value="unité">unité</option>
-                                <option value="kg">kg</option>
-                                <option value="L">L</option>
-                            </select>
-                            <input type="text" id="fourniture-lot" placeholder="N° Lot" required>
-                            <button type="submit" class="btn btn-success">➕ Ajouter</button>
-                        </form>
-                    </div>
-
-                    <div class="card">
-                        <h3>Stock Produits d'Entretien</h3>
-                        <div class="table-container">
-                            <table id="table-fournitures">
-                                <thead>
-                                    <tr>
-                                        <th>Produit</th>
-                                        <th>Quantité</th>
-                                        <th>N° Lot</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Production Tab -->
-            <section id="production" class="tab-content">
-                <h2>Production de Miel</h2>
-                
-                <div class="card">
-                    <h3>Nouveau Lot de Production</h3>
-                    <form id="form-production" class="form-grid-5">
-                        <input type="text" id="prod-numero" placeholder="N° Lot" required>
-                        <input type="text" id="prod-type" placeholder="Type de miel" required>
-                        <input type="number" id="prod-quantite" placeholder="Quantité (kg)" step="0.1" min="0" required>
-                        <input type="date" id="prod-date" required>
-                        <input type="text" id="prod-rucher" placeholder="Rucher" required>
-                        <input type="number" id="prod-prix-kg" placeholder="Prix/kg (€)" step="0.01" value="16" required>
-                        <button type="submit" class="btn btn-warning">➕ Ajouter Lot</button>
-                    </form>
-                </div>
-
-                <div class="card">
-                    <h3>Lots de Production</h3>
-                    <div class="table-container">
-                        <table id="table-production">
-                            <thead>
-                                <tr>
-                                    <th>N° Lot</th>
-                                    <th>Type</th>
-                                    <th>Quantité</th>
-                                    <th>Date Récolte</th>
-                                    <th>Péremption</th>
-                                    <th>Prix/kg</th>
-                                    <th>Valeur</th>
-                                    <th>Rucher</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-        </main>
+                <button type="submit">Se connecter</button>
+            </form>
+            <div id="errorMessage" style="color: #721c24; margin-top: 10px; display: none;"></div>
+        </div>
     </div>
 
-    <script src="js/app.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (await authenticate(username, password)) {
+                sessionStorage.setItem('authenticated', 'true');
+                sessionStorage.setItem('username', username);
+                window.location.href = 'app.html';
+            } else {
+                const errorDiv = document.getElementById('errorMessage');
+                errorDiv.textContent = 'Identifiant ou mot de passe incorrect';
+                errorDiv.style.display = 'block';
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 3000);
+            }
+        });
+    </script>
 </body>
 </html>

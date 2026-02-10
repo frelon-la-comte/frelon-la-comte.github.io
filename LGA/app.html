@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fiche d'Intervention - Ruches Verquigneul</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header style="display: flex; justify-content: space-between; align-items: center; max-width: 800px; margin: 0 auto; padding: 0 20px;">
+        <div>
+            <h1>🐝 Fiche d'Intervention</h1>
+            <p style="color: #666;">Ruches de Verquigneul (62113)</p>
+        </div>
+        <button onclick="logout()" style="width: auto; padding: 10px 20px; background-color: #e67e22;">
+            Déconnexion
+        </button>
+    </header>
+
+    <div class="card">
+        <h2>Informations de la visite</h2>
+        <form id="interventionForm">
+            <!-- Informations générales -->
+            <label for="date">Date de la visite *</label>
+            <input type="datetime-local" id="date" name="date" required>
+
+            <label for="operator">Nom de l'opérateur *</label>
+            <input type="text" id="operator" name="operator" required placeholder="Votre nom">
+
+            <!-- Météo -->
+            <h3 style="margin-top: 30px; color: #d35400;">☀️ Conditions météorologiques</h3>
+            
+            <label for="temperature">Température (°C)</label>
+            <input type="number" id="temperature" name="temperature" step="0.1" placeholder="Ex: 18.5">
+
+            <label for="weather">Conditions météo</label>
+            <select id="weather" name="weather">
+                <option value="">-- Sélectionner --</option>
+                <option value="ensoleille">☀️ Ensoleillé</option>
+                <option value="nuageux">⛅ Nuageux</option>
+                <option value="couvert">☁️ Couvert</option>
+                <option value="pluie">🌧️ Pluie</option>
+                <option value="orage">⛈️ Orage</option>
+                <option value="vent">💨 Venteux</option>
+            </select>
+
+            <!-- Type d'intervention -->
+            <h3 style="margin-top: 30px; color: #d35400;">📋 Type(s) d'intervention</h3>
+            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Sélectionnez une ou plusieurs interventions réalisées</p>
+            
+            <div class="intervention-types">
+                <label class="intervention-checkbox">
+                    <input type="checkbox" name="intervention_type" value="Matériel">
+                    <span class="intervention-label">🔧 Matériel</span>
+                </label>
+
+                <label class="intervention-checkbox">
+                    <input type="checkbox" name="intervention_type" value="Contrôle">
+                    <span class="intervention-label">🔍 Contrôle</span>
+                </label>
+
+                <label class="intervention-checkbox">
+                    <input type="checkbox" name="intervention_type" value="Reine">
+                    <span class="intervention-label">👑 Reine</span>
+                </label>
+
+                <label class="intervention-checkbox">
+                    <input type="checkbox" name="intervention_type" value="Récolte">
+                    <span class="intervention-label">🍯 Récolte</span>
+                </label>
+
+                <label class="intervention-checkbox">
+                    <input type="checkbox" name="intervention_type" value="Nourrissement">
+                    <span class="intervention-label">🍬 Nourrissement</span>
+                </label>
+
+                <label class="intervention-checkbox">
+                    <input type="checkbox" name="intervention_type" value="Essaimage">
+                    <span class="intervention-label">🐝 Essaimage</span>
+                </label>
+
+                <label class="intervention-checkbox">
+                    <input type="checkbox" name="intervention_type" value="Essaim artificiel">
+                    <span class="intervention-label">✂️ Essaim artificiel</span>
+                </label>
+
+                <label class="intervention-checkbox">
+                    <input type="checkbox" name="intervention_type" value="Déplacer la ruche">
+                    <span class="intervention-label">📦 Déplacer la ruche</span>
+                </label>
+
+                <label class="intervention-checkbox">
+                    <input type="checkbox" name="intervention_type" value="Varroa">
+                    <span class="intervention-label">🦠 Varroa</span>
+                </label>
+
+                <label class="intervention-checkbox">
+                    <input type="checkbox" name="intervention_type" value="Peser la ruche">
+                    <span class="intervention-label">⚖️ Peser la ruche</span>
+                </label>
+
+                <label class="intervention-checkbox">
+                    <input type="checkbox" name="intervention_type" value="Empiler la ruche">
+                    <span class="intervention-label">📚 Empiler la ruche</span>
+                </label>
+
+                <label class="intervention-checkbox">
+                    <input type="checkbox" name="intervention_type" value="Sanitaire">
+                    <span class="intervention-label">🏥 Sanitaire</span>
+                </label>
+
+                <label class="intervention-checkbox">
+                    <input type="checkbox" name="intervention_type" value="Cession (Vente/Don)">
+                    <span class="intervention-label">💰 Cession (Vente/Don)</span>
+                </label>
+
+                <label class="intervention-checkbox">
+                    <input type="checkbox" name="intervention_type" value="Transvaser l'essaim">
+                    <span class="intervention-label">🔄 Transvaser l'essaim</span>
+                </label>
+
+                <label class="intervention-checkbox">
+                    <input type="checkbox" name="intervention_type" value="Élevage">
+                    <span class="intervention-label">🥚 Élevage</span>
+                </label>
+            </div>
+
+            <!-- Détails spécifiques -->
+            <h3 style="margin-top: 30px; color: #d35400;">📊 Observations détaillées</h3>
+
+            <label for="population">Population de la colonie</label>
+            <select id="population" name="population">
+                <option value="">-- Sélectionner --</option>
+                <option value="faible">Faible (1-3 cadres)</option>
+                <option value="moyenne">Moyenne (4-6 cadres)</option>
+                <option value="forte">Forte (7-10 cadres)</option>
+                <option value="tres_forte">Très forte (>10 cadres)</option>
+            </select>
+
+            <label for="queen_seen">Reine vue ?</label>
+            <select id="queen_seen" name="queen_seen">
+                <option value="">-- Sélectionner --</option>
+                <option value="oui">✅ Oui</option>
+                <option value="non">❌ Non</option>
+                <option value="ponte_vue">🥚 Ponte vue (reine non vue)</option>
+            </select>
+
+            <label for="behavior">Comportement de la colonie</label>
+            <select id="behavior" name="behavior">
+                <option value="">-- Sélectionner --</option>
+                <option value="calme">😌 Calme</option>
+                <option value="normal">😊 Normal</option>
+                <option value="agite">😠 Agité</option>
+                <option value="agressif">😡 Agressif</option>
+            </select>
+
+            <label for="honey_reserves">Réserves de miel</label>
+            <select id="honey_reserves" name="honey_reserves">
+                <option value="">-- Sélectionner --</option>
+                <option value="insuffisant">🔴 Insuffisantes</option>
+                <option value="correct">🟡 Correctes</option>
+                <option value="bon">🟢 Bonnes</option>
+                <option value="excellent">🟢🟢 Excellentes</option>
+            </select>
+
+            <label for="brood_pattern">Couvain</label>
+            <select id="brood_pattern" name="brood_pattern">
+                <option value="">-- Sélectionner --</option>
+                <option value="absent">Absent</option>
+                <option value="irregulier">Irrégulier</option>
+                <option value="clairseme">Clairsemé</option>
+                <option value="compact">Compact</option>
+                <option value="tres_compact">Très compact</option>
+            </select>
+
+            <!-- Actions réalisées et observations -->
+            <h3 style="margin-top: 30px; color: #d35400;">✍️ Actions et Observations</h3>
+
+            <label for="actions_performed">Actions réalisées *</label>
+            <textarea id="actions_performed" name="actions_performed" rows="4" required 
+                placeholder="Décrivez les actions effectuées lors de cette visite..."></textarea>
+
+            <label for="observations">Observations et remarques</label>
+            <textarea id="observations" name="observations" rows="4" 
+                placeholder="Notez ici toute observation particulière, problème détecté, etc."></textarea>
+
+            <label for="next_actions">Actions à prévoir</label>
+            <textarea id="next_actions" name="next_actions" rows="3" 
+                placeholder="Que faudra-t-il faire lors de la prochaine visite ?"></textarea>
+
+            <!-- Photo -->
+            <label for="photo">Photo (optionnel)</label>
+            <input type="file" id="photo" name="photo" accept="image/*" capture="environment">
+
+            <button type="submit">📤 Envoyer la fiche</button>
+        </form>
+
+        <div id="successMessage" class="status-go" style="display: none; margin-top: 20px;">
+            ✅ Fiche envoyée avec succès !
+        </div>
+
+        <div id="errorMessage" class="status-stop" style="display: none; margin-top: 20px;">
+            ❌ Erreur lors de l'envoi. Veuillez réessayer.
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
