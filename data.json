@@ -1,4 +1,4 @@
 [
-    { "date": "2026-01-15", "lieu": "Rue de l'Église", "nombre": 1 },
-    { "date": "2026-01-18", "lieu": "Chemin du Bois", "nombre": 2 }
+    { "date": "2026-01-15", "lieu": "essai 1", "nombre": 1 },
+    { "date": "2026-01-18", "lieu": "essai 2", "nombre": 2 }
 ]
