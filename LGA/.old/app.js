@@ -17,7 +17,7 @@ document.getElementById('date').value = dateString;
 // Configuration Google Forms
 // IMPORTANT: Remplacez ces valeurs par vos propres entry IDs de Google Forms
 const GOOGLE_FORM_CONFIG = {
-    formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfxXbKg4RaU20T0mw7nxoh36VRPYyqwYmoYwrK6r3HDSVQfKA/formResponse',
+    formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfxXbKg4RaU20T0mw7nxoh36VRPYyqwYmoYwrK6r3HDSVQfKA/viewform?',
     
     // Entry IDs pour chaque champ - À REMPLACER
     // Pour trouver les entry IDs de votre Google Form:
@@ -52,12 +52,18 @@ document.getElementById('interventionForm').addEventListener('submit', async fun
     const form = e.target;
     const formData = new FormData();
     
-    // 1. Préparer TOUTES les données (SAUF les cases à cocher multiples)
+    // Récupérer tous les types d'intervention sélectionnés
+    const selectedInterventions = Array.from(
+        document.querySelectorAll('input[name="intervention_type"]:checked')
+    ).map(cb => cb.value).join(', ');
+    
+    // Préparer les données pour Google Forms
     const data = {
         [GOOGLE_FORM_CONFIG.entries.date]: form.date.value,
         [GOOGLE_FORM_CONFIG.entries.operator]: form.operator.value,
         [GOOGLE_FORM_CONFIG.entries.temperature]: form.temperature.value,
         [GOOGLE_FORM_CONFIG.entries.weather]: form.weather.value,
+        [GOOGLE_FORM_CONFIG.entries.intervention_types]: selectedInterventions,
         [GOOGLE_FORM_CONFIG.entries.population]: form.population.value,
         [GOOGLE_FORM_CONFIG.entries.queen_seen]: form.queen_seen.value,
         [GOOGLE_FORM_CONFIG.entries.behavior]: form.behavior.value,
@@ -68,46 +74,13 @@ document.getElementById('interventionForm').addEventListener('submit', async fun
         [GOOGLE_FORM_CONFIG.entries.next_actions]: form.next_actions.value
     };
     
-    // Ajouter ces données classiques au FormData
+    // Ajouter les données au FormData
     for (const [key, value] of Object.entries(data)) {
         if (value) {
             formData.append(key, value);
         }
     }
-
-    // 2. Traitement SPÉCIFIQUE pour les cases à cocher (interventions)
-    // On ajoute la même clé "entry.1464690425" pour chaque case cochée
-    const checkedInterventions = document.querySelectorAll('input[name="intervention_type"]:checked');
-    checkedInterventions.forEach(cb => {
-        formData.append(GOOGLE_FORM_CONFIG.entries.intervention_types, cb.value);
-    });
     
-    try {
-        // Envoyer les données à Google Forms
-        await fetch(GOOGLE_FORM_CONFIG.formUrl, {
-            method: 'POST',
-            mode: 'no-cors', // Important pour éviter les erreurs CORS
-            body: formData
-        });
-        
-        // Afficher le message de succès
-        showSuccess();
-        
-        // Réinitialiser le formulaire après 2 secondes
-        setTimeout(() => {
-            form.reset();
-            // Remettre la date et l'opérateur
-            document.getElementById('date').value = dateString;
-            document.getElementById('operator').value = sessionStorage.getItem('username'); // Correction ici pour garder le nom
-            hideMessages();
-        }, 2000);
-        
-    } catch (error) {
-        console.error('Erreur:', error);
-        showError();
-    }
-});
-
     try {
         // Envoyer les données à Google Forms
         await fetch(GOOGLE_FORM_CONFIG.formUrl, {
