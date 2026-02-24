@@ -128,17 +128,17 @@
             <!-- Détails spécifiques -->
             <h3 style="margin-top: 30px; color: #d35400;">📊 Observations détaillées</h3>
 
-            <label for="population">Population de la colonie</label>
-            <select id="population" name="population">
+            <label for="population">Population de la colonie *</label>
+            <select id="population" name="population" required>
                 <option value="">-- Sélectionner --</option>
                 <option value="faible">Faible (1-3 cadres)</option>
                 <option value="moyenne">Moyenne (4-6 cadres)</option>
                 <option value="forte">Forte (7-10 cadres)</option>
-                <option value="tres_forte">Très forte (>10 cadres)</option>
+                <option value="tres_forte">Très forte (10 cadres)</option>
             </select>
 
-            <label for="queen_seen">Reine vue ?</label>
-            <select id="queen_seen" name="queen_seen">
+            <label for="queen_seen">Reine vue ?*</label>
+            <select id="queen_seen" name="queen_seen" required>
                 <option value="">-- Sélectionner --</option>
                 <option value="oui">✅ Oui</option>
                 <option value="non">❌ Non</option>
@@ -154,8 +154,8 @@
                 <option value="agressif">😡 Agressif</option>
             </select>
 
-            <label for="honey_reserves">Réserves de miel</label>
-            <select id="honey_reserves" name="honey_reserves">
+            <label for="honey_reserves">Réserves de miel*</label>
+            <select id="honey_reserves" name="honey_reserves" required>
                 <option value="">-- Sélectionner --</option>
                 <option value="insuffisant">🔴 Insuffisantes</option>
                 <option value="correct">🟡 Correctes</option>
@@ -163,8 +163,8 @@
                 <option value="excellent">🟢🟢 Excellentes</option>
             </select>
 
-            <label for="brood_pattern">Couvain</label>
-            <select id="brood_pattern" name="brood_pattern">
+            <label for="brood_pattern">Couvain*</label>
+            <select id="brood_pattern" name="brood_pattern" required>
                 <option value="">-- Sélectionner --</option>
                 <option value="absent">Absent</option>
                 <option value="irregulier">Irrégulier</option>

@@ -17,7 +17,7 @@ document.getElementById('date').value = dateString;
 // Configuration Google Forms
 // IMPORTANT: Remplacez ces valeurs par vos propres entry IDs de Google Forms
 const GOOGLE_FORM_CONFIG = {
-    formUrl: 'https://docs.google.com/forms/d/e/VOTRE_FORM_ID/formResponse',
+    formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfxXbKg4RaU20T0mw7nxoh36VRPYyqwYmoYwrK6r3HDSVQfKA/viewform?',
     
     // Entry IDs pour chaque champ - À REMPLACER
     // Pour trouver les entry IDs de votre Google Form:
@@ -29,19 +29,19 @@ const GOOGLE_FORM_CONFIG = {
     // 6. Cherchez "entry.XXXXXXXXX" dans le code HTML
     
     entries: {
-        date: 'entry.1234567890',           // Date de la visite
-        operator: 'entry.1234567891',       // Nom de l'opérateur
-        temperature: 'entry.1234567892',    // Température
-        weather: 'entry.1234567893',        // Conditions météo
-        intervention_types: 'entry.1234567894', // Types d'intervention
-        population: 'entry.1234567895',     // Population
-        queen_seen: 'entry.1234567896',     // Reine vue
-        behavior: 'entry.1234567897',       // Comportement
-        honey_reserves: 'entry.1234567898', // Réserves de miel
-        brood_pattern: 'entry.1234567899',  // Couvain
-        actions_performed: 'entry.1234567900', // Actions réalisées
-        observations: 'entry.1234567901',   // Observations
-        next_actions: 'entry.1234567902'    // Actions à prévoir
+        date: 'entry.730477153',           // Date de la visite
+        operator: 'entry.299807282',       // Nom de l'opérateur
+        temperature: 'entry.1481629560',    // Température
+        weather: 'entry.365064024',        // Conditions météo
+        intervention_types: 'entry.1464690425', // Types d'intervention
+        population: 'entry.754428857',     // Population
+        queen_seen: 'entry.1169233877',     // Reine vue
+        behavior: 'entry.1468377828',       // Comportement
+        honey_reserves: 'entry.1135154112', // Réserves de miel
+        brood_pattern: 'entry.1568770202',  // Couvain
+        actions_performed: 'entry.342474788', // Actions réalisées
+        observations: 'entry.2030025628',   // Observations
+        next_actions: 'entry.210665583'    // Actions à prévoir
     }
 };
 
