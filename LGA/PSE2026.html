@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schéma de lutte contre le varroa</title>
+    <style>
+        :root {
+            --dark-gray: #4a4a4a;
+            --med-gray: #8a8a8a;
+            --light-gray: #e0e0e0;
+            --box-border: 2px solid #333;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            font-style: italic;
+            color: #555;
+            font-size: 14px;
+        }
+
+        /* --- Grid Layout --- */
+        .schema-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 10px;
+            position: relative;
+        }
+
+        .section-title {
+            grid-column: 1 / -1;
+            padding: 10px;
+            font-weight: bold;
+            color: white;
+            text-align: left;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+
+        .med-title { background-color: var(--dark-gray); }
+        .zoo-title { background-color: var(--med-gray); }
+
+        .box {
+            border: var(--box-border);
+            padding: 10px;
+            font-size: 12px;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .box h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            text-align: center;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+        }
+
+        ul {
+            padding-left: 15px;
+            margin: 5px 0;
+        }
+
+        li {
+            margin-bottom: 5px;
+        }
+
+        .bio-star { color: #2e7d32; font-weight: bold; }
+
+        /* --- Timeline Months --- */
+        .months-row {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 5px;
+            margin: 20px 0;
+        }
+
+        .month {
+            background-color: var(--light-gray);
+            text-align: center;
+            font-weight: bold;
+            padding: 10px 0;
+            border-radius: 4px;
+        }
+
+        /* --- Positioning Medicamenteuses --- */
+        .med-flash-saison { grid-column: 1 / 4; }
+        .med-chutes { grid-column: 4 / 6; }
+        .med-base { grid-column: 7 / 11; background-color: #e8ecef; }
+        .med-flash-hiver { grid-column: 11 / 13; background-color: var(--dark-gray); color: white;}
+
+        /* --- Positioning Zootechniques --- */
+        .zoo-division { grid-column: 3 / 6; text-align: center; }
+        .zoo-males { grid-column: 4 / 7; text-align: center; }
+        .zoo-suppression { grid-column: 7 / 9; text-align: center; }
+        
+        .notes {
+            grid-column: 10 / 13;
+            border: 2px dashed #666;
+            padding: 10px;
+            font-size: 12px;
+            background-color: #fff9e6;
+        }
+
+        .action-bold {
+            font-weight: bold;
+            text-transform: uppercase;
+            text-decoration: underline;
+            margin-top: 10px;
+        }
+
+        .footer-note {
+            margin-top: 30px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* Arrows styling (simplified for HTML representation) */
+        .arrow-down { text-align: center; font-size: 20px; font-weight: bold; margin-top: 5px; }
+        .arrow-up { text-align: center; font-size: 20px; font-weight: bold; margin-bottom: 5px; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Schéma de lutte contre le varroa GSA 62 / 2026</h1>
+        <div class="subtitle">(un comptage de varroas est souhaitable au printemps, été, automne et hiver ) sss</div>
+    </header>
+
+    <div class="schema-grid">
+        
+        <div class="section-title med-title">MÉTHODES DE LUTTE MÉDICAMENTEUSES</div>
+
+        <div class="box med-flash-saison">
+            <h3>Traitement flash en saison</h3>
+            <p>Chutes naturelles > 5/j<br>
+            Ttt : AO + AF : Varromed<span class="bio-star">*</span></p>
+        </div>
+
+        <div class="box med-chutes">
+            <p>Chutes naturelles > 10/j<br>
+            Ttt ac formique : Formic Pro<span class="bio-star">*</span></p>
+            <div class="arrow-down">↓↓↓</div>
+        </div>
+
+        <div class="box med-base">
+            <h3>Traitement de base LA</h3>
+            <p><em>(à décaler en cas de récolte tardive) choisir un des médicaments :</em></p>
+            <ul>
+                <li><strong>Apistan</strong> (tau fluvalinate) : pendant 8 semaines 2 lanières (1 an sur 3)</li>
+                <li><strong>Apivar</strong> (Amitraz) : pendant 12 semaines 2 lanières</li>
+                <li><strong>Apilife Var<span class="bio-star">*</span></strong> (Thymol) : 4 applications à 1 semaine d'intervalle.</li>
+                <li><strong>FormicPro<span class="bio-star">*</span></strong> (ac formique) : 2 bandes sur les cadres 7 jours</li>
+            </ul>
+            <div class="arrow-down">↓↓↓ (Juillet / Août / Septembre)</div>
+        </div>
+
+        <div class="box med-flash-hiver">
+            <h3>Traitement flash hivernal hors couvain</h3>
+            <p>Chutes naturelles >0.5/j, dégouttement AO<br>
+            AO : Oxybee<span class="bio-star">*</span>, Varroxal<span class="bio-star">*</span><br>
+            AO-AF : Varromed<span class="bio-star">*</span></p>
+            <div class="arrow-down">↓↓↓</div>
+        </div>
+
+        <div class="months-row">
+            <div class="month">JAN</div>
+            <div class="month">FEV</div>
+            <div class="month">MARS</div>
+            <div class="month">AVRIL</div>
+            <div class="month">MAI</div>
+            <div class="month">JUIN</div>
+            <div class="month">JUIL</div>
+            <div class="month">AOUT</div>
+            <div class="month">SEPT</div>
+            <div class="month">OCT</div>
+            <div class="month">NOV</div>
+            <div class="month">DEC</div>
+        </div>
+
+        <div class="section-title zoo-title">MÉTHODES DE LUTTE ZOOTECHNIQUES</div>
+
+        <div class="box zoo-division">
+            <div class="arrow-up">↑↑</div>
+            <p>Création d'essaims artificiels +<br>
+            Traitement par dégouttement à<br>
+            AO : oxybee<span class="bio-star">*</span> ou varroxal<span class="bio-star">*</span><br>
+            AO-AF : Varromed<span class="bio-star">*</span></p>
+            <div class="action-bold">Division des colonies</div>
+        </div>
+
+        <div class="box zoo-males">
+            <div class="arrow-up">↑↑</div>
+            <p>Mise en place de cadre piège à couvain de mâles à éliminer 22 jours maximum après</p>
+            <div class="action-bold">Destruction Couvain mâle</div>
+        </div>
+
+        <div class="box zoo-suppression">
+            <div class="arrow-up">↑↑</div>
+            <p>- Encagement reine 24j<br>
+            - Retrait de couvain<br>
+            Ttt dégouttement AO : Oxybee<span class="bio-star">*</span>, Varroxal<span class="bio-star">*</span><br>
+            AO-AF : Varromed<span class="bio-star">*</span></p>
+            <div class="action-bold">Suppression couvain</div>
+        </div>
+
+        <div class="notes">
+            <strong>À noter :</strong> intérêt planchers grillagés
+            <ul>
+                <li>élimination forte proportion varroas</li>
+                <li>comptage chutes naturelles favorisé</li>
+            </ul>
+        </div>
+
+    </div>
+
+    <div class="footer-note">
+        <span class="bio-star">*</span> Traitements autorisés en agriculture biologique
+    </div>
+</div>
+
+</body>
+</html>
