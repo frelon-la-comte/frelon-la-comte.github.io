@@ -77,40 +77,40 @@
 
 <script>
     document.getElementById('signalement-form').addEventListener('submit', function(e) {
-        e.preventDefault(); // Empêche la page de se recharger
+        e.preventDefault(); 
         
         const btnSubmit = document.getElementById('btn-submit');
         const statusText = document.getElementById('form-status');
         
-        // Verrouille le bouton pendant l'envoi
         btnSubmit.disabled = true;
         btnSubmit.innerText = "Envoi en cours...";
         
-        // Prépare les données
         const formData = new URLSearchParams();
         formData.append('nom', document.getElementById('form-nom').value);
         formData.append('lieu', document.getElementById('form-lieu').value);
         formData.append('nombre', document.getElementById('form-nombre').value);
         formData.append('email', document.getElementById('form-email').value);
         
-        // === COLÉEZ L'URL DE VOTRE SCRIPT GOOGLE ICI ===
         const scriptURL = 'https://script.google.com/macros/s/AKfycbyoWrga1L6fpLoVlumbvQazHuxzSoSMZgt_CvwhM3Yolg-3kAI0Lg1bChtTPHq-LGyRxw/exec';
         
-        // Envoi des données en arrière-plan
-        fetch(scriptURL, { method: 'POST', body: formData })
-            .then(response => {
-                // Si ça marche, on redirige vers votre belle page de remerciement !
-                window.location.href = 'merci.html'; 
-            })
-            .catch(error => {
-                // En cas d'erreur
-                console.error('Erreur!', error.message);
-                btnSubmit.disabled = false;
-                btnSubmit.innerText = "Envoyer le signalement";
-                statusText.style.display = 'block';
-                statusText.style.color = 'red';
-                statusText.innerText = "Erreur lors de l'envoi. Veuillez vérifier votre connexion.";
-            });
+        // AJOUT DE mode: 'no-cors' POUR ÉVITER LE BLOCAGE DE SÉCURITÉ
+        fetch(scriptURL, { 
+            method: 'POST', 
+            mode: 'no-cors', 
+            body: formData 
+        })
+        .then(() => {
+            // Avec no-cors, on considère que ça a marché si la requête est partie
+            window.location.href = 'merci.html'; 
+        })
+        .catch(error => {
+            console.error('Erreur!', error.message);
+            btnSubmit.disabled = false;
+            btnSubmit.innerText = "Envoyer le signalement";
+            statusText.style.display = 'block';
+            statusText.style.color = 'red';
+            statusText.innerText = "Erreur réseau. Vérifiez votre URL de script.";
+        });
     });
 </script>
 
