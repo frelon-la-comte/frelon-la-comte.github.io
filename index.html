@@ -53,27 +53,66 @@
     			<p id="auth-error" style="color:red; display:none;">Identifiants non reconnus.</p>
 		</div>
 			
- 		<form id="signalement-form" style="display:none;" action="https://docs.google.com/forms/d/e/1FAIpQLSf_XmjqXUbIqaRY-pKDnJSQzDbEt-hfyLHe9VwjlDMpY_LJxg/formResponse" method="POST" target="hidden_iframe" onsubmit="submitted=true;">
+ 		<form id="signalement-form" style="display:none;">
+    <label>Votre Nom :</label>
+    <input type="text" id="form-nom" required>
 
-    			<label>Votre Nom :</label>
-    			<input type="text" name="entry.402633101" required>
-    
-    			<label>Lieu du piégeage :</label>
-    			<input type="text" name="entry.891157190" required>
-    
-    			<label>Nombre de frelons :</label>
-    			<input type="number" name="entry.1195598964" min="1" required>
+    <label>Lieu du piégeage :</label>
+    <input type="text" id="form-lieu" required>
 
-   			<label>Votre Email :</label>
-    			<input type="email" name="entry.903503386" required>
-    
-    			<label style="font-size: 0.8em; display: flex; align-items: flex-start; gap: 10px;">
-        		<input type="checkbox" name="entry.516454124" value="J'accepte" required style="width: auto; margin-top: 5px;">
-        		<span>J'accepte que mes données soient utilisées pour le suivi de la lutte contre le frelon asiatique.</span>
-    			</label>
+    <label>Nombre de frelons :</label>
+    <input type="number" id="form-nombre" min="1" required>
 
-    			<button type="submit">Envoyer le signalement</button>
-		</form>
+    <label>Votre Email :</label>
+    <input type="email" id="form-email" required>
+
+    <label style="font-size: 0.8em; display: flex; align-items: flex-start; gap: 10px;">
+        <input type="checkbox" required style="width: auto; margin-top: 5px;">
+        <span>J'accepte que mes données soient utilisées pour le suivi de la lutte contre le frelon asiatique.</span>
+    </label>
+
+    <button type="submit" id="btn-submit">Envoyer le signalement</button>
+    <p id="form-status" style="display:none; color: #27ae60; font-weight: bold; margin-top:10px;"></p>
+</form>
+
+<script>
+    document.getElementById('signalement-form').addEventListener('submit', function(e) {
+        e.preventDefault(); // Empêche la page de se recharger
+        
+        const btnSubmit = document.getElementById('btn-submit');
+        const statusText = document.getElementById('form-status');
+        
+        // Verrouille le bouton pendant l'envoi
+        btnSubmit.disabled = true;
+        btnSubmit.innerText = "Envoi en cours...";
+        
+        // Prépare les données
+        const formData = new URLSearchParams();
+        formData.append('nom', document.getElementById('form-nom').value);
+        formData.append('lieu', document.getElementById('form-lieu').value);
+        formData.append('nombre', document.getElementById('form-nombre').value);
+        formData.append('email', document.getElementById('form-email').value);
+        
+        // === COLÉEZ L'URL DE VOTRE SCRIPT GOOGLE ICI ===
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbyoWrga1L6fpLoVlumbvQazHuxzSoSMZgt_CvwhM3Yolg-3kAI0Lg1bChtTPHq-LGyRxw/exec';
+        
+        // Envoi des données en arrière-plan
+        fetch(scriptURL, { method: 'POST', body: formData })
+            .then(response => {
+                // Si ça marche, on redirige vers votre belle page de remerciement !
+                window.location.href = 'merci.html'; 
+            })
+            .catch(error => {
+                // En cas d'erreur
+                console.error('Erreur!', error.message);
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = "Envoyer le signalement";
+                statusText.style.display = 'block';
+                statusText.style.color = 'red';
+                statusText.innerText = "Erreur lors de l'envoi. Veuillez vérifier votre connexion.";
+            });
+    });
+</script>
 
 <script type="text/javascript">var submitted=false;</script>
 <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted){window.location='merci.html';}"></iframe>
