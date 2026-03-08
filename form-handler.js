@@ -11,7 +11,7 @@ window.formHandler = (event) => {
     const data = Object.fromEntries(formData);
 
     // Ton URL Google Apps Script
-    const url = 'https://script.google.com/macros/s/AKfycbynDOHoTx4ppTpGSZVXm1jRVDsaZ9-fbTdE8LiSTWX7jfmIU8JDhUbedMrayatO3CnP/exec';
+    const url = 'https://script.google.com/macros/s/AKfycbydLYfaOC2nkVheuFZv1AWRgUILUMwF2la8YMGfq0qPpFarV_GW1CAWEn74huVCqlPA/exec';
 
     fetch(url, {
         method: 'POST',
