@@ -78,10 +78,6 @@
 
 	<script src="form-handler.js" defer></script>
 	
-	<script type="text/javascript">var submitted=false;</script>
-	
-<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted){window.location='merci.html';}"></iframe>
-
         </section>
     </main>
 
@@ -95,7 +91,12 @@
 	<script src="auth.js"></script>
     <script src="script.js"></script>
 	<script>
-		document.getElementById('signalement-form').addEventListener('submit',formHandler);
+		document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('signalement-form');
+            if (form) {
+                form.addEventListener('submit', window.formHandler);
+            }
+        });
 	</script>
 </body>
 
