@@ -35,3 +35,22 @@ button:hover { background-color: #e67e22; }
 
 /* Admin */
 .admin-container { max-width: 400px; margin: 50px auto; text-align: center; background: white; padding: 30px; border-radius: 10px;}
+
+/* Style de la banderole d'alerte */
+.alert-banner {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.alert-banner i {
+    font-size: 1.5em;
+    color: #f39c12;
+}
