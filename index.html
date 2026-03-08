@@ -1,147 +1,21 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lutte Frelon Asiatique - La Comté</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Document</title>
+    <!-- Import the external script -->
+    <script src="form-handler.js" defer></script>
 </head>
 <body>
-
-    <header>
-        <h1><i class="fas fa-bug"></i> Vigilance Frelon Asiatique</h1>
-        <!--<p>Commune de La Comté (62150)</p>-->
-		<H2>Ensemble, protégeons notre biodiversité à La Comté</H2>
-		<section class="card accueil">
-			<p>	La lutte contre le frelon asiatique est l'affaire de tous. Au printemps, chaque fondatrice piégée évite la naissance d'un futur nid et protège nos abeilles ainsi que les insectes pollinisateurs de notre commune.<br>
-				<ul>
-				<li><strong>Comment participer ?</strong></li> Pour garantir la qualité de notre suivi scientifique, l'accès au formulaire de signalement est réservé aux habitants volontaires ayant reçu leur kit de piégeage.<br>
-				<li><strong>Identification :</strong></li> Munissez-vous du courrier qui vous a été transmis. Vos identifiants correspondent aux 3 premières lettres de votre nom suivies de votre numéro de rue (ex: si M. DURAND habite au n°12, son code est dur12).<br>
-				<li>Vos données sont traitées de manière confidentielle et servent uniquement à cartographier la présence du frelon sur notre territoire.</li>
-				</ul>
-			</p>
-		</section>
-	<a href="dashboard.html">Voir les statistiques détaillées</a>
-	<a href="ressources.html">Ressources PDF</a> </nav>
-    </header>
-
-    <main>
-        <section id="meteo-indicator" class="card">
-            <h2>Indicateur de Vol des Fondatrices</h2>
-            <div id="weather-status">Chargement de la météo...</div>
-            <p><small>Basé sur la moyenne des températures des 5 derniers jours (>10°C).</small></p>
-        </section>
-
-        <section class="card">
-            <h2><i class="fas fa-chart-bar"></i> Suivi des Piégeages</h2>
-            <div id="stats-container">
-                <p>Chargement des données...</p>
-            </div>
-            <p><strong>Total fondatrices piégées : <span id="total-count">0</span></strong></p>
-        </section>
-
-        <section class="card">
-
-            <h2>Signalement & Contact</h2>
-            <p>Vous avez piégé une fondatrice ? Signalez-le nous.</p>
-		<div id="auth-section">
-    			<p>Veuillez vous identifier pour signaler une prise :</p>
-    				<input type="text" id="user-id" placeholder="3 premières lettres de votre nom" maxlength="3">
-    				<input type="text" id="user-street-nb" placeholder="Votre numéro de rue">
-    				<button type="button" onclick="verifyParticipant()">Valider</button>
-    			<p id="auth-error" style="color:red; display:none;">Identifiants non reconnus.</p>
-		</div>
-			
- 		<form id="signalement-form" style="display:none;">
-    <label>Votre Nom :</label>
-    <input type="text" id="form-nom" required>
-
-    <label>Lieu du piégeage :</label>
-    <input type="text" id="form-lieu" required>
-
-    <label>Nombre de frelons :</label>
-    <input type="number" id="form-nombre" min="1" required>
-
-    <label>Votre Email :</label>
-    <input type="email" id="form-email" required>
-
-    <label style="font-size: 0.8em; display: flex; align-items: flex-start; gap: 10px;">
-        <input type="checkbox" required style="width: auto; margin-top: 5px;">
-        <span>J'accepte que mes données soient utilisées pour le suivi de la lutte contre le frelon asiatique.</span>
-    </label>
-
-    <button type="submit" id="btn-submit">Envoyer le signalement</button>
-    <p id="form-status" style="display:none; color: #27ae60; font-weight: bold; margin-top:10px;"></p>
-</form>
-
-<script>
-    document.getElementById('signalement-form').addEventListener('submit', function(e) {
-        e.preventDefault(); 
-        
-        const btnSubmit = document.getElementById('btn-submit');
-        const statusText = document.getElementById('form-status');
-        
-        btnSubmit.disabled = true;
-        btnSubmit.innerText = "Envoi en cours...";
-        
-        const formData = new URLSearchParams();
-        formData.append('nom', document.getElementById('form-nom').value);
-        formData.append('lieu', document.getElementById('form-lieu').value);
-        formData.append('nombre', document.getElementById('form-nombre').value);
-        formData.append('email', document.getElementById('form-email').value);
-        
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbyoWrga1L6fpLoVlumbvQazHuxzSoSMZgt_CvwhM3Yolg-3kAI0Lg1bChtTPHq-LGyRxw/exec';
-        
-        // AJOUT DE mode: 'no-cors' POUR ÉVITER LE BLOCAGE DE SÉCURITÉ
-        fetch(scriptURL, { 
-            method: 'POST', 
-            mode: 'no-cors', 
-            body: formData 
-        })
-        .then(() => {
-            // Avec no-cors, on considère que ça a marché si la requête est partie
-            window.location.href = 'merci.html'; 
-        })
-        .catch(error => {
-            console.error('Erreur!', error.message);
-            btnSubmit.disabled = false;
-            btnSubmit.innerText = "Envoyer le signalement";
-            statusText.style.display = 'block';
-            statusText.style.color = 'red';
-            statusText.innerText = "Erreur réseau. Vérifiez votre URL de script.";
-        });
-    });
-</script>
-
-<script type="text/javascript">var submitted=false;</script>
-<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted){window.location='merci.html';}"></iframe>
-
-        </section>
-    </main>
-
-    <footer>
-        <a href="admin.html">Accès Administration</a>
-	    <p>&copy; 2026 - La Comté au coeur de la ruche</p>
-        <p><a href="mentions-legales.html" style="color: #666; text-decoration: underline; font-size: 0.8em;">Mentions Légales & RGPD</a></p>	
-    </footer>
-
-    <script src="config.js"></script>
-<script src="form-handler.js"></script>
-	<script src="auth.js"></script>
-    <script src="script.js"></script>
+    <form id="myForm">
+        <input type="text" name="firstName" placeholder="First Name">
+        <input type="text" name="lastName" placeholder="Last Name">
+        <input type="email" name="email" placeholder="Email">
+        <input type="submit" value="Submit">
+    </form>
+    <script>
+        // Remove the inline script and handle in form-handler.js
+    </script>
 </body>
-
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
