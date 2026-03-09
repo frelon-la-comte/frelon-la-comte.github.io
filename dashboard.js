@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- COORDONNÉES APPROXIMATIVES DES RUES DE LA COMTÉ (62150) ---
 // Vous pourrez compléter cette liste pour que les points soient bien placés
 const GPS_MAPPING = {
-    "centre": [50.407, 2.502], // Centre du village par défaut
+    "centre": [50.4256, 2.4993], // Centre du village par défaut
     "rue de l'église": [50.4255, 2.4937],
     "grand rue": [50.4275, 2.4985],
     "rue jules elby": [50.4282, 2.4985],
