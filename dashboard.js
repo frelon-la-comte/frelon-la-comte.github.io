@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Vous pourrez compléter cette liste pour que les points soient bien placés
 const GPS_MAPPING = {
     "centre": [50.4256, 2.4993], // Centre du village par défaut
-    "rue de l'église": [50.4255, 2.4937],
+    "rue de l'église": [50.4282, 2.4915],
     "grand rue": [50.4275, 2.4985],
     "rue jules elby": [50.4282, 2.4985],
     "rue du 14 juillet": [50.4270, 2.5039],
@@ -145,4 +145,5 @@ function initCharts(data) {
             }
         }
     });
+
 }
