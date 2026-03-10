@@ -1,8 +1,8 @@
 const CONFIG = {
     city: "La Comté",
     zip: "62150",
-    lat: 50.407, // Latitude approximative de La Comté
-    lon: 2.502,  // Longitude approximative
+    lat: 50.4256, // Latitude approximative de La Comté
+    lon: 2.4993,  // Longitude approximative
 
     // Ajoutez ceci :
     githubUser: "frelon-la-comte", 
@@ -14,4 +14,5 @@ const CONFIG = {
     emailDest: "lacomteaucoeurdelaruche@gmail.com"
 
 };
+
 
