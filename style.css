@@ -150,3 +150,17 @@ button:hover { background-color: #e67e22; }
         justify-content: center;
     }
 }
+html {
+    scroll-behavior: smooth;
+}
+
+/* Style spécifique pour le bouton formulaire pour le faire ressortir */
+.btn-form-scroll {
+    background-color: #f39c12 !important; /* Orange vif */
+    border-color: #e67e22 !important;
+}
+
+.btn-form-scroll:hover {
+    background-color: #e67e22 !important;
+    color: white !important;
+}
