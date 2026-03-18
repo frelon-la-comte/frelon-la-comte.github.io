@@ -123,6 +123,10 @@ button:hover { background-color: #e67e22; }
     border-color: #f1c40f; /* Bordure jaune frelon */
 }
 
+.nav-button[href="index.html"] {
+    border-color: #F54927; /* Bordure bleue */
+}
+
 .nav-button[href="ressources.html"] {
     border-color: #3498db; /* Bordure bleue */
 }
