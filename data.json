@@ -45,6 +45,11 @@
     "nombre": 1
   },
   {
+    "date": "2026-03-19",
+    "lieu": "rue du 8 mai 1945",
+    "nombre": 1
+  },
+  {
     "date": "2026-03-20",
     "lieu": "rue jules elby",
     "nombre": 1
@@ -64,5 +69,4 @@
     "lieu": "grande rue",
     "nombre": 1
   }
-
 ]
