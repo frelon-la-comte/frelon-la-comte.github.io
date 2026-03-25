@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
 const GPS_MAPPING = {
     "centre": [50.4256, 2.4993], // Centre du village par défaut
     "rue de l'église": [50.4282, 2.4915],
-    "grande rue": [50.4275, 2.4985],
+    "grande rue": [50.4278, 2.4957],
     "rue jules elby": [50.4282, 2.4985],
     "rue du 14 juillet": [50.4270, 2.5039],
     "rue de la petite ville": [50.4254, 2.4987],
