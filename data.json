@@ -68,5 +68,10 @@
     "date": "2026-03-23",
     "lieu": "grande rue",
     "nombre": 1
+  },
+  {
+    "date": "2026-03-24",
+    "lieu": "rue du 8 mai 1945",
+    "nombre": 2
   }
 ]
