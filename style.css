@@ -93,7 +93,7 @@ button:hover { background-color: #e67e22; }
 /* Sur mobile très petit, on s'assure que le texte ne déborde pas */
 @media (max-width: 400px) {
     .btn-nid { font-size: 0.8em; }
-	
+}
 	/* Style de la navigation principale */
 .main-nav {
     display: flex;
