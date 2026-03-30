@@ -6,24 +6,55 @@
     <title>Lutte Frelon Asiatique - La Comté</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+	<script data-goatcounter="https://thomaspoullie.goatcounter.com/count"async src="//gc.zgo.at/count.js"></script>
 </head>
 <body>
 
     <header>
         <h1><i class="fas fa-bug"></i> Vigilance Frelon Asiatique</h1>
         <!--<p>Commune de La Comté (62150)</p>-->
-		<H2>Ensemble, protégeons notre biodiversité à La Comté</H2>
+<H2>Ensemble, protégeons notre biodiversité à La Comté</H2>
+        
+        <!--<div class="alert-banner">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+                <strong>Information technique :</strong> Le formulaire de signalement est à nouveau 100% fonctionnel ! Suite à un petit dysfonctionnement technique lors du lancement, les envois précédents n'ont pas pu être enregistrés. Si vous aviez déjà fait un signalement avant le dimanche 8 mars 2026 22h, merci de bien vouloir le <strong>saisir à nouveau</strong>. Toutes nos excuses pour ce contretemps !
+            </div>
+        </div>-->
+		<nav class="main-nav">
+			<a href="#auth-section" class="nav-button btn-form-scroll">
+				<i class="fas fa-edit"></i> Signaler une capture
+			</a>
+<a href="#nid" class="nav-button btn-form-scroll">
+				<i class="fas fa-exclamation-triangle"></i> Signaler un nid
+			</a>
+			<a href="dashboard.html" class="nav-button">
+				<i class="fas fa-chart-line"></i> Statistiques & Carte
+			</a>
+			<a href="ressources.html" class="nav-button">
+				<i class="fas fa-file-pdf"></i> Ressources & Guides
+			</a>
+		</nav></br>
+		
 		<section class="card accueil">
-			<p>	La lutte contre le frelon asiatique est l'affaire de tous. Au printemps, chaque fondatrice piégée évite la naissance d'un futur nid et protège nos abeilles ainsi que les insectes pollinisateurs de notre commune.<br>
-				<ul>
-				<li><strong>Comment participer ?</strong></li> Pour garantir la qualité de notre suivi scientifique, l'accès au formulaire de signalement est réservé aux habitants volontaires ayant reçu leur kit de piégeage.<br>
-				<li><strong>Identification :</strong></li> Munissez-vous du courrier qui vous a été transmis. Vos identifiants correspondent aux 3 premières lettres de votre nom suivies de votre numéro de rue (ex: si M. DURAND habite au n°12, son code est dur12).<br>
-				<li>Vos données sont traitées de manière confidentielle et servent uniquement à cartographier la présence du frelon sur notre territoire.</li>
-				</ul>
-			</p>
+			<p style="font-size: 1.1em; margin-bottom: 20px;">La lutte contre le frelon asiatique est l'affaire de tous. Au printemps, chaque fondatrice piégée évite la naissance d'un futur nid et protège nos abeilles ainsi que les insectes pollinisateurs de notre commune.</p>
+			
+            <div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #f39c12;">
+                <h3 style="margin-top: 0; color: #333;"><i class="fas fa-users"></i> Comment participer ?</h3>
+                <p>Pour garantir la qualité de notre suivi scientifique, l'accès au formulaire de signalement est réservé aux habitants volontaires ayant reçu leur kit de piégeage.</p>
+                
+                <h3 style="color: #333;"><i class="fas fa-key"></i> Votre Identification</h3>
+                <p>Munissez-vous du courrier qui vous a été transmis. Vos identifiants de connexion correspondent à :</p>
+                <ul>
+                    <li>Les <strong>3 premières lettres</strong> de votre nom</li>
+                    <li>Suivies de votre <strong>numéro de rue</strong></li>
+                </ul>
+                <p><em>(Exemple : si M. DURAND habite au n°12, son code est <strong>dur12</strong>).</em></p>
+            </div>
+
+			<p style="font-size: 0.9em; color: #555;"><i class="fas fa-shield-alt"></i> Vos données sont traitées de manière confidentielle et servent uniquement à cartographier la présence du frelon sur notre territoire.</p>
 		</section>
-	<a href="dashboard.html">Voir les statistiques détaillées</a>
-	<a href="ressources.html">Ressources PDF</a> </nav>
+		
     </header>
 
     <main>
@@ -41,6 +72,37 @@
             <p><strong>Total fondatrices piégées : <span id="total-count">0</span></strong></p>
         </section>
 
+		<section id="nid" class="card nid-signalement" style="border-left: 4px solid #e74c3c; background-color: #fdf2f2;">
+			<h3 style="color: #c0392b; margin-top: 0;">
+				<i class="fas fa-bullseye"></i> Vous avez repéré un NID ?
+			</h3>
+			<p>La destruction des nids doit être faite par des professionnels. <strong>Ne vous approchez pas !</strong></p>
+			
+			<div class="container-boutons-nid">
+				<a href="mailto:lacomteaucoeurdelaruche@gmail.com?subject=Signalement de NID - La Comté&body=Bonjour, je souhaite signaler la présence d'un nid.%0D%0ALieu précis : %0D%0ACommentaires : " 
+				   class="btn-nid btn-email">
+					<i class="fas fa-envelope"></i> Par Email
+				</a>
+
+				<a href="https://wa.me/33626857855?text=Bonjour,%20je%20souhaite%20signaler%20un%20nid%20de%20frelons%20à%20La%20Comté.%20Voici%20le%20lieu%20:%20" 
+				   target="_blank" 
+				   class="btn-nid btn-whatsapp">
+					<i class="fab fa-whatsapp"></i> Par WhatsApp
+				</a>
+				
+				<a href="tel:0800 18 62 18" class="btn-nid btn-sdis">
+					<i class="fas fa-phone-alt"></i> Pompiers Communautaires 
+				</a>
+				
+			</div>
+			<p style="font-size: 0.85em; color: #666; margin-top: 15px; font-style: italic;">
+				<strong>Note :</strong> Le numéro des pompiers communautaires (0800 18 62 18) est à privilégier pour les nids présentant un danger immédiat.
+			</p>
+			<p style="font-size: 0.85em; color: #666; margin-top: 15px; font-style: italic;">
+				<i class="fas fa-camera"></i> N'oubliez pas de joindre l'emplacement exact pour transmettre les informations au service concerné	.
+			</p>
+		</section>
+
         <section class="card">
 
             <h2>Signalement & Contact</h2>
@@ -53,43 +115,78 @@
     			<p id="auth-error" style="color:red; display:none;">Identifiants non reconnus.</p>
 		</div>
 			
- 		<form id="signalement-form" style="display:none;" action="https://docs.google.com/forms/d/e/1FAIpQLSf_XmjqXUbIqaRY-pKDnJSQzDbEt-hfyLHe9VwjlDMpY_LJxg/formResponse" method="POST" target="hidden_iframe" onsubmit="submitted=true;">
+ 		<form id="signalement-form" style="display:none;">
+			<label>Votre Nom :</label>
+			<input type="text" id="form-nom" name="nom" required>
 
-    			<label>Votre Nom :</label>
-    			<input type="text" name="entry.402633101" required>
-    
-    			<label>Lieu du piégeage :</label>
-    			<input type="text" name="entry.891157190" required>
-    
-    			<label>Nombre de frelons :</label>
-    			<input type="number" name="entry.1195598964" min="1" required>
+			<label>Lieu du piégeage :</label>
+			<input type="text" id="form-lieu" name="lieu" required>
 
-   			<label>Votre Email :</label>
-    			<input type="email" name="entry.903503386" required>
-    
-    			<label style="font-size: 0.8em; display: flex; align-items: flex-start; gap: 10px;">
-        		<input type="checkbox" name="entry.516454124" value="J'accepte" required style="width: auto; margin-top: 5px;">
-        		<span>J'accepte que mes données soient utilisées pour le suivi de la lutte contre le frelon asiatique.</span>
-    			</label>
+			<label>Nombre de frelons :</label>
+			<input type="number" id="form-nombre" name="nombre" min="1" required>
 
-    			<button type="submit">Envoyer le signalement</button>
+			<label>Votre Email :</label>
+			<input type="email" id="form-email" name="email" required>
+
+			<label style="font-size: 0.8em; display: flex; align-items: flex-start; gap: 10px;">
+			<input type="checkbox" id="form-consent" name="consent" required style="width: auto; margin-top: 5px;">
+			<span>J'accepte que mes données soient utilisées pour le suivi de la lutte contre le frelon asiatique.</span>
+			</label>
+
+			<button type="submit" id="btn-submit">Envoyer le signalement</button>
+			<p id="form-status" style="display:none; color: #27ae60; font-weight: bold; margin-top:10px;"></p>
+			
 		</form>
 
-<script type="text/javascript">var submitted=false;</script>
-<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted){window.location='merci.html';}"></iframe>
-
+	<script src="form-handler.js" defer></script>
+	
         </section>
     </main>
 
+	<section class="card support-card">
+		<div class="support-content">
+			<div class="support-text">
+				<h3><i class="fas fa-heart" style="color: #e74c3c;"></i> Soutenir le projet</h3>
+				<p>Ce site est maintenu bénévolement pour protéger la biodiversité de La Comté. Un petit café offert aide à couvrir les frais d'hébergement et le temps de développement !</p>
+			</div>
+			<div class="support-button-container">
+				<a href="https://ko-fi.com/thomaspoullie" target="_blank" class="btn-kofi">
+					<img src="https://storage.ko-fi.com/cdn/cup-border.png" alt="Ko-fi" class="kofi-img">
+					M'offrir un café
+				</a>
+			</div>
+		</div>
+	</section>
+
     <footer>
-        <a href="admin.html">Accès Administration</a>
+        <!--<a href="admin.html">Accès Administration</a>-->
 	    <p>&copy; 2026 - La Comté au coeur de la ruche</p>
-        <p><a href="mentions-legales.html" style="color: #666; text-decoration: underline; font-size: 0.8em;">Mentions Légales & RGPD</a></p>	
+        <p><a href="mentions-legales.html" style="color: #666; text-decoration: underline; font-size: 0.8em;">Mentions Légales & RGPD</a></p>
+		<p style="font-size: 0.8em; color: #888; margin-top: 10px;">
+            Dernière mise à jour du site : <span id="date-maj">Chargement...</span>
+        </p>
     </footer>
 
     <script src="config.js"></script>
 	<script src="auth.js"></script>
     <script src="script.js"></script>
+	<script>
+		document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('signalement-form');
+            if (form) {
+                form.addEventListener('submit', window.formHandler);
+            }
+			 // Récupère la date de dernière modification du fichier HTML
+            const dateUpdate = new Date(document.lastModified);
+            
+            // Formate la date en français
+            const options = { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute:'2-digit' };
+            const dateFormatee = dateUpdate.toLocaleDateString('fr-FR', options).replace(':', 'h');
+            
+            // Affiche le résultat
+            document.getElementById('date-maj').innerText = dateFormatee;
+        });
+	</script>
 </body>
 
 </html>
