@@ -8,35 +8,77 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
-        /* Styles spécifiques au dashboard */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-            margin-top: 20px;
-        }
-        
-        /* Sur grand écran, on met le graphe et la carte côte à côte ou l'un sous l'autre */
-        @media (min-width: 768px) {
-            .dashboard-grid { grid-template-columns: 1fr 1fr; }
-            .full-width { grid-column: span 2; }
-        }
+		/* Configuration de base de la grille */
+		.dashboard-container {
+			max-width: 1300px;
+			margin: 20px auto;
+			display: flex;
+			flex-direction: column;
+			gap: 20px;
+		}
 
-        .chart-container {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            position: relative;
-            height: 300px; /* Hauteur fixe pour les graphes */
-        }
+		/* Le Résumé tout en haut - Très impactant */
+		.summary-card {
+			background: linear-gradient(135deg, #d35400 0%, #e67e22 100%);
+			color: white;
+			text-align: center;
+			padding: 25px;
+			border-radius: 12px;
+			box-shadow: 0 4px 15px rgba(211, 84, 0, 0.3);
+		}
+		.summary-card h2 { color: white; 
+			border-bottom: 1px solid rgba(255,255,255,0.3); 
+			margin-top: 0; 
+		}
+		
+		#total-stat { font-size: 3.5em !important; 
+			display: block; 
+			font-weight: bold; 
+			margin: 10px 0; 
+		}
 
-        #map {
-            height: 400px; /* La carte doit avoir une hauteur définie */
-            border-radius: 8px;
-            z-index: 1; /* S'assure que la carte reste sous le menu s'il y en a un */
-        }
-    </style>
+		/* La grille principale pour la Carte et les Graphiques */
+		.dashboard-grid {
+			display: grid;
+			grid-template-columns: 1fr; /* 1 colonne sur mobile */
+			gap: 20px;
+		}
+
+		/* --- Agencement PC (au-dessus de 900px) --- */
+		@media (min-width: 900px) {
+			.dashboard-grid {
+				grid-template-columns: 1.4fr 1fr; /* Carte plus large (60%) que les graphes (40%) */
+				grid-template-rows: 1fr 1fr;    /* Deux lignes de hauteur égale */
+				height: 700px; /* Hauteur totale fixe pour que tout s'aligne */
+			}
+
+			.map-card {
+				grid-row: span 2; /* La carte prend les 2 lignes de gauche */
+			}
+		}
+
+		/* Style des cartes */
+		.card-dash {
+			background: white;
+			padding: 15px;
+			border-radius: 12px;
+			box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+			display: flex;
+			flex-direction: column;
+		}
+
+		#map {
+			flex-grow: 1; /* La carte prend toute la place du conteneur */
+			width: 100%;
+			border-radius: 8px;
+			min-height: 400px; /* Sécurité pour mobile */
+		}
+
+		.chart-box {
+			height: 100%;
+			min-height: 250px;
+		}
+	</style>
 </head>
 <body>
 
@@ -50,30 +92,38 @@
     </header>
 
     <main>
-        <div class="dashboard-grid">
-            
-            <div class="card full-width">
-                <h2>Cartographie des prises</h2>
-                <div id="map"></div>
-                <p><small>La localisation est approximative selon le lieu-dit renseigné.</small></p>
-            </div>
+		<div class="dashboard-container">
+			
+			<div class="summary-card">
+				<h2><i class="fas fa-bullseye"></i> Bilan de la Saison - La Comté</h2>
+				<div style="font-size: 1.2em; font-weight: normal; opacity: 0.9;">Total des fondatrices piégées :</div>
+				<strong id="total-stat">0</strong>
+				<div style="font-style: italic; font-size: 0.9em; margin-top: 10px;">
+					<i class="fas fa-history"></i> Dernière capture enregistrée le : <span id="last-date" style="font-weight: bold;">--</span>
+				</div>
+			</div>
 
-            <div class="chart-container">
-                <canvas id="timeChart"></canvas>
-            </div>
+			<div class="dashboard-grid">
+				
+				<div class="card-dash map-card">
+					<h3 style="margin-top: 0;"><i class="fas fa-map-marked-alt"></i> Cartographie Locale</h3>
+					<div id="map"></div>
+					<p style="margin: 10px 0 0 0; color: #7f8c8d; font-size: 0.85em;">Localisation approximative par lieu-dit.</p>
+				</div>
 
-            <div class="chart-container">
-                <canvas id="locationChart"></canvas>
-            </div>
-            
-            <div class="card">
-                <h2>Résumé</h2>
-                <p>Total piégé : <strong id="total-stat" style="font-size: 1.5em; color: #d35400;">0</strong></p>
-                <p>Dernière prise : <span id="last-date">Aucune</span></p>
-            </div>
+				<div class="card-dash chart-box">
+					<h3 style="margin-top: 0;"><i class="fas fa-chart-line"></i> Évolution Temporelle</h3>
+					<canvas id="timeChart"></canvas>
+				</div>
 
-        </div>
-    </main>
+				<div class="card-dash chart-box">
+					<h3 style="margin-top: 0;"><i class="fas fa-chart-pie"></i> Répartition Géographique</h3>
+					<canvas id="locationChart"></canvas>
+				</div>
+
+			</div> 
+		</div> 
+	</main>
     
     <footer>
         <!--<a href="admin.html">Accès Administration</a>-->
