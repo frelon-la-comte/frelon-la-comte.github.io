@@ -165,6 +165,16 @@ html {
     color: white !important;
 }
 
+.btn-form-scroll1 {
+    background-color: #c0392b !important; /* rouge */
+    border-color: #e67e22 !important;
+}
+
+.btn-form-scroll1:hover {
+    background-color: #e67e22 !important;
+    color: white !important;
+}
+
 /* Section Soutien */
 .support-card {
     background-color: #f9f9f9;
