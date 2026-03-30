@@ -15,7 +15,6 @@
 			display: flex;
 			flex-direction: column;
 			gap: 20px;
-			padding: 0 10px;
 		}
 
 		/* Le Résumé tout en haut - Très impactant */
@@ -37,23 +36,12 @@
 			font-weight: bold; 
 			margin: 10px 0; 
 		}
-		
-		/* Grille Mobile (par défaut) */
-		
-		.dashboard-grid {
-			display: flex;
-			flex-direction: column;
-			gap: 20px;
-		}
 
-		.card-dash {
-			background: white;
-			padding: 15px;
-			border-radius: 12px;
-			box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-			display: flex;
-			flex-direction: column;
-			min-height: 350px; /* Évite que les graphs soient trop aplatis */
+		/* La grille principale pour la Carte et les Graphiques */
+		.dashboard-grid {
+			display: grid;
+			grid-template-columns: 1fr; /* 1 colonne sur mobile */
+			gap: 20px;
 		}
 
 		/* --- Agencement PC (au-dessus de 900px) --- */
@@ -61,8 +49,7 @@
 			.dashboard-grid {
 				grid-template-columns: 1fr 1.4fr; /* Graph plus large (60%) que la carte (40%) */
 				grid-template-rows: 1fr 1fr;    /* Deux lignes de hauteur égale */
-				height: 850x; /* Hauteur totale fixe pour que tout s'aligne */
-				gap: 20px;
+				height: 700px; /* Hauteur totale fixe pour que tout s'aligne */
 			}
 
 			.map-card {
@@ -81,6 +68,7 @@
 		}
 
 		#map {
+			flex-grow: 1; /* La carte prend toute la place du conteneur */
 			width: 100%;
 			border-radius: 8px;
 			min-height: 400px; /* Sécurité pour mobile */
@@ -90,12 +78,6 @@
 			height: 100%;
 			min-height: 250px;
 		}
-		
-		canvas {
-			width: 100% !important;
-			height: 100% !important;
-		}
-	
 	</style>
 </head>
 <body>
