@@ -164,3 +164,66 @@ html {
     background-color: #e67e22 !important;
     color: white !important;
 }
+
+/* Section Soutien */
+.support-card {
+    background-color: #f9f9f9;
+    border-top: 4px solid #29abe0; /* Couleur Ko-fi */
+    margin-top: 40px;
+}
+
+.support-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.support-text {
+    flex: 2;
+    min-width: 250px;
+}
+
+.support-text h3 {
+    margin-top: 0;
+    color: #2c3e50;
+}
+
+.support-button-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+/* Bouton Ko-fi personnalisé */
+.btn-kofi {
+    background-color: #29abe0;
+    color: white !important;
+    padding: 12px 25px;
+    border-radius: 100px;
+    text-decoration: none;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 10px rgba(41, 171, 224, 0.3);
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.btn-kofi:hover {
+    transform: scale(1.05);
+    background-color: #2496c4;
+}
+
+.kofi-img {
+    height: 25px;
+    filter: brightness(0) invert(1); /* Rend l'icône blanche */
+}
+
+@media (max-width: 600px) {
+    .support-content {
+        text-align: center;
+        flex-direction: column;
+    }
+}
