@@ -10,6 +10,17 @@
     <script data-goatcounter="https://thomaspoullie.goatcounter.com/count"async src="//gc.zgo.at/count.js"></script>
     
     <style>
+		/* Ajout de media query pour tailles mobiles */
+		@media (max-width: 600px) {
+			.dashboard-grid {
+				grid-template-columns: 1fr; /* Afficher les graphiques en une seule colonne */
+			}
+			
+			.card-dash chart-box {
+				height: auto; /* Assurez-vous que la hauteur des cartes soit adaptée au contenu */
+				max-height: 300px; /* Limitez la hauteur maximale pour empêcher l'allongement indéfini */
+			}
+		}
 		/* Configuration de base de la grille */
 		.dashboard-container {
 			max-width: 1300px;

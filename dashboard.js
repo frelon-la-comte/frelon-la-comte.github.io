@@ -9,6 +9,7 @@ const GPS_MAPPING = {
     "rue de l'église": [50.4282, 2.4915],
     "grande rue": [50.4278, 2.4957],
     "rue jules elby": [50.4282, 2.4985],
+    "impasse jules elby":[50.4293, 2.4961],
     "rue du 14 juillet": [50.4270, 2.5039],
     "rue de la petite ville": [50.4254, 2.4987],
     "rue du 8 mai 1945": [50.4215, 2.5022],
