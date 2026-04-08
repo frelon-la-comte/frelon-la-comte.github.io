@@ -3,20 +3,18 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // --- COORDONNÉES APPROXIMATIVES DES RUES DE LA COMTÉ (62150) ---
-// Vous pourrez compléter cette liste pour que les points soient bien placés
 const GPS_MAPPING = {
-    "centre": [50.4256, 2.4993], // Centre du village par défaut
+    "centre": [50.4256, 2.4993],
     "rue de l'église": [50.4282, 2.4915],
     "grande rue": [50.4278, 2.4957],
     "rue jules elby": [50.4282, 2.4985],
-    "impasse jules elby":[50.4293, 2.4961],
+    "impasse jules elby": [50.4293, 2.4961],
     "rue du 14 juillet": [50.4270, 2.5039],
     "rue de la petite ville": [50.4254, 2.4987],
     "rue du 8 mai 1945": [50.4215, 2.5022],
     "rue du chateau": [50.4242, 2.5010],
     "rue du 19 mars 1962": [50.4244, 2.4963],
     "rue du 11 novembre": [50.4255, 2.4937],
-    
 };
 
 async function initDashboard() {
@@ -36,60 +34,81 @@ async function initDashboard() {
 
 // 1. CHIFFRES CLÉS
 function updateKeyFigures(data) {
-    // Calcul du total
     const total = data.reduce((acc, item) => acc + item.nombre, 0);
     document.getElementById('total-stat').innerText = total;
 
-    // Dernière date
     if (data.length > 0) {
-        // Trie par date décroissante pour trouver la plus récente
         const sorted = [...data].sort((a, b) => new Date(b.date) - new Date(a.date));
         document.getElementById('last-date').innerText = sorted[0].date;
     }
 }
 
-// 2. CARTE (LEAFLET)
+// 2. CARTE LEAFLET — avec agrégation par lieu
 function initMap(data) {
-    // Initialiser la carte centrée sur La Comté (via config.js)
     const map = L.map('map').setView([CONFIG.lat, CONFIG.lon], 14);
 
-    // Ajouter le fond de carte (OpenStreetMap)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // Ajouter les marqueurs
+    // --- AGRÉGATION : on cumule les captures par lieu ---
+    const parLieu = {};
     data.forEach(item => {
-        // On essaie de trouver les coordonnées du lieu
-        let lieuClean = item.lieu.toLowerCase().trim();
-        let coords = GPS_MAPPING[lieuClean];
+        const lieuClean = item.lieu.toLowerCase().trim();
 
-        // Si on ne connait pas la rue, on met au centre avec un tout petit décalage aléatoire
-        // pour ne pas que les points se superposent parfaitement
-        if (!coords) {
-            const offsetLat = (Math.random() - 0.5) * 0.005;
-            const offsetLon = (Math.random() - 0.5) * 0.005;
-            coords = [CONFIG.lat + offsetLat, CONFIG.lon + offsetLon];
+        if (!parLieu[lieuClean]) {
+            // Coordonnées : connues ou aléatoires autour du centre
+            let coords = GPS_MAPPING[lieuClean];
+            if (!coords) {
+                const offsetLat = (Math.random() - 0.5) * 0.005;
+                const offsetLon = (Math.random() - 0.5) * 0.005;
+                coords = [CONFIG.lat + offsetLat, CONFIG.lon + offsetLon];
+            }
+            parLieu[lieuClean] = {
+                coords: coords,
+                total: 0,
+                label: item.lieu, // Garde le nom d'origine (majuscules) pour l'affichage
+                dates: []
+            };
         }
 
-        // Création du marqueur
-        L.marker(coords)
-            .addTo(map)
-            .bindPopup(`<b>${item.date}</b><br>${item.nombre} frelon(s)<br>${item.lieu}`);
+        parLieu[lieuClean].total += item.nombre;
+        parLieu[lieuClean].dates.push(`${item.date} : ${item.nombre} frelon(s)`);
+    });
+
+    // --- AFFICHAGE : un seul marqueur par lieu, avec le total agrégé ---
+    Object.values(parLieu).forEach(lieu => {
+        // Cercle dont le rayon est proportionnel au nombre de captures
+        const radius = 8 + lieu.total * 3; // min 11px, grandit avec le total
+
+        const circle = L.circleMarker(lieu.coords, {
+            radius: Math.min(radius, 40), // plafond à 40px pour ne pas couvrir la carte
+            fillColor: '#d35400',
+            color: '#922b00',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.75
+        }).addTo(map);
+
+        // Popup détaillée avec le détail par date
+        const detailDates = lieu.dates.join('<br>');
+        circle.bindPopup(
+            `<b>${lieu.label}</b><br>` +
+            `<b>Total : ${lieu.total} frelon(s)</b><br>` +
+            `<hr style="margin:5px 0">` +
+            `<small>${detailDates}</small>`
+        );
     });
 }
 
 // 3. GRAPHIQUES (CHART.JS)
 function initCharts(data) {
-    // --- PRÉPARATION DES DONNÉES ---
-    
+
     // A. Par date (Timeline)
-    // On regroupe les prises par date
     const parDate = {};
     data.forEach(item => {
         parDate[item.date] = (parDate[item.date] || 0) + item.nombre;
     });
-    // On trie les dates
     const labelsDate = Object.keys(parDate).sort();
     const valuesDate = labelsDate.map(date => parDate[date]);
 
@@ -101,50 +120,62 @@ function initCharts(data) {
     const labelsLieu = Object.keys(parLieu);
     const valuesLieu = labelsLieu.map(l => parLieu[l]);
 
-
-    // --- RENDU GRAPHIQUE 1 : EVOLUTION ---
+    // --- GRAPHIQUE 1 : ÉVOLUTION ---
     new Chart(document.getElementById('timeChart'), {
-        type: 'line', // ou 'bar'
+        type: 'line',
         data: {
             labels: labelsDate,
             datasets: [{
-                label: 'Nombre de fondatrices piégées',
+                label: 'Fondatrices piégées',
                 data: valuesDate,
                 borderColor: '#d35400',
-                backgroundColor: 'rgba(211, 84, 0, 0.2)',
+                backgroundColor: 'rgba(211, 84, 0, 0.15)',
                 fill: true,
-                tension: 0.3
+                tension: 0.3,
+                pointBackgroundColor: '#d35400',
+                pointRadius: 4,
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
+            maintainAspectRatio: false, // IMPORTANT : laisse le conteneur CSS fixer la hauteur
             plugins: {
-                title: { display: true, text: 'Évolution temporelle' }
+                legend: { display: false },
+                title: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { precision: 0 }
+                }
             }
         }
     });
 
-    // --- RENDU GRAPHIQUE 2 : REPARTITION LIEUX ---
+    // --- GRAPHIQUE 2 : RÉPARTITION LIEUX ---
     new Chart(document.getElementById('locationChart'), {
-        type: 'doughnut', // ou 'pie'
+        type: 'doughnut',
         data: {
             labels: labelsLieu,
             datasets: [{
                 data: valuesLieu,
                 backgroundColor: [
-                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'
+                    '#d35400', '#e67e22', '#f39c12',
+                    '#FF6384', '#36A2EB', '#4BC0C0',
+                    '#9966FF', '#FF9F40', '#2ecc71'
                 ]
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
+            maintainAspectRatio: false, // IMPORTANT
             plugins: {
-                title: { display: true, text: 'Répartition par zone' },
-                legend: { position: 'bottom' }
+                title: { display: false },
+                legend: {
+                    position: 'bottom',
+                    labels: { boxWidth: 12, font: { size: 11 } }
+                }
             }
         }
     });
-
 }
