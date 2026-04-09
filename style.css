@@ -1,6 +1,6 @@
 body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f9; color: #333; margin: 0; padding: 20px; }
 header { text-align: center; margin-bottom: 30px; }
-h1 { color: #d35400; } /* Orange frelon */
+h1 { color: #d35400; }
 
 .card {
     background: white;
@@ -11,6 +11,168 @@ h1 { color: #d35400; } /* Orange frelon */
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
+}
+
+/* Cartes compactes */
+.card-compact {
+    padding: 14px 18px;
+}
+
+.card-compact h2 {
+    font-size: 1.1em;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+/* Section accueil condensée */
+.accueil-intro {
+    font-size: 0.95em;
+    margin-bottom: 12px;
+    color: #444;
+}
+
+.rgpd-notice {
+    font-size: 0.8em;
+    color: #888;
+    margin-bottom: 0;
+}
+
+/* Détails dépliables pour "Comment participer" */
+.participation-details {
+    background: #f9f9f9;
+    border-radius: 6px;
+    border-left: 4px solid #f39c12;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+
+.participation-details summary {
+    padding: 10px 14px;
+    cursor: pointer;
+    font-weight: bold;
+    color: #333;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.participation-details summary::-webkit-details-marker { display: none; }
+.participation-details summary small { font-weight: normal; color: #999; }
+
+.participation-details[open] summary {
+    border-bottom: 1px solid #eee;
+}
+
+.details-content {
+    padding: 10px 14px;
+    font-size: 0.9em;
+    color: #555;
+}
+
+.details-content ul { padding-left: 20px; margin: 6px 0; }
+.details-content p { margin: 6px 0; }
+
+/* En-tête stats */
+.stats-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.stats-header h2 { margin: 0; }
+.total-line { margin: 0; font-size: 0.95em; }
+
+/* Lien vers archives sous les stats */
+.archives-teaser {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #f0f0f0;
+    font-size: 0.85em;
+}
+
+.archives-teaser a {
+    color: #d35400;
+    text-decoration: none;
+}
+
+.archives-teaser a:hover { text-decoration: underline; }
+
+/* ========================================
+   LISTE DES CAPTURES
+======================================== */
+.capture-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.capture-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 10px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    background: #f8f9fa;
+    font-size: 0.9em;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.capture-item:nth-child(even) { background: #fff3e0; }
+
+.capture-date {
+    color: #666;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.capture-info {
+    color: #333;
+    text-align: right;
+}
+
+/* ========================================
+   PAGINATION
+======================================== */
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.pagination button {
+    width: auto;
+    padding: 6px 14px;
+    font-size: 0.85em;
+    margin: 0;
+    border-radius: 20px;
+}
+
+.pagination button:disabled {
+    background: #ccc;
+    cursor: default;
+}
+
+.page-indicator {
+    font-size: 0.85em;
+    color: #888;
+    font-style: italic;
+}
+
+/* ========================================
+   BOUTON ARCHIVES DANS LA NAV
+======================================== */
+.nav-archives {
+    border-color: #8e44ad !important;
 }
 
 input[type="file"] {
@@ -26,47 +188,46 @@ input[type="file"]:hover {
 
 /* Indicateur Météo */
 .status-go { background-color: #d4edda; 
-	color: #155724; 
-	border: 1px solid #c3e6cb; 
-	padding: 15px; 
-	border-radius: 5px; 
-	font-weight: bold;
+    color: #155724; 
+    border: 1px solid #c3e6cb; 
+    padding: 15px; 
+    border-radius: 5px; 
+    font-weight: bold;
 }
 
 .status-stop { background-color: #f8d7da; 
-	color: #721c24; 
-	border: 1px solid #f5c6cb; 
-	padding: 15px; 
-	border-radius: 5px; 
-	font-weight: bold;
+    color: #721c24; 
+    border: 1px solid #f5c6cb; 
+    padding: 15px; 
+    border-radius: 5px; 
+    font-weight: bold;
 }
 
 /* Formulaire */
 input, button { width: 100%; 
-	padding: 10px; 
-	margin-top: 5px; 
-	margin-bottom: 15px; 
-	box-sizing: border-box; 
+    padding: 10px; 
+    margin-top: 5px; 
+    margin-bottom: 15px; 
+    box-sizing: border-box; 
 }
 
 button { background-color: #d35400; 
-	color: white; 
-	border: none; 
-	cursor: pointer; 
+    color: white; 
+    border: none; 
+    cursor: pointer; 
 }
-button:hover { background-color: #e67e22; 
-}
+button:hover { background-color: #e67e22; }
 
 /* Admin */
 .admin-container { max-width: 400px; 
-	margin: 50px auto; 
-	text-align: center; 
-	background: white; 
-	padding: 30px; 
-	border-radius: 10px;
+    margin: 50px auto; 
+    text-align: center; 
+    background: white; 
+    padding: 30px; 
+    border-radius: 10px;
 }
 
-/* Style de la banderole d'alerte */
+/* Banderole d'alerte */
 .alert-banner {
     background-color: #fff3cd;
     color: #856404;
@@ -84,11 +245,12 @@ button:hover { background-color: #e67e22;
     font-size: 1.5em;
     color: #f39c12;
 }
+
 .container-boutons-nid {
     display: flex;
     gap: 10px;
     justify-content: center;
-    flex-wrap: wrap; /* Pour que ça passe sur 2 lignes sur petit mobile */
+    flex-wrap: wrap;
     margin-top: 15px;
 }
 
@@ -100,44 +262,33 @@ button:hover { background-color: #e67e22;
     text-decoration: none;
     border-radius: 6px;
     font-weight: bold;
-    color: white !important; /* Force le texte en blanc */
+    color: white !important;
     transition: transform 0.2s;
 }
 
-.btn-nid:hover {
-    transform: scale(1.05);
-}
+.btn-nid:hover { transform: scale(1.05); }
+.btn-email { background-color: #e74c3c; }
+.btn-whatsapp { background-color: #25D366; }
+.btn-sdis { background-color: #2980b9; }
 
-.btn-email {
-    background-color: #e74c3c; /* Rouge */
-}
-
-.btn-whatsapp {
-    background-color: #25D366; /* Vert WhatsApp */
-}
-
-.btn-sdis { 
-	background-color: #2980b9; 
-}     /* Bleu Pompiers */
-
-/* Sur mobile très petit, on s'assure que le texte ne déborde pas */
 @media (max-width: 400px) {
     .btn-nid { font-size: 0.8em; }
 }
-	/* Style de la navigation principale */
+
+/* Navigation principale */
 .main-nav {
     display: flex;
     justify-content: center;
     gap: 15px;
     margin: 20px 0;
-    flex-wrap: wrap; /* Pour que ça s'empile sur mobile */
+    flex-wrap: wrap;
 }
 
 .nav-button {
-    background-color: #34495e; /* Bleu nuit élégant */
+    background-color: #34495e;
     color: white !important;
     padding: 12px 25px;
-    border-radius: 50px; /* Forme pilule */
+    border-radius: 50px;
     text-decoration: none;
     font-weight: bold;
     display: flex;
@@ -148,122 +299,44 @@ button:hover { background-color: #e67e22;
     border: 2px solid transparent;
 }
 
-/* Couleurs spécifiques pour bien différencier */
-.nav-button[href="dashboard.html"] {
-    border-color: #f1c40f; /* Bordure jaune frelon */
-}
+.nav-button[href="dashboard.html"] { border-color: #f1c40f; }
+.nav-button[href="index.html"] { border-color: #F54927; }
+.nav-button[href="ressources.html"] { border-color: #3498db; }
+.nav-button[href="archives.html"] { border-color: #8e44ad; }
 
-.nav-button[href="index.html"] {
-    border-color: #F54927; /* Bordure bleue */
-}
-
-.nav-button[href="ressources.html"] {
-    border-color: #3498db; /* Bordure bleue */
-}
-
-/* Effets au survol */
 .nav-button:hover {
-    transform: translateY(-3px); /* Petit saut vers le haut */
+    transform: translateY(-3px);
     box-shadow: 0 6px 12px rgba(0,0,0,0.2);
     background-color: #2c3e50;
-    color: #f1c40f !important; /* Le texte devient jaune au survol */
+    color: #f1c40f !important;
 }
 
-/* Adaptation Mobile */
 @media (max-width: 600px) {
     .main-nav {
         flex-direction: column;
         align-items: center;
     }
     .nav-button {
-        width: 90%; /* Boutons larges sur téléphone */
+        width: 90%;
         justify-content: center;
     }
 }
-html {
-    scroll-behavior: smooth;
-}
 
-/* Style spécifique pour le bouton formulaire pour le faire ressortir */
+html { scroll-behavior: smooth; }
+
 .btn-form-scroll {
     background-color: #f39c12 !important; 
     border-color: #e67e22 !important;
 }
-
 .btn-form-scroll:hover {
     background-color: #e67e22 !important;
     color: white !important;
 }
-
 .btn-form-scroll1 {
     background-color: #c0392b !important;
     border-color: #e67e22 !important;
 }
-
 .btn-form-scroll1:hover {
     background-color: #fdf2f2 !important;
     color: black !important;
-}
-
-/* Section Soutien */
-.support-card {
-    background-color: #f9f9f9;
-    border-top: 4px solid #29abe0; /* Couleur Ko-fi */
-    margin-top: 40px;
-}
-
-.support-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-
-.support-text {
-    flex: 2;
-    min-width: 250px;
-}
-
-.support-text h3 {
-    margin-top: 0;
-    color: #2c3e50;
-}
-
-.support-button-container {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-}
-
-/* Bouton Ko-fi personnalisé */
-.btn-kofi {
-    background-color: #29abe0;
-    color: white !important;
-    padding: 12px 25px;
-    border-radius: 100px;
-    text-decoration: none;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    box-shadow: 0 4px 10px rgba(41, 171, 224, 0.3);
-    transition: transform 0.2s, background-color 0.2s;
-}
-
-.btn-kofi:hover {
-    transform: scale(1.05);
-    background-color: #2496c4;
-}
-
-.kofi-img {
-    height: 25px;
-    filter: brightness(0) invert(1); /* Rend l'icône blanche */
-}
-
-@media (max-width: 600px) {
-    .support-content {
-        text-align: center;
-        flex-direction: column;
-    }
 }

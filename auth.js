@@ -9,19 +9,14 @@ async function checkLogin() {
     const inputPass = document.getElementById('admin-pass').value;
     const errorMsg = document.getElementById('error-msg');
     
-    // Hash l'entrée utilisateur et compare avec la config
     const hashedInput = await sha256(inputPass);
 
     if (hashedInput === CONFIG.adminHash) {
-        // Succès
         document.getElementById('login-panel').style.display = 'none';
         document.getElementById('admin-panel').style.display = 'block';
         errorMsg.style.display = 'none';
-        
-        // Optionnel: Sauvegarder la session dans sessionStorage
         sessionStorage.setItem('isLoggedIn', 'true');
     } else {
-        // Échec
         errorMsg.style.display = 'block';
     }
 }
@@ -41,7 +36,7 @@ function saveToken() {
     }
 }
 
-// --- GESTION LOCALSTORAGE (Ajout temporaire) ---
+// --- GESTION LOCALSTORAGE ---
 function getPendingData() {
     return JSON.parse(localStorage.getItem('pending_frelons') || "[]");
 }
@@ -63,7 +58,6 @@ function addToLocal() {
     localStorage.setItem('pending_frelons', JSON.stringify(list));
     renderPendingList();
     
-    // Reset champs
     document.getElementById('new-lieu').value = "";
     document.getElementById('new-nombre').value = "1";
 }
@@ -90,8 +84,7 @@ function deleteLocal(index) {
     renderPendingList();
 }
 
-// --- GESTION API GITHUB (Le gros morceau) ---
-// Fonction utilitaire pour encoder en Base64 avec support des accents (UTF-8)
+// --- UTILITAIRES BASE64 / UTF-8 ---
 function utf8_to_b64(str) {
     return window.btoa(unescape(encodeURIComponent(str)));
 }
@@ -100,6 +93,7 @@ function b64_to_utf8(str) {
     return decodeURIComponent(escape(window.atob(str)));
 }
 
+// --- SYNCHRONISATION GITHUB ---
 async function syncToGithub() {
     const token = localStorage.getItem('gh_token');
     const status = document.getElementById('sync-status');
@@ -119,7 +113,6 @@ async function syncToGithub() {
     btn.disabled = true;
 
     try {
-        // 1. Récupérer le fichier data.json actuel sur GitHub (pour ne pas écraser les anciennes données)
         const apiUrl = `https://api.github.com/repos/${CONFIG.githubUser}/${CONFIG.githubRepo}/contents/${CONFIG.githubFilePath}`;
         
         const response = await fetch(apiUrl, {
@@ -132,18 +125,13 @@ async function syncToGithub() {
         if (!response.ok) throw new Error("Impossible de lire data.json (Vérifiez votre Token et le nom du repo)");
 
         const fileData = await response.json();
-        const currentSha = fileData.sha; // Important pour dire à GitHub "je modifie CETTE version"
-        
-        // Décoder le contenu actuel (qui est en Base64)
+        const currentSha = fileData.sha;
         let currentContent = JSON.parse(b64_to_utf8(fileData.content));
-
-        // 2. Fusionner les données (Anciennes + Nouvelles du localStorage)
         const newContent = currentContent.concat(pendingData);
 
-        // 3. Renvoyer le tout à GitHub
         const putBody = {
             message: `Mise à jour via Admin Panel : ${pendingData.length} ajouts`,
-            content: utf8_to_b64(JSON.stringify(newContent, null, 2)), // Encoder en Base64 propre
+            content: utf8_to_b64(JSON.stringify(newContent, null, 2)),
             sha: currentSha
         };
 
@@ -158,10 +146,7 @@ async function syncToGithub() {
 
         if (!updateResponse.ok) throw new Error("Erreur lors de l'écriture sur GitHub");
 
-        // SUCCÈS !
         status.innerHTML = "<span class='success'>✅ Données mises à jour avec succès ! Le site sera à jour dans 1 ou 2 minutes.</span>";
-        
-        // Vider le localStorage
         localStorage.removeItem('pending_frelons');
         renderPendingList();
 
@@ -173,7 +158,148 @@ async function syncToGithub() {
     }
 }
 
-// Charger la liste au démarrage si on est déjà logué
+// --- ARCHIVAGE DE SAISON ---
+async function archiveSeason() {
+    const token = localStorage.getItem('gh_token');
+    const status = document.getElementById('archive-status');
+
+    if (!token) {
+        alert("Erreur : Veuillez renseigner votre Token GitHub avant d'archiver.");
+        return;
+    }
+
+    const currentYear = new Date().getFullYear();
+    const yearInput = prompt(
+        `Quelle saison souhaitez-vous archiver ?\n(Entrez l'année, ex: ${currentYear - 1})`,
+        currentYear - 1
+    );
+    if (!yearInput) return;
+    const year = parseInt(yearInput);
+    if (isNaN(year)) { alert("Année invalide."); return; }
+
+    const confirmed = confirm(
+        `⚠️ Vous êtes sur le point d'archiver la saison ${year}.\n\n` +
+        `Cela va :\n` +
+        `  • Copier data.json → archives/${year}.json\n` +
+        `  • Mettre à jour l'index archives.json\n` +
+        `  • Réinitialiser data.json à [] pour la nouvelle saison\n\n` +
+        `Cette action est irréversible. Continuer ?`
+    );
+    if (!confirmed) return;
+
+    status.innerText = "⏳ Archivage en cours...";
+    const btn = document.getElementById('btn-archive');
+    btn.disabled = true;
+
+    const apiBase = `https://api.github.com/repos/${CONFIG.githubUser}/${CONFIG.githubRepo}/contents/`;
+    const headers = {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json'
+    };
+
+    try {
+        // 1. Lire data.json actuel
+        const dataResp = await fetch(apiBase + CONFIG.githubFilePath, { headers });
+        if (!dataResp.ok) throw new Error("Impossible de lire data.json");
+        const dataFile = await dataResp.json();
+        const currentData = JSON.parse(b64_to_utf8(dataFile.content));
+        const total = currentData.reduce((acc, item) => acc + item.nombre, 0);
+
+        status.innerText = `⏳ Écriture de l'archive ${year}.json... (${total} captures)`;
+
+        // 2. Écrire archives/YEAR.json
+        const archivePath = `archives/${year}.json`;
+        let archiveSha = null;
+        try {
+            const existResp = await fetch(apiBase + archivePath, { headers });
+            if (existResp.ok) {
+                const existFile = await existResp.json();
+                archiveSha = existFile.sha;
+            }
+        } catch(e) { /* Fichier n'existe pas encore, c'est normal */ }
+
+        const archiveBody = {
+            message: `Archive saison ${year} - ${total} fondatrices piégées`,
+            content: utf8_to_b64(JSON.stringify(currentData, null, 2)),
+            ...(archiveSha && { sha: archiveSha })
+        };
+
+        const archiveResp = await fetch(apiBase + archivePath, {
+            method: 'PUT',
+            headers: { ...headers, 'Content-Type': 'application/json' },
+            body: JSON.stringify(archiveBody)
+        });
+        if (!archiveResp.ok) throw new Error(`Erreur lors de l'écriture de archives/${year}.json`);
+
+        status.innerText = "⏳ Mise à jour de l'index des archives...";
+
+        // 3. Mettre à jour archives.json (index)
+        let archivesIndex = [];
+        let archivesIndexSha = null;
+        try {
+            const indexResp = await fetch(apiBase + 'archives.json', { headers });
+            if (indexResp.ok) {
+                const indexFile = await indexResp.json();
+                archivesIndex = JSON.parse(b64_to_utf8(indexFile.content));
+                archivesIndexSha = indexFile.sha;
+            }
+        } catch(e) { /* Pas encore d'index */ }
+
+        const entry = { year, total, file: archivePath };
+        const existingIdx = archivesIndex.findIndex(a => a.year === year);
+        if (existingIdx >= 0) archivesIndex[existingIdx] = entry;
+        else archivesIndex.push(entry);
+        archivesIndex.sort((a, b) => b.year - a.year);
+
+        const indexBody = {
+            message: `Mise à jour index archives - saison ${year}`,
+            content: utf8_to_b64(JSON.stringify(archivesIndex, null, 2)),
+            ...(archivesIndexSha && { sha: archivesIndexSha })
+        };
+
+        const indexResp2 = await fetch(apiBase + 'archives.json', {
+            method: 'PUT',
+            headers: { ...headers, 'Content-Type': 'application/json' },
+            body: JSON.stringify(indexBody)
+        });
+        if (!indexResp2.ok) throw new Error("Erreur lors de la mise à jour de archives.json");
+
+        status.innerText = `⏳ Réinitialisation de data.json pour la saison ${year + 1}...`;
+
+        // 4. Réinitialiser data.json
+        const resetBody = {
+            message: `🌱 Nouvelle saison ${year + 1} - Réinitialisation des données`,
+            content: utf8_to_b64(JSON.stringify([], null, 2)),
+            sha: dataFile.sha
+        };
+
+        const resetResp = await fetch(apiBase + CONFIG.githubFilePath, {
+            method: 'PUT',
+            headers: { ...headers, 'Content-Type': 'application/json' },
+            body: JSON.stringify(resetBody)
+        });
+        if (!resetResp.ok) throw new Error("Erreur lors de la réinitialisation de data.json");
+
+        // Succès
+        status.innerHTML = `
+            <span class='success'>
+                ✅ Saison ${year} archivée avec succès ! (${total} captures enregistrées)<br>
+                data.json réinitialisé pour la saison ${year + 1}.<br>
+                <a href="archives.html" style="color:#27ae60;">→ Voir les archives</a>
+            </span>`;
+
+        localStorage.removeItem('pending_frelons');
+        renderPendingList();
+
+    } catch (error) {
+        console.error(error);
+        status.innerHTML = `<span class='error'>❌ Erreur : ${error.message}</span>`;
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+// Charger la liste au démarrage si déjà logué
 if(sessionStorage.getItem('isLoggedIn') === 'true') {
     renderPendingList();
 }

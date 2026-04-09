@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archives des Saisons - Frelon La Comté</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script data-goatcounter="https://thomaspoullie.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+    <style>
+        .archive-season {
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 18px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+
+        .archive-season-header {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            color: white;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s;
+        }
+
+        .archive-season-header:hover {
+            background: linear-gradient(135deg, #3d5570, #34495e);
+        }
+
+        .archive-season-header h3 {
+            margin: 0;
+            color: white;
+            font-size: 1.1em;
+        }
+
+        .archive-season-header .season-total {
+            background: #d35400;
+            color: white;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .archive-season-header .toggle-icon {
+            transition: transform 0.3s;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .archive-season-header.open .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .archive-season-body {
+            display: none;
+            padding: 0 20px 15px;
+            background: white;
+        }
+
+        .archive-season-body.open {
+            display: block;
+        }
+
+        /* Résumé visuel de la saison */
+        .season-summary-bar {
+            display: flex;
+            gap: 20px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .season-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 10px 16px;
+            border-radius: 8px;
+            min-width: 80px;
+        }
+
+        .season-stat .stat-value {
+            font-size: 1.6em;
+            font-weight: bold;
+            color: #d35400;
+        }
+
+        .season-stat .stat-label {
+            font-size: 0.75em;
+            color: #888;
+            text-align: center;
+            margin-top: 2px;
+        }
+
+        /* Liste paginée dans l'archive */
+        .archive-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .archive-pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .archive-pagination button {
+            width: auto;
+            padding: 6px 14px;
+            font-size: 0.85em;
+            margin: 0;
+        }
+
+        .archive-pagination button:disabled {
+            background: #ccc;
+            cursor: default;
+        }
+
+        .archive-pagination .page-indicator {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .no-archives {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .no-archives i {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><i class="fas fa-archive"></i> Archives des Saisons</h1>
+        <p>Bilans annuels de la lutte contre le frelon asiatique à La Comté</p>
+        <nav class="main-nav">
+            <a href="index.html" class="nav-button"><i class="fas fa-home"></i> Retour Accueil</a>
+            <a href="dashboard.html" class="nav-button"><i class="fas fa-chart-line"></i> Saison en cours</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="card card-compact">
+            <p style="color:#555; font-size:0.95em;">
+                <i class="fas fa-info-circle" style="color:#d35400;"></i>
+                Retrouvez ici les bilans complets de chaque saison de piégeage. Cliquez sur une saison pour afficher le détail des captures.
+            </p>
+            <div id="archives-container">
+                <p><i class="fas fa-spinner fa-spin"></i> Chargement des archives...</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 - La Comté au coeur de la ruche</p>
+        <p><a href="mentions-legales.html" style="color: #666; text-decoration: underline; font-size: 0.8em;">Mentions Légales & RGPD</a></p>
+    </footer>
+
+    <script src="config.js"></script>
+    <script>
+        const ARCHIVE_PAGE_SIZE = 5;
+
+        // État de pagination par saison (par index dans la liste)
+        const archivePages = {};
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadArchives();
+        });
+
+        async function loadArchives() {
+            const container = document.getElementById('archives-container');
+
+            try {
+                const response = await fetch('archives.json');
+                if (!response.ok) throw new Error('Aucune archive disponible');
+                const archiveIndex = await response.json();
+
+                if (!archiveIndex || archiveIndex.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-archives">
+                            <i class="fas fa-box-open"></i>
+                            <p>Aucune saison archivée pour le moment.</p>
+                            <p><small>Les archives apparaissent ici après la clôture de chaque saison.</small></p>
+                        </div>`;
+                    return;
+                }
+
+                // Trier par année décroissante
+                archiveIndex.sort((a, b) => b.year - a.year);
+
+                let html = '';
+                archiveIndex.forEach((season, idx) => {
+                    archivePages[idx] = 0;
+                    html += `
+                        <div class="archive-season" id="season-block-${idx}">
+                            <div class="archive-season-header" onclick="toggleSeason(${idx}, '${season.file}')">
+                                <h3><i class="fas fa-leaf"></i> Saison ${season.year}</h3>
+                                <div style="display:flex; align-items:center; gap:12px;">
+                                    <span class="season-total">${season.total} fondatrice(s)</span>
+                                    <i class="fas fa-chevron-down toggle-icon"></i>
+                                </div>
+                            </div>
+                            <div class="archive-season-body" id="season-body-${idx}">
+                                <p style="color:#999; font-style:italic; padding: 10px 0;">Chargement...</p>
+                            </div>
+                        </div>`;
+                });
+
+                container.innerHTML = html;
+
+            } catch (e) {
+                container.innerHTML = `
+                    <div class="no-archives">
+                        <i class="fas fa-box-open"></i>
+                        <p>Aucune archive disponible pour le moment.</p>
+                        <p><small>Les bilans des saisons passées apparaîtront ici dès la première clôture de saison depuis le panneau d'administration.</small></p>
+                    </div>`;
+            }
+        }
+
+        // Ouvre/ferme un volet de saison et charge les données si besoin
+        const loadedSeasons = {};
+
+        async function toggleSeason(idx, file) {
+            const header = document.querySelector(`#season-block-${idx} .archive-season-header`);
+            const body = document.getElementById(`season-body-${idx}`);
+
+            const isOpen = body.classList.contains('open');
+
+            if (isOpen) {
+                body.classList.remove('open');
+                header.classList.remove('open');
+                return;
+            }
+
+            header.classList.add('open');
+            body.classList.add('open');
+
+            // Charger les données seulement si pas encore fait
+            if (!loadedSeasons[idx]) {
+                try {
+                    const response = await fetch(file);
+                    const data = await response.json();
+                    loadedSeasons[idx] = [...data].sort((a, b) => new Date(b.date) - new Date(a.date));
+                } catch (e) {
+                    body.innerHTML = '<p style="color:red;">Impossible de charger les données de cette saison.</p>';
+                    return;
+                }
+            }
+
+            renderArchivePage(idx);
+        }
+
+        function renderArchivePage(idx) {
+            const body = document.getElementById(`season-body-${idx}`);
+            const data = loadedSeasons[idx];
+            const page = archivePages[idx] || 0;
+            const totalPages = Math.ceil(data.length / ARCHIVE_PAGE_SIZE);
+            const start = page * ARCHIVE_PAGE_SIZE;
+            const pageData = data.slice(start, start + ARCHIVE_PAGE_SIZE);
+
+            // Calcul des stats globales de la saison
+            const total = data.reduce((acc, item) => acc + item.nombre, 0);
+            const lieux = new Set(data.map(item => item.lieu)).size;
+            const dates = data.map(item => item.date).sort();
+            const firstDate = dates[0] || '—';
+            const lastDate = dates[dates.length - 1] || '—';
+
+            let html = `
+                <div class="season-summary-bar">
+                    <div class="season-stat">
+                        <span class="stat-value">${total}</span>
+                        <span class="stat-label">Fondatrices piégées</span>
+                    </div>
+                    <div class="season-stat">
+                        <span class="stat-value">${data.length}</span>
+                        <span class="stat-label">Signalements</span>
+                    </div>
+                    <div class="season-stat">
+                        <span class="stat-value">${lieux}</span>
+                        <span class="stat-label">Lieux distincts</span>
+                    </div>
+                    <div class="season-stat" style="min-width:140px;">
+                        <span class="stat-value" style="font-size:0.85em;">${firstDate}</span>
+                        <span class="stat-label">1ère capture</span>
+                    </div>
+                    <div class="season-stat" style="min-width:140px;">
+                        <span class="stat-value" style="font-size:0.85em;">${lastDate}</span>
+                        <span class="stat-label">Dernière capture</span>
+                    </div>
+                </div>`;
+
+            html += '<ul class="capture-list archive-list">';
+            pageData.forEach(item => {
+                html += `
+                    <li class="capture-item">
+                        <span class="capture-date"><i class="fas fa-calendar-alt"></i> ${item.date}</span>
+                        <span class="capture-info">${item.nombre} frelon(s) — <em>${item.lieu}</em></span>
+                    </li>`;
+            });
+            html += '</ul>';
+
+            if (totalPages > 1) {
+                html += `
+                    <div class="archive-pagination">
+                        <button onclick="changeArchivePage(${idx}, -1)" ${page === 0 ? 'disabled' : ''}>
+                            <i class="fas fa-chevron-left"></i> Précédent
+                        </button>
+                        <span class="page-indicator">Volet ${page + 1} / ${totalPages}</span>
+                        <button onclick="changeArchivePage(${idx}, 1)" ${page >= totalPages - 1 ? 'disabled' : ''}>
+                            Suivant <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>`;
+            }
+
+            body.innerHTML = html;
+        }
+
+        function changeArchivePage(idx, delta) {
+            const data = loadedSeasons[idx];
+            const totalPages = Math.ceil(data.length / ARCHIVE_PAGE_SIZE);
+            archivePages[idx] = Math.max(0, Math.min((archivePages[idx] || 0) + delta, totalPages - 1));
+            renderArchivePage(idx);
+        }
+    </script>
+</body>
+</html>
