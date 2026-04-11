@@ -24,7 +24,7 @@ async function initDashboard() {
 
         updateKeyFigures(data);
         initMap(data);
-        initCharts(data);
+        await initCharts(data); // await car on fetch les températures
 
     } catch (error) {
         console.error("Erreur chargement données dashboard:", error);
@@ -51,13 +51,11 @@ function initMap(data) {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // --- AGRÉGATION : on cumule les captures par lieu ---
     const parLieu = {};
     data.forEach(item => {
         const lieuClean = item.lieu.toLowerCase().trim();
 
         if (!parLieu[lieuClean]) {
-            // Coordonnées : connues ou aléatoires autour du centre
             let coords = GPS_MAPPING[lieuClean];
             if (!coords) {
                 const offsetLat = (Math.random() - 0.5) * 0.005;
@@ -67,7 +65,7 @@ function initMap(data) {
             parLieu[lieuClean] = {
                 coords: coords,
                 total: 0,
-                label: item.lieu, // Garde le nom d'origine (majuscules) pour l'affichage
+                label: item.lieu,
                 dates: []
             };
         }
@@ -76,13 +74,11 @@ function initMap(data) {
         parLieu[lieuClean].dates.push(`${item.date} : ${item.nombre} frelon(s)`);
     });
 
-    // --- AFFICHAGE : un seul marqueur par lieu, avec le total agrégé ---
     Object.values(parLieu).forEach(lieu => {
-        // Cercle dont le rayon est proportionnel au nombre de captures
-        const radius = 8 + lieu.total * 3; // min 11px, grandit avec le total
+        const radius = 8 + lieu.total * 3;
 
         const circle = L.circleMarker(lieu.coords, {
-            radius: Math.min(radius, 40), // plafond à 40px pour ne pas couvrir la carte
+            radius: Math.min(radius, 40),
             fillColor: '#d35400',
             color: '#922b00',
             weight: 2,
@@ -90,7 +86,6 @@ function initMap(data) {
             fillOpacity: 0.75
         }).addTo(map);
 
-        // Popup détaillée avec le détail par date
         const detailDates = lieu.dates.join('<br>');
         circle.bindPopup(
             `<b>${lieu.label}</b><br>` +
@@ -101,18 +96,255 @@ function initMap(data) {
     });
 }
 
-// 3. GRAPHIQUES (CHART.JS)
-function initCharts(data) {
+// 3. FETCH TEMPÉRATURES — Moyenne diurne (lever → coucher du soleil)
+async function fetchTemperatures(startDate, endDate) {
+    const today = new Date().toISOString().slice(0, 10);
+    const safeEnd = endDate > today ? today : endDate;
 
-    // A. Par date (Timeline)
+    // On demande :
+    //   - hourly=temperature_2m  → température heure par heure
+    //   - daily=sunrise,sunset   → horaires précis du lever/coucher pour chaque jour
+    const url = `https://archive-api.open-meteo.com/v1/archive` +
+        `?latitude=${CONFIG.lat}&longitude=${CONFIG.lon}` +
+        `&start_date=${startDate}&end_date=${safeEnd}` +
+        `&hourly=temperature_2m` +
+        `&daily=sunrise,sunset` +
+        `&timezone=auto`;
+
+    try {
+        const resp = await fetch(url);
+        const json = await resp.json();
+
+        // Construit un index rapide : heure ISO → température
+        // Ex: "2026-04-05T13:00" → 14.2
+        const hourlyIndex = {};
+        json.hourly.time.forEach((t, i) => {
+            hourlyIndex[t] = json.hourly.temperature_2m[i];
+        });
+
+        // Pour chaque jour, calcule la moyenne des heures entre sunrise et sunset
+        const result = {};
+        json.daily.time.forEach((date, i) => {
+            const sunrise = new Date(json.daily.sunrise[i]); // ex: 2026-04-05T06:32
+            const sunset  = new Date(json.daily.sunset[i]);  // ex: 2026-04-05T20:14
+
+            const dayTemps = [];
+            // Open-Meteo fournit une mesure par heure (H:00)
+            // On itère heure par heure entre sunrise et sunset
+            const cursor = new Date(sunrise);
+            cursor.setMinutes(0, 0, 0); // on part de l'heure pleine du lever
+
+            while (cursor <= sunset) {
+                // Formate la clé au format ISO sans secondes : "YYYY-MM-DDTHH:00"
+                const key = cursor.toISOString().slice(0, 13) + ':00';
+                // Open-Meteo utilise le fuseau local → on cherche aussi la clé locale
+                const localKey = `${date}T${String(cursor.getHours()).padStart(2, '0')}:00`;
+
+                const temp = hourlyIndex[localKey] ?? hourlyIndex[key];
+                if (temp !== undefined && temp !== null) {
+                    dayTemps.push(temp);
+                }
+                cursor.setHours(cursor.getHours() + 1);
+            }
+
+            if (dayTemps.length > 0) {
+                const avg = dayTemps.reduce((a, b) => a + b, 0) / dayTemps.length;
+                result[date] = parseFloat(avg.toFixed(1));
+            } else {
+                result[date] = null;
+            }
+        });
+
+        return result;
+
+    } catch (e) {
+        console.warn("Impossible de récupérer les températures :", e);
+        return {};
+    }
+}
+
+// 4. GRAPHIQUES (CHART.JS)
+async function initCharts(data) {
+
+    // --- A. Agrégation captures par date ---
     const parDate = {};
     data.forEach(item => {
         parDate[item.date] = (parDate[item.date] || 0) + item.nombre;
     });
-    const labelsDate = Object.keys(parDate).sort();
-    const valuesDate = labelsDate.map(date => parDate[date]);
 
-    // B. Par Lieu (Camembert)
+    // Dates triées (toute la plage de la saison)
+    const datesCaptures = Object.keys(parDate).sort();
+
+    if (datesCaptures.length === 0) {
+        document.getElementById('timeChart').parentElement.innerHTML =
+            '<p style="color:#999; font-style:italic; text-align:center; padding:20px;">Aucune donnée à afficher.</p>';
+        initLocationChart(data);
+        return;
+    }
+
+    // Plage complète de dates (du premier au dernier piégeage)
+    const startDate = datesCaptures[0];
+    const endDate = datesCaptures[datesCaptures.length - 1];
+
+    // Génère toutes les dates entre start et end (pour un axe continu)
+    const allDates = [];
+    const d = new Date(startDate);
+    const dEnd = new Date(endDate);
+    while (d <= dEnd) {
+        allDates.push(d.toISOString().slice(0, 10));
+        d.setDate(d.getDate() + 1);
+    }
+
+    // Valeurs captures par date (0 si aucune capture ce jour-là)
+    const captureValues = allDates.map(date => parDate[date] || 0);
+
+    // --- B. Récupération températures ---
+    const tempMap = await fetchTemperatures(startDate, endDate);
+    const tempValues = allDates.map(date => {
+        const v = tempMap[date];
+        return (v !== undefined && v !== null) ? parseFloat(v.toFixed(1)) : null;
+    });
+
+    // Ligne seuil 10°C (constante sur toute la plage)
+    const seuilValues = allDates.map(() => 10);
+
+    // --- C. GRAPHIQUE TEMPOREL avec double axe ---
+    new Chart(document.getElementById('timeChart'), {
+        data: {
+            labels: allDates,
+            datasets: [
+                // Dataset 1 : Captures (barres, axe gauche)
+                {
+                    type: 'bar',
+                    label: 'Fondatrices piégées',
+                    data: captureValues,
+                    backgroundColor: 'rgba(211, 84, 0, 0.70)',
+                    borderColor: '#922b00',
+                    borderWidth: 1,
+                    borderRadius: 3,
+                    yAxisID: 'yCaptures',
+                    order: 3
+                },
+                // Dataset 2 : Température moyenne diurne (lever → coucher du soleil)
+                {
+                    type: 'line',
+                    label: 'Moy. diurne (°C)',
+                    data: tempValues,
+                    borderColor: '#2980b9',
+                    backgroundColor: 'rgba(41, 128, 185, 0.08)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 2,
+                    pointBackgroundColor: '#2980b9',
+                    borderWidth: 2,
+                    yAxisID: 'yTemp',
+                    order: 2,
+                    spanGaps: true // relie les points même si des jours manquent
+                },
+                // Dataset 3 : Seuil 10°C (ligne pointillée, axe droit)
+                {
+                    type: 'line',
+                    label: 'Seuil vol (10°C)',
+                    data: seuilValues,
+                    borderColor: '#e74c3c',
+                    borderWidth: 2,
+                    borderDash: [6, 4],
+                    pointRadius: 0,
+                    fill: false,
+                    tension: 0,
+                    yAxisID: 'yTemp',
+                    order: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',      // tooltip sur toutes les séries à la même date
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        boxWidth: 14,
+                        font: { size: 11 },
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        // Ajoute l'unité selon la série
+                        label: function(ctx) {
+                            if (ctx.dataset.label === 'Fondatrices piégées') {
+                                return ` ${ctx.parsed.y} capture(s)`;
+                            }
+                            if (ctx.dataset.label === 'Seuil vol (10°C)') {
+                                return ` Seuil : 10°C`;
+                            }
+                            return ` Moy. diurne : ${ctx.parsed.y}°C`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        maxTicksLimit: 12,   // évite la surcharge de labels
+                        maxRotation: 45,
+                        font: { size: 10 }
+                    }
+                },
+                // Axe gauche : captures
+                yCaptures: {
+                    type: 'linear',
+                    position: 'left',
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0,
+                        color: '#d35400',
+                        font: { size: 10 }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Captures',
+                        color: '#d35400',
+                        font: { size: 11 }
+                    },
+                    grid: {
+                        color: 'rgba(211, 84, 0, 0.08)'
+                    }
+                },
+                // Axe droit : température
+                yTemp: {
+                    type: 'linear',
+                    position: 'right',
+                    ticks: {
+                        color: '#2980b9',
+                        font: { size: 10 },
+                        callback: v => `${v}°C`
+                    },
+                    title: {
+                        display: true,
+                        text: 'Température (°C)',
+                        color: '#2980b9',
+                        font: { size: 11 }
+                    },
+                    grid: {
+                        drawOnChartArea: false  // pas de grille double
+                    }
+                }
+            }
+        }
+    });
+
+    // --- D. GRAPHIQUE RÉPARTITION LIEUX (inchangé) ---
+    initLocationChart(data);
+}
+
+function initLocationChart(data) {
     const parLieu = {};
     data.forEach(item => {
         parLieu[item.lieu] = (parLieu[item.lieu] || 0) + item.nombre;
@@ -120,39 +352,6 @@ function initCharts(data) {
     const labelsLieu = Object.keys(parLieu);
     const valuesLieu = labelsLieu.map(l => parLieu[l]);
 
-    // --- GRAPHIQUE 1 : ÉVOLUTION ---
-    new Chart(document.getElementById('timeChart'), {
-        type: 'line',
-        data: {
-            labels: labelsDate,
-            datasets: [{
-                label: 'Fondatrices piégées',
-                data: valuesDate,
-                borderColor: '#d35400',
-                backgroundColor: 'rgba(211, 84, 0, 0.15)',
-                fill: true,
-                tension: 0.3,
-                pointBackgroundColor: '#d35400',
-                pointRadius: 4,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false, // IMPORTANT : laisse le conteneur CSS fixer la hauteur
-            plugins: {
-                legend: { display: false },
-                title: { display: false }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { precision: 0 }
-                }
-            }
-        }
-    });
-
-    // --- GRAPHIQUE 2 : RÉPARTITION LIEUX ---
     new Chart(document.getElementById('locationChart'), {
         type: 'doughnut',
         data: {
@@ -168,7 +367,7 @@ function initCharts(data) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false, // IMPORTANT
+            maintainAspectRatio: false,
             plugins: {
                 title: { display: false },
                 legend: {
