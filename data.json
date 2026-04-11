@@ -178,5 +178,10 @@
     "date": "2026-04-10",
     "lieu": "rue du 11 novembre",
     "nombre": 1
+  },
+  {
+    "date": "2026-04-10",
+    "lieu": "grande rue",
+    "nombre": 1
   }
 ]
