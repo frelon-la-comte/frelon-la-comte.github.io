@@ -208,8 +208,55 @@ async function initCharts(data) {
     // Ligne seuil 10°C (constante sur toute la plage)
     const seuilValues = allDates.map(() => 10);
 
-    // --- C. GRAPHIQUE TEMPOREL avec double axe ---
-    new Chart(document.getElementById('timeChart'), {
+    // --- C. GRAPHIQUE TEMPOREL avec double axe + scroll horizontal ---
+
+    // Construit le conteneur scrollable autour du canvas
+    const canvas = document.getElementById('timeChart');
+    const chartWrapper = canvas.parentElement; // .chart-wrapper
+
+    // Div externe : overflow scroll avec indicateur visuel sur mobile
+    const scrollOuter = document.createElement('div');
+    scrollOuter.style.cssText = [
+        'overflow-x: auto',
+        'overflow-y: hidden',
+        '-webkit-overflow-scrolling: touch', // scroll fluide iOS
+        'cursor: grab',
+        'border-radius: 6px',
+    ].join(';');
+
+    // Div interne : largeur calculée selon le nombre de jours
+    const PX_PER_DAY = 32; // pixels par jour — ajustez si besoin
+    const CHART_HEIGHT = 260; // px
+    const totalWidth = Math.max(chartWrapper.clientWidth || 400, allDates.length * PX_PER_DAY);
+
+    const scrollInner = document.createElement('div');
+    scrollInner.style.cssText = `width:${totalWidth}px; height:${CHART_HEIGHT}px; position:relative;`;
+
+    // Réorganise le DOM : wrapper > scrollOuter > scrollInner > canvas
+    chartWrapper.appendChild(scrollOuter);
+    scrollOuter.appendChild(scrollInner);
+    scrollInner.appendChild(canvas);
+
+    // Le canvas prend exactement la taille du scrollInner
+    canvas.style.width  = '100%';
+    canvas.style.height = '100%';
+
+    // Drag-to-scroll au clic (desktop)
+    let isDown = false, startX = 0, scrollLeft = 0;
+    scrollOuter.addEventListener('mousedown',  e => { isDown = true; startX = e.pageX - scrollOuter.offsetLeft; scrollLeft = scrollOuter.scrollLeft; scrollOuter.style.cursor = 'grabbing'; });
+    scrollOuter.addEventListener('mouseleave', () => { isDown = false; scrollOuter.style.cursor = 'grab'; });
+    scrollOuter.addEventListener('mouseup',    () => { isDown = false; scrollOuter.style.cursor = 'grab'; });
+    scrollOuter.addEventListener('mousemove',  e => { if (!isDown) return; e.preventDefault(); scrollOuter.scrollLeft = scrollLeft - (e.pageX - scrollOuter.offsetLeft - startX); });
+
+    // Indice de scroll sur mobile (petit hint la première fois)
+    if (allDates.length * PX_PER_DAY > (chartWrapper.clientWidth || 400)) {
+        const hint = document.createElement('div');
+        hint.style.cssText = 'font-size:0.75em; color:#aaa; text-align:right; margin-bottom:4px;';
+        hint.innerHTML = '<i class="fas fa-arrows-left-right"></i> Faites glisser pour naviguer';
+        chartWrapper.insertBefore(hint, scrollOuter);
+    }
+
+    new Chart(canvas, {
         data: {
             labels: allDates,
             datasets: [
@@ -258,7 +305,7 @@ async function initCharts(data) {
             ]
         },
         options: {
-            responsive: true,
+            responsive: false,        // taille fixée par le DOM, pas le conteneur
             maintainAspectRatio: false,
             interaction: {
                 mode: 'index',      // tooltip sur toutes les séries à la même date
