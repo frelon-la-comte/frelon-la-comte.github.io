@@ -24,7 +24,7 @@ async function initDashboard() {
 
         updateKeyFigures(data);
         initMap(data);
-        await initCharts(data); // await car on fetch les températures
+        await initCharts(data);
 
     } catch (error) {
         console.error("Erreur chargement données dashboard:", error);
@@ -101,9 +101,6 @@ async function fetchTemperatures(startDate, endDate) {
     const today = new Date().toISOString().slice(0, 10);
     const safeEnd = endDate > today ? today : endDate;
 
-    // On demande :
-    //   - hourly=temperature_2m  → température heure par heure
-    //   - daily=sunrise,sunset   → horaires précis du lever/coucher pour chaque jour
     const url = `https://archive-api.open-meteo.com/v1/archive` +
         `?latitude=${CONFIG.lat}&longitude=${CONFIG.lon}` +
         `&start_date=${startDate}&end_date=${safeEnd}` +
@@ -115,35 +112,24 @@ async function fetchTemperatures(startDate, endDate) {
         const resp = await fetch(url);
         const json = await resp.json();
 
-        // Construit un index rapide : heure ISO → température
-        // Ex: "2026-04-05T13:00" → 14.2
         const hourlyIndex = {};
         json.hourly.time.forEach((t, i) => {
             hourlyIndex[t] = json.hourly.temperature_2m[i];
         });
 
-        // Pour chaque jour, calcule la moyenne des heures entre sunrise et sunset
         const result = {};
         json.daily.time.forEach((date, i) => {
-            const sunrise = new Date(json.daily.sunrise[i]); // ex: 2026-04-05T06:32
-            const sunset  = new Date(json.daily.sunset[i]);  // ex: 2026-04-05T20:14
+            const sunrise = new Date(json.daily.sunrise[i]);
+            const sunset  = new Date(json.daily.sunset[i]);
 
             const dayTemps = [];
-            // Open-Meteo fournit une mesure par heure (H:00)
-            // On itère heure par heure entre sunrise et sunset
             const cursor = new Date(sunrise);
-            cursor.setMinutes(0, 0, 0); // on part de l'heure pleine du lever
+            cursor.setMinutes(0, 0, 0);
 
             while (cursor <= sunset) {
-                // Formate la clé au format ISO sans secondes : "YYYY-MM-DDTHH:00"
-                const key = cursor.toISOString().slice(0, 13) + ':00';
-                // Open-Meteo utilise le fuseau local → on cherche aussi la clé locale
                 const localKey = `${date}T${String(cursor.getHours()).padStart(2, '0')}:00`;
-
-                const temp = hourlyIndex[localKey] ?? hourlyIndex[key];
-                if (temp !== undefined && temp !== null) {
-                    dayTemps.push(temp);
-                }
+                const temp = hourlyIndex[localKey];
+                if (temp !== undefined && temp !== null) dayTemps.push(temp);
                 cursor.setHours(cursor.getHours() + 1);
             }
 
@@ -172,7 +158,6 @@ async function initCharts(data) {
         parDate[item.date] = (parDate[item.date] || 0) + item.nombre;
     });
 
-    // Dates triées (toute la plage de la saison)
     const datesCaptures = Object.keys(parDate).sort();
 
     if (datesCaptures.length === 0) {
@@ -182,11 +167,10 @@ async function initCharts(data) {
         return;
     }
 
-    // Plage complète de dates (du premier au dernier piégeage)
     const startDate = datesCaptures[0];
     const endDate = datesCaptures[datesCaptures.length - 1];
 
-    // Génère toutes les dates entre start et end (pour un axe continu)
+    // Plage complète de dates continues
     const allDates = [];
     const d = new Date(startDate);
     const dEnd = new Date(endDate);
@@ -195,7 +179,6 @@ async function initCharts(data) {
         d.setDate(d.getDate() + 1);
     }
 
-    // Valeurs captures par date (0 si aucune capture ce jour-là)
     const captureValues = allDates.map(date => parDate[date] || 0);
 
     // --- B. Récupération températures ---
@@ -205,62 +188,13 @@ async function initCharts(data) {
         return (v !== undefined && v !== null) ? parseFloat(v.toFixed(1)) : null;
     });
 
-    // Ligne seuil 10°C (constante sur toute la plage)
     const seuilValues = allDates.map(() => 10);
 
-    // --- C. GRAPHIQUE TEMPOREL avec double axe + scroll horizontal ---
-
-    // Construit le conteneur scrollable autour du canvas
-    const canvas = document.getElementById('timeChart');
-    const chartWrapper = canvas.parentElement; // .chart-wrapper
-
-    // Div externe : overflow scroll avec indicateur visuel sur mobile
-    const scrollOuter = document.createElement('div');
-    scrollOuter.style.cssText = [
-        'overflow-x: auto',
-        'overflow-y: hidden',
-        '-webkit-overflow-scrolling: touch', // scroll fluide iOS
-        'cursor: grab',
-        'border-radius: 6px',
-    ].join(';');
-
-    // Div interne : largeur calculée selon le nombre de jours
-    const PX_PER_DAY = 32; // pixels par jour — ajustez si besoin
-    const CHART_HEIGHT = 260; // px
-    const totalWidth = Math.max(chartWrapper.clientWidth || 400, allDates.length * PX_PER_DAY);
-
-    const scrollInner = document.createElement('div');
-    scrollInner.style.cssText = `width:${totalWidth}px; height:${CHART_HEIGHT}px; position:relative;`;
-
-    // Réorganise le DOM : wrapper > scrollOuter > scrollInner > canvas
-    chartWrapper.appendChild(scrollOuter);
-    scrollOuter.appendChild(scrollInner);
-    scrollInner.appendChild(canvas);
-
-    // Le canvas prend exactement la taille du scrollInner
-    canvas.style.width  = '100%';
-    canvas.style.height = '100%';
-
-    // Drag-to-scroll au clic (desktop)
-    let isDown = false, startX = 0, scrollLeft = 0;
-    scrollOuter.addEventListener('mousedown',  e => { isDown = true; startX = e.pageX - scrollOuter.offsetLeft; scrollLeft = scrollOuter.scrollLeft; scrollOuter.style.cursor = 'grabbing'; });
-    scrollOuter.addEventListener('mouseleave', () => { isDown = false; scrollOuter.style.cursor = 'grab'; });
-    scrollOuter.addEventListener('mouseup',    () => { isDown = false; scrollOuter.style.cursor = 'grab'; });
-    scrollOuter.addEventListener('mousemove',  e => { if (!isDown) return; e.preventDefault(); scrollOuter.scrollLeft = scrollLeft - (e.pageX - scrollOuter.offsetLeft - startX); });
-
-    // Indice de scroll sur mobile (petit hint la première fois)
-    if (allDates.length * PX_PER_DAY > (chartWrapper.clientWidth || 400)) {
-        const hint = document.createElement('div');
-        hint.style.cssText = 'font-size:0.75em; color:#aaa; text-align:right; margin-bottom:4px;';
-        hint.innerHTML = '<i class="fas fa-arrows-left-right"></i> Faites glisser pour naviguer';
-        chartWrapper.insertBefore(hint, scrollOuter);
-    }
-
-    new Chart(canvas, {
+    // --- C. GRAPHIQUE TEMPOREL avec double axe ---
+    new Chart(document.getElementById('timeChart'), {
         data: {
             labels: allDates,
             datasets: [
-                // Dataset 1 : Captures (barres, axe gauche)
                 {
                     type: 'bar',
                     label: 'Fondatrices piégées',
@@ -272,7 +206,6 @@ async function initCharts(data) {
                     yAxisID: 'yCaptures',
                     order: 3
                 },
-                // Dataset 2 : Température moyenne diurne (lever → coucher du soleil)
                 {
                     type: 'line',
                     label: 'Moy. diurne (°C)',
@@ -286,9 +219,8 @@ async function initCharts(data) {
                     borderWidth: 2,
                     yAxisID: 'yTemp',
                     order: 2,
-                    spanGaps: true // relie les points même si des jours manquent
+                    spanGaps: true
                 },
-                // Dataset 3 : Seuil 10°C (ligne pointillée, axe droit)
                 {
                     type: 'line',
                     label: 'Seuil vol (10°C)',
@@ -305,10 +237,10 @@ async function initCharts(data) {
             ]
         },
         options: {
-            responsive: false,        // taille fixée par le DOM, pas le conteneur
+            responsive: true,
             maintainAspectRatio: false,
             interaction: {
-                mode: 'index',      // tooltip sur toutes les séries à la même date
+                mode: 'index',
                 intersect: false
             },
             plugins: {
@@ -323,7 +255,6 @@ async function initCharts(data) {
                 },
                 tooltip: {
                     callbacks: {
-                        // Ajoute l'unité selon la série
                         label: function(ctx) {
                             if (ctx.dataset.label === 'Fondatrices piégées') {
                                 return ` ${ctx.parsed.y} capture(s)`;
@@ -339,12 +270,11 @@ async function initCharts(data) {
             scales: {
                 x: {
                     ticks: {
-                        maxTicksLimit: 12,   // évite la surcharge de labels
+                        maxTicksLimit: 12,
                         maxRotation: 45,
                         font: { size: 10 }
                     }
                 },
-                // Axe gauche : captures
                 yCaptures: {
                     type: 'linear',
                     position: 'left',
@@ -364,7 +294,6 @@ async function initCharts(data) {
                         color: 'rgba(211, 84, 0, 0.08)'
                     }
                 },
-                // Axe droit : température
                 yTemp: {
                     type: 'linear',
                     position: 'right',
@@ -380,14 +309,14 @@ async function initCharts(data) {
                         font: { size: 11 }
                     },
                     grid: {
-                        drawOnChartArea: false  // pas de grille double
+                        drawOnChartArea: false
                     }
                 }
             }
         }
     });
 
-    // --- D. GRAPHIQUE RÉPARTITION LIEUX (inchangé) ---
+    // --- D. GRAPHIQUE RÉPARTITION LIEUX ---
     initLocationChart(data);
 }
 
