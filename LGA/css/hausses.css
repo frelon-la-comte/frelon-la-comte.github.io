@@ -1,0 +1,452 @@
+/* Styles spécifiques pour la page hausses */
+
+/* Statistiques hausses */
+.stat-hausses-total {
+    background: #e3f2fd;
+    border-color: #2196F3;
+}
+
+.stat-hausses-ruches {
+    background: #fff3e0;
+    border-color: #ff9800;
+}
+
+.stat-hausses-stock {
+    background: #e8f5e9;
+    border-color: #4caf50;
+}
+
+.stat-production-estimee {
+    background: #fff9c4;
+    border-color: #ffc107;
+}
+
+/* Formulaire hausse */
+.form-grid-hausse {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+}
+
+/* Filtres */
+.filtres-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.btn-filtre {
+    padding: 10px 20px;
+    border: 2px solid #e0e0e0;
+    background: white;
+    color: #666;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-filtre:hover {
+    background: #f8f9fa;
+    border-color: #667eea;
+}
+
+.btn-filtre.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+/* Container des hausses */
+.hausses-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+/* Card hausse */
+.hausse-card {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.hausse-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    border-color: #667eea;
+}
+
+.hausse-numero {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.hausse-type {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.hausse-statut-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.statut-stock {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.statut-ruche {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.statut-entretien {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.hausse-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    font-size: 13px;
+}
+
+.hausse-info-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.hausse-info-label {
+    color: #666;
+    margin-bottom: 3px;
+}
+
+.hausse-info-value {
+    font-weight: 600;
+    color: #333;
+}
+
+/* Modal hausse large */
+.modal-hausse-large {
+    max-width: 1100px;
+}
+
+/* Section header avec QR */
+.hausse-header-section {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 30px;
+    margin-bottom: 25px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.hausse-info-principale {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.info-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.info-label {
+    min-width: 130px;
+    color: #666;
+    font-weight: 600;
+}
+
+.info-subtext {
+    display: block;
+    font-size: 11px;
+    color: #999;
+    margin-left: 140px;
+    margin-top: -8px;
+}
+
+.info-text {
+    display: block;
+    font-size: 11px;
+    color: #666;
+    margin-top: -5px;
+    font-style: italic;
+}
+
+.info-row select {
+    padding: 8px;
+    border: 2px solid #e0e0e0;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+/* QR Code */
+.qr-code-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+#qrcode-container {
+    padding: 15px;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+}
+
+#qrcode-container canvas,
+#qrcode-container img {
+    display: block;
+}
+
+.btn-small {
+    padding: 8px 16px;
+    font-size: 13px;
+}
+
+/* Poses et récoltes */
+.pose-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.pose-card {
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+}
+
+.pose-card h4 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 16px;
+}
+
+.pose-form {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.production-info {
+    margin-top: 10px;
+    padding: 10px;
+    background: #d4edda;
+    border: 1px solid #28a745;
+    border-radius: 5px;
+    text-align: center;
+    color: #155724;
+}
+
+/* Timeline historique */
+.timeline-container {
+    max-height: 500px;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.timeline-item {
+    padding: 15px;
+    margin-bottom: 15px;
+    background: #f8f9fa;
+    border-left: 4px solid #667eea;
+    border-radius: 5px;
+    position: relative;
+}
+
+.timeline-date {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.timeline-action {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.timeline-details {
+    font-size: 14px;
+    color: #666;
+}
+
+.timeline-type-entretien {
+    border-left-color: #2196F3;
+}
+
+.timeline-type-pose {
+    border-left-color: #ff9800;
+}
+
+.timeline-type-recolte {
+    border-left-color: #4caf50;
+}
+
+/* Stats hausse */
+.stats-hausse-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.stat-hausse-card {
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+}
+
+.stat-hausse-card h4 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 18px;
+}
+
+.stat-hausse-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.stat-hausse-info p {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px;
+    background: white;
+    border-radius: 5px;
+    margin: 0;
+}
+
+/* Étiquette impression */
+.modal-etiquette {
+    max-width: 400px;
+}
+
+.etiquette-print {
+    background: white;
+    border: 3px solid #333;
+    border-radius: 10px;
+    padding: 30px;
+    text-align: center;
+}
+
+.etiquette-header h1 {
+    font-size: 48px;
+    margin: 0 0 5px 0;
+    color: #333;
+}
+
+.etiquette-header p {
+    font-size: 18px;
+    color: #666;
+    margin: 0 0 20px 0;
+}
+
+.etiquette-qr {
+    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.etiquette-info {
+    margin: 20px 0;
+    font-size: 16px;
+}
+
+.etiquette-info p {
+    margin: 8px 0;
+}
+
+.etiquette-footer {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 2px solid #e0e0e0;
+    font-size: 14px;
+    color: #666;
+}
+
+.etiquette-actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+/* Impression */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    
+    .etiquette-print,
+    .etiquette-print * {
+        visibility: visible;
+    }
+    
+    .etiquette-print {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
+    
+    .etiquette-actions {
+        display: none;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hausses-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .hausse-header-section {
+        grid-template-columns: 1fr;
+    }
+    
+    .pose-actions {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-hausse-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-grid-hausse {
+        grid-template-columns: 1fr;
+    }
+    
+    .filtres-container {
+        flex-direction: column;
+    }
+    
+    .btn-filtre {
+        width: 100%;
+    }
+}
