@@ -96,16 +96,20 @@ function initMap(data) {
     });
 }
 
-// 3. FETCH TEMPÉRATURES — Moyenne diurne (lever → coucher du soleil)
-async function fetchTemperatures(startDate, endDate) {
+// 3. FETCH MÉTÉO — Moyenne diurne + précipitations journalières (Open-Meteo archive)
+async function fetchWeatherData(startDate, endDate) {
     const today = new Date().toISOString().slice(0, 10);
     const safeEnd = endDate > today ? today : endDate;
 
+    // Un seul appel API pour tout récupérer :
+    //   - hourly=temperature_2m   → température heure par heure
+    //   - daily=sunrise,sunset    → lever/coucher pour filtrer les heures diurnes
+    //   - daily=precipitation_sum → cumul de pluie journalier (mm)
     const url = `https://archive-api.open-meteo.com/v1/archive` +
         `?latitude=${CONFIG.lat}&longitude=${CONFIG.lon}` +
         `&start_date=${startDate}&end_date=${safeEnd}` +
         `&hourly=temperature_2m` +
-        `&daily=sunrise,sunset` +
+        `&daily=sunrise,sunset,precipitation_sum` +
         `&timezone=auto`;
 
     try {
@@ -117,35 +121,36 @@ async function fetchTemperatures(startDate, endDate) {
             hourlyIndex[t] = json.hourly.temperature_2m[i];
         });
 
-        const result = {};
+        const tempMap   = {};
+        const precipMap = {};
+
         json.daily.time.forEach((date, i) => {
+            // Température : moyenne diurne (lever → coucher)
             const sunrise = new Date(json.daily.sunrise[i]);
             const sunset  = new Date(json.daily.sunset[i]);
-
             const dayTemps = [];
             const cursor = new Date(sunrise);
             cursor.setMinutes(0, 0, 0);
-
             while (cursor <= sunset) {
                 const localKey = `${date}T${String(cursor.getHours()).padStart(2, '0')}:00`;
                 const temp = hourlyIndex[localKey];
                 if (temp !== undefined && temp !== null) dayTemps.push(temp);
                 cursor.setHours(cursor.getHours() + 1);
             }
+            tempMap[date] = dayTemps.length > 0
+                ? parseFloat((dayTemps.reduce((a, b) => a + b, 0) / dayTemps.length).toFixed(1))
+                : null;
 
-            if (dayTemps.length > 0) {
-                const avg = dayTemps.reduce((a, b) => a + b, 0) / dayTemps.length;
-                result[date] = parseFloat(avg.toFixed(1));
-            } else {
-                result[date] = null;
-            }
+            // Précipitations : cumul journalier (mm)
+            const p = json.daily.precipitation_sum[i];
+            precipMap[date] = (p !== undefined && p !== null) ? parseFloat(p.toFixed(1)) : 0;
         });
 
-        return result;
+        return { tempMap, precipMap };
 
     } catch (e) {
-        console.warn("Impossible de récupérer les températures :", e);
-        return {};
+        console.warn("Impossible de récupérer les données météo :", e);
+        return { tempMap: {}, precipMap: {} };
     }
 }
 
@@ -181,20 +186,31 @@ async function initCharts(data) {
 
     const captureValues = allDates.map(date => parDate[date] || 0);
 
-    // --- B. Récupération températures ---
-    const tempMap = await fetchTemperatures(startDate, endDate);
-    const tempValues = allDates.map(date => {
-        const v = tempMap[date];
-        return (v !== undefined && v !== null) ? parseFloat(v.toFixed(1)) : null;
-    });
+    // --- B. Récupération météo (température + précipitations) ---
+    const { tempMap, precipMap } = await fetchWeatherData(startDate, endDate);
+    const tempValues   = allDates.map(date => tempMap[date]   ?? null);
+    const precipValues = allDates.map(date => precipMap[date] ?? 0);
 
     const seuilValues = allDates.map(() => 10);
 
-    // --- C. GRAPHIQUE TEMPOREL avec double axe ---
+    // --- C. GRAPHIQUE TEMPOREL avec triple axe ---
     new Chart(document.getElementById('timeChart'), {
         data: {
             labels: allDates,
             datasets: [
+                // Dataset 1 : Précipitations (barres grises, en arrière-plan)
+                {
+                    type: 'bar',
+                    label: 'Précipitations (mm)',
+                    data: precipValues,
+                    backgroundColor: 'rgba(100, 149, 237, 0.25)',
+                    borderColor: 'rgba(100, 149, 237, 0.5)',
+                    borderWidth: 1,
+                    borderRadius: 2,
+                    yAxisID: 'yPrecip',
+                    order: 4
+                },
+                // Dataset 2 : Captures (barres oranges)
                 {
                     type: 'bar',
                     label: 'Fondatrices piégées',
@@ -206,12 +222,13 @@ async function initCharts(data) {
                     yAxisID: 'yCaptures',
                     order: 3
                 },
+                // Dataset 3 : Température moyenne diurne (ligne bleue)
                 {
                     type: 'line',
                     label: 'Moy. diurne (°C)',
                     data: tempValues,
                     borderColor: '#2980b9',
-                    backgroundColor: 'rgba(41, 128, 185, 0.08)',
+                    backgroundColor: 'rgba(41, 128, 185, 0.06)',
                     fill: true,
                     tension: 0.4,
                     pointRadius: 2,
@@ -221,6 +238,7 @@ async function initCharts(data) {
                     order: 2,
                     spanGaps: true
                 },
+                // Dataset 4 : Seuil 10°C (pointillés rouges)
                 {
                     type: 'line',
                     label: 'Seuil vol (10°C)',
@@ -239,29 +257,19 @@ async function initCharts(data) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            interaction: {
-                mode: 'index',
-                intersect: false
-            },
+            interaction: { mode: 'index', intersect: false },
             plugins: {
                 legend: {
                     display: true,
                     position: 'top',
-                    labels: {
-                        boxWidth: 14,
-                        font: { size: 11 },
-                        usePointStyle: true
-                    }
+                    labels: { boxWidth: 14, font: { size: 11 }, usePointStyle: true }
                 },
                 tooltip: {
                     callbacks: {
                         label: function(ctx) {
-                            if (ctx.dataset.label === 'Fondatrices piégées') {
-                                return ` ${ctx.parsed.y} capture(s)`;
-                            }
-                            if (ctx.dataset.label === 'Seuil vol (10°C)') {
-                                return ` Seuil : 10°C`;
-                            }
+                            if (ctx.dataset.label === 'Fondatrices piégées')   return ` ${ctx.parsed.y} capture(s)`;
+                            if (ctx.dataset.label === 'Seuil vol (10°C)')      return ` Seuil : 10°C`;
+                            if (ctx.dataset.label === 'Précipitations (mm)')   return ` ${ctx.parsed.y} mm de pluie`;
                             return ` Moy. diurne : ${ctx.parsed.y}°C`;
                         }
                     }
@@ -269,48 +277,34 @@ async function initCharts(data) {
             },
             scales: {
                 x: {
-                    ticks: {
-                        maxTicksLimit: 12,
-                        maxRotation: 45,
-                        font: { size: 10 }
-                    }
+                    ticks: { maxTicksLimit: 12, maxRotation: 45, font: { size: 10 } }
                 },
+                // Axe gauche : captures
                 yCaptures: {
                     type: 'linear',
                     position: 'left',
                     beginAtZero: true,
-                    ticks: {
-                        precision: 0,
-                        color: '#d35400',
-                        font: { size: 10 }
-                    },
-                    title: {
-                        display: true,
-                        text: 'Captures',
-                        color: '#d35400',
-                        font: { size: 11 }
-                    },
-                    grid: {
-                        color: 'rgba(211, 84, 0, 0.08)'
-                    }
+                    ticks: { precision: 0, color: '#d35400', font: { size: 10 } },
+                    title: { display: true, text: 'Captures', color: '#d35400', font: { size: 11 } },
+                    grid: { color: 'rgba(211, 84, 0, 0.08)' }
                 },
+                // Axe droit : température
                 yTemp: {
                     type: 'linear',
                     position: 'right',
-                    ticks: {
-                        color: '#2980b9',
-                        font: { size: 10 },
-                        callback: v => `${v}°C`
-                    },
-                    title: {
-                        display: true,
-                        text: 'Température (°C)',
-                        color: '#2980b9',
-                        font: { size: 11 }
-                    },
-                    grid: {
-                        drawOnChartArea: false
-                    }
+                    ticks: { color: '#2980b9', font: { size: 10 }, callback: v => `${v}°C` },
+                    title: { display: true, text: 'Température (°C)', color: '#2980b9', font: { size: 11 } },
+                    grid: { drawOnChartArea: false }
+                },
+                // Axe droit (décalé) : précipitations — discret, juste pour l'échelle
+                yPrecip: {
+                    type: 'linear',
+                    position: 'right',
+                    beginAtZero: true,
+                    offset: true,           // décale l'axe pour ne pas chevaucher yTemp
+                    ticks: { color: 'rgba(100,149,237,0.7)', font: { size: 9 }, callback: v => `${v}mm` },
+                    title: { display: true, text: 'Pluie (mm)', color: 'rgba(100,149,237,0.8)', font: { size: 10 } },
+                    grid: { drawOnChartArea: false }
                 }
             }
         }
