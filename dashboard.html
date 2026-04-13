@@ -109,6 +109,81 @@
                 height: 250px;
             }
         }
+
+        /* ========================================
+           BOUTON EXPORT PDF
+        ======================================== */
+        .btn-export-pdf {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #c0392b;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 0.9em;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 3px 8px rgba(192,57,43,0.3);
+            transition: all 0.2s ease;
+        }
+        .btn-export-pdf:hover {
+            background-color: #e74c3c;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(192,57,43,0.4);
+        }
+        .export-bar {
+            text-align: right;
+            padding: 0 4px;
+        }
+
+        /* ========================================
+           STYLES IMPRESSION — A4 PAYSAGE
+        ======================================== */
+        @media print {
+            @page { size: A4 landscape; margin: 12mm 15mm; }
+
+            header, footer, .export-bar, nav, .main-nav {
+                display: none !important;
+            }
+
+            body { background: white !important; padding: 0; font-size: 11px; }
+
+            .dashboard-container { max-width: 100%; gap: 10px; }
+
+            .summary-card {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                padding: 12px;
+                border-radius: 6px;
+            }
+
+            #total-stat { font-size: 2em !important; }
+
+            .dashboard-grid {
+                display: grid !important;
+                grid-template-columns: 1fr 1.4fr !important;
+                gap: 10px;
+            }
+
+            .map-card { grid-row: span 2; }
+
+            .card-dash {
+                box-shadow: none;
+                border: 1px solid #ddd;
+                padding: 10px;
+                break-inside: avoid;
+            }
+
+            #map          { height: 220px !important; }
+            .chart-wrapper { height: 180px !important; }
+
+            canvas {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
     </style>
 </head>
 <body>
@@ -122,6 +197,11 @@
     </header>
 
     <main>
+        <div class="export-bar">
+            <button class="btn-export-pdf" onclick="window.print()">
+                <i class="fas fa-file-pdf"></i> Exporter en PDF (A4 paysage)
+            </button>
+        </div>
         <div class="dashboard-container">
 
             <div class="summary-card">
