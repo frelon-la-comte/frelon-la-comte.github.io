@@ -340,3 +340,32 @@ html { scroll-behavior: smooth; }
     background-color: #fdf2f2 !important;
     color: black !important;
 }
+
+/* ========================================
+   BADGE DE NOTIFICATION
+======================================== */
+.nav-button {
+    position: relative; /* Nécessaire pour que le badge se place par rapport au bouton */
+}
+
+.badge-nouveau {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #c0392b; /* Rouge vif */
+    color: white;
+    font-size: 0.65em;
+    font-weight: bold;
+    padding: 3px 6px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    /* Animation pour attirer l'attention */
+    animation: pulseBadge 2s infinite;
+}
+
+@keyframes pulseBadge {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
