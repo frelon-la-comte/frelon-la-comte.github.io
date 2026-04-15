@@ -1,11 +1,11 @@
 (function() {
         // --- CONFIGURATION ---
-        const datePublication = new Date("2026-04-13"); // Date du dernier ajout (AAAA-MM-JJ)
+        const datePublication = new Date("2026-04-15"); // Date du dernier ajout (AAAA-MM-JJ)
         const dureeValiditeJours = 5; // Nombre de jours d'affichage
         // ---------------------
 
         const maintenant = new Date();
-        const badge = document.getElementById('news-badge');
+        const badge = document.querySelector('.badge-nouveau');
 
         if (badge) {
             // Calcul de la différence en millisecondes
