@@ -172,9 +172,130 @@
     <script src="config.js"></script>
     <script src="auth.js"></script>
     <script>
+        // Init date et token
         document.getElementById('new-date').valueAsDate = new Date();
-        if(localStorage.getItem('gh_token')) {
+        if (localStorage.getItem('gh_token')) {
             document.getElementById('github-token').value = localStorage.getItem('gh_token');
+        }
+
+        // ─────────────────────────────────────────
+        // GESTION PHOTOS (localStorage + GitHub)
+        // ─────────────────────────────────────────
+
+        function getPendingPhotos() {
+            // Clé différente de 'pending_frelons' — aucun conflit possible
+            return JSON.parse(localStorage.getItem('pending_photos') || '[]');
+        }
+
+        function addPhotoToLocal() {
+            const date    = document.getElementById('photo-date').value;
+            const lieu    = document.getElementById('photo-lieu').value.trim();
+            const fichier = document.getElementById('photo-fichier').value.trim();
+            const nombre  = parseInt(document.getElementById('photo-nombre').value) || null;
+
+            if (!date || !lieu || !fichier) {
+                alert('Veuillez remplir la date, le lieu et le nom du fichier.');
+                return;
+            }
+
+            const entry = { date, lieu, fichier, nombre };
+            const list  = getPendingPhotos();
+            list.push(entry);
+            localStorage.setItem('pending_photos', JSON.stringify(list));
+            renderPhotoPendingList();
+
+            // Reset des champs (sauf la date)
+            document.getElementById('photo-lieu').value    = '';
+            document.getElementById('photo-fichier').value = '';
+            document.getElementById('photo-nombre').value  = '1';
+        }
+
+        function renderPhotoPendingList() {
+            const list = getPendingPhotos();
+            const ul   = document.getElementById('photo-pending-list');
+            if (!ul) return;
+            ul.innerHTML = list.length === 0
+                ? '<li>Aucune photo en attente.</li>'
+                : list.map((p, i) => `
+                    <li>
+                        ${p.date} — ${p.lieu} — <em>${p.fichier}</em>
+                        (${p.nombre || '?'} frelon(s))
+                        <button onclick="deletePhotoLocal(${i})"
+                            style="width:auto;padding:1px 6px;font-size:0.8em;
+                                   background:red;margin-left:8px;">X</button>
+                    </li>`).join('');
+        }
+
+        function deletePhotoLocal(index) {
+            const list = getPendingPhotos();
+            list.splice(index, 1);
+            localStorage.setItem('pending_photos', JSON.stringify(list));
+            renderPhotoPendingList();
+        }
+
+        async function syncPhotosToGithub() {
+            const token   = localStorage.getItem('gh_token');
+            const status  = document.getElementById('photo-sync-status');
+            const pending = getPendingPhotos();
+            const btn     = document.getElementById('btn-sync-photos');
+
+            if (!token)          { alert('Token GitHub manquant.'); return; }
+            if (!pending.length) { alert('Aucune photo en attente.'); return; }
+
+            status.innerText = '⏳ Connexion à GitHub...';
+            btn.disabled = true;
+
+            // utf8_to_b64 et b64_to_utf8 sont définis dans auth.js
+            const apiBase = `https://api.github.com/repos/${CONFIG.githubUser}/${CONFIG.githubRepo}/contents/`;
+            const headers = {
+                'Authorization': `token ${token}`,
+                'Accept': 'application/vnd.github.v3+json'
+            };
+
+            try {
+                // 1. Lire photos.json existant (peut ne pas exister encore)
+                let currentPhotos = [];
+                let currentSha    = null;
+                try {
+                    const r = await fetch(apiBase + 'photos.json', { headers });
+                    if (r.ok) {
+                        const f    = await r.json();
+                        currentSha    = f.sha;
+                        currentPhotos = JSON.parse(b64_to_utf8(f.content));
+                    }
+                } catch (e) { /* Fichier absent, on crée */ }
+
+                // 2. Fusionner et réécrire
+                const newPhotos = currentPhotos.concat(pending);
+                const putBody   = {
+                    message: `Ajout de ${pending.length} photo(s) — Admin Panel`,
+                    content: utf8_to_b64(JSON.stringify(newPhotos, null, 2)),
+                    ...(currentSha && { sha: currentSha })
+                };
+
+                const resp = await fetch(apiBase + 'photos.json', {
+                    method: 'PUT',
+                    headers: { ...headers, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(putBody)
+                });
+
+                if (!resp.ok) throw new Error("Erreur lors de l'écriture de photos.json");
+
+                status.innerHTML = `<span class="success">✅ ${pending.length} photo(s) enregistrée(s) avec succès !</span>`;
+                localStorage.removeItem('pending_photos');
+                renderPhotoPendingList();
+
+            } catch (err) {
+                status.innerHTML = `<span class="error">❌ ${err.message}</span>`;
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // Initialisation si déjà connecté
+        if (sessionStorage.getItem('isLoggedIn') === 'true') {
+            renderPhotoPendingList();
+            document.getElementById('photo-date').valueAsDate = new Date();
         }
     </script>
 </body>
