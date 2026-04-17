@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "date": "2026-04-16",
+    "lieu": "grande rue",
+    "fichier": "2026-04-16_grande-rue_1.jpg",
+    "nombre": 1
+  },
+  {
+    "date": "2026-04-16",
+    "lieu": "impasse jules elby",
+    "fichier": "2026-04-16_impasse-jules-elby_1.jpg",
+    "nombre": 1
+  }
+]
