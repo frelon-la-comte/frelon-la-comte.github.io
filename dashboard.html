@@ -134,6 +134,78 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 10px rgba(39,174,96,0.4);
         }
+
+        /* ========================================
+           CARTE FILTRE DE PÉRIODE
+        ======================================== */
+        .filter-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-left: 4px solid #d35400;
+            border-radius: 10px;
+            padding: 14px 18px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+        }
+        .filter-card h3 {
+            margin: 0 0 12px 0;
+            font-size: 1em;
+            color: #34495e;
+        }
+        .filter-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .filter-row label {
+            font-size: 0.85em;
+            color: #666;
+            white-space: nowrap;
+        }
+        .filter-row input[type="date"] {
+            padding: 7px 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 0.85em;
+            width: auto;
+            margin: 0;
+            flex: 1;
+            min-width: 130px;
+        }
+        .btn-filter {
+            background-color: #d35400;
+            color: white;
+            border: none;
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            cursor: pointer;
+            width: auto;
+            margin: 0;
+            transition: background 0.2s;
+        }
+        .btn-filter:hover { background-color: #e67e22; }
+        .btn-filter-reset {
+            background-color: #95a5a6;
+        }
+        .btn-filter-reset:hover { background-color: #7f8c8d; }
+        .filter-badge {
+            display: none;
+            background: #e74c3c;
+            color: white;
+            font-size: 0.72em;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+        .filter-info {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -143,6 +215,7 @@
         <nav class="main-nav">
             <a href="index.html" class="nav-button"><i class="fas fa-home"></i>Retour Accueil</a>
             <a href="ressources.html" class="nav-button"><i class="fas fa-file-pdf"></i>Ressources &amp; Guides<span class="badge-nouveau" style="display: none;">Nouveau document</span></a>
+            <a href="photos.html" class="nav-button nav-photos"><i class="fas fa-camera"></i> Photos</a>
         </nav>
     </header>
 
@@ -157,6 +230,31 @@
                     <i class="fas fa-history"></i> Dernière capture enregistrée le :
                     <span id="last-date" style="font-weight: bold;">--</span>
                 </div>
+            </div>
+
+            <!-- FILTRE DE PÉRIODE -->
+            <div class="filter-card">
+                <h3>
+                    <i class="fas fa-filter" style="color:#d35400;"></i>
+                    Filtrer par période
+                    <span id="filter-badge" class="filter-badge">Filtre actif</span>
+                </h3>
+                <div class="filter-row">
+                    <label>Du</label>
+                    <input type="date" id="filter-start">
+                    <label>au</label>
+                    <input type="date" id="filter-end">
+                    <button class="btn-filter" onclick="applyFilter()">
+                        <i class="fas fa-search"></i> Appliquer
+                    </button>
+                    <button class="btn-filter btn-filter-reset" onclick="resetFilter()">
+                        <i class="fas fa-times"></i> Réinitialiser
+                    </button>
+                </div>
+                <p class="filter-info">
+                    <i class="fas fa-info-circle"></i>
+                    Les graphiques et statistiques se mettent à jour selon la période choisie.
+                </p>
             </div>
 
             <div class="dashboard-grid">

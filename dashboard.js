@@ -17,22 +17,75 @@ const GPS_MAPPING = {
     "rue du 11 novembre": [50.4255, 2.4937],
 };
 
+// Stockage global des données complètes et des instances de graphiques
+let _allData = [];
+let _chartTime = null;
+let _chartLocation = null;
+
 async function initDashboard() {
     try {
         const response = await fetch('data.json');
-        const data = await response.json();
+        _allData = await response.json();
 
-        updateKeyFigures(data);
-        initMap(data);
-        await initCharts(data);
+        // Expose pour l'export PNG
+        window._dashboardData = _allData;
 
-        // Expose les données pour la fonction d'export PDF
-        window._dashboardData = data;
+        // Initialisation des bornes du filtre sur la plage réelle des données
+        initFilterBounds(_allData);
+
+        // Rendu initial avec toutes les données
+        applyFilter();
+
+        // La carte Leaflet se construit une seule fois (données complètes)
+        initMap(_allData);
 
     } catch (error) {
         console.error("Erreur chargement données dashboard:", error);
         document.querySelector('main').innerHTML = "<p>Impossible de charger les statistiques.</p>";
     }
+}
+
+// Initialise les valeurs min/max des datepickers selon les données réelles
+function initFilterBounds(data) {
+    if (data.length === 0) return;
+    const dates = data.map(d => d.date).sort();
+    const start = document.getElementById('filter-start');
+    const end   = document.getElementById('filter-end');
+    if (start && end) {
+        start.min = dates[0];
+        start.max = dates[dates.length - 1];
+        end.min   = dates[0];
+        end.max   = dates[dates.length - 1];
+        // Par défaut : toute la saison
+        start.value = dates[0];
+        end.value   = dates[dates.length - 1];
+    }
+}
+
+// Filtre les données selon les dates sélectionnées et re-rend tout
+async function applyFilter() {
+    const startInput = document.getElementById('filter-start');
+    const endInput   = document.getElementById('filter-end');
+    const startVal   = startInput ? startInput.value : '';
+    const endVal     = endInput   ? endInput.value   : '';
+
+    let filtered = _allData;
+    if (startVal) filtered = filtered.filter(d => d.date >= startVal);
+    if (endVal)   filtered = filtered.filter(d => d.date <= endVal);
+
+    // Badge du filtre actif
+    const badge = document.getElementById('filter-badge');
+    const isFiltered = (startVal || endVal) && filtered.length !== _allData.length;
+    if (badge) badge.style.display = isFiltered ? 'inline-block' : 'none';
+
+    updateKeyFigures(filtered);
+    await refreshCharts(filtered);
+}
+
+// Réinitialise le filtre sur toute la saison
+function resetFilter() {
+    initFilterBounds(_allData);
+    applyFilter();
 }
 
 // 1. CHIFFRES CLÉS
@@ -157,8 +210,8 @@ async function fetchWeatherData(startDate, endDate) {
     }
 }
 
-// 4. GRAPHIQUES (CHART.JS)
-async function initCharts(data) {
+// 4. GRAPHIQUES — re-renderable (détruit et recrée les instances)
+async function refreshCharts(data) {
 
     // --- A. Agrégation captures par date ---
     const parDate = {};
@@ -197,7 +250,9 @@ async function initCharts(data) {
     const seuilValues = allDates.map(() => 10);
 
     // --- C. GRAPHIQUE TEMPOREL avec triple axe ---
-    new Chart(document.getElementById('timeChart'), {
+    // Détruire l'instance existante pour éviter les superpositions
+    if (_chartTime) { _chartTime.destroy(); _chartTime = null; }
+    _chartTime = new Chart(document.getElementById('timeChart'), {
         data: {
             labels: allDates,
             datasets: [
@@ -314,10 +369,11 @@ async function initCharts(data) {
     });
 
     // --- D. GRAPHIQUE RÉPARTITION LIEUX ---
-    initLocationChart(data);
+    refreshLocationChart(data);
 }
 
-function initLocationChart(data) {
+function refreshLocationChart(data) {
+    if (_chartLocation) { _chartLocation.destroy(); _chartLocation = null; }
     const parLieu = {};
     data.forEach(item => {
         parLieu[item.lieu] = (parLieu[item.lieu] || 0) + item.nombre;
@@ -325,7 +381,7 @@ function initLocationChart(data) {
     const labelsLieu = Object.keys(parLieu);
     const valuesLieu = labelsLieu.map(l => parLieu[l]);
 
-    new Chart(document.getElementById('locationChart'), {
+    _chartLocation = new Chart(document.getElementById('locationChart'), {
         type: 'doughnut',
         data: {
             labels: labelsLieu,

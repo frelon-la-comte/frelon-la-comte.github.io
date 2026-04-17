@@ -110,83 +110,8 @@
             }
         }
 
-        /* ========================================
-           BOUTON EXPORT PDF
-        ======================================== */
-        .btn-export-pdf {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background-color: #c0392b;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 50px;
-            font-weight: bold;
-            font-size: 0.9em;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 3px 8px rgba(192,57,43,0.3);
-            transition: all 0.2s ease;
-        }
-        .btn-export-pdf:hover {
-            background-color: #e74c3c;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 12px rgba(192,57,43,0.4);
-        }
-        .export-bar {
-            text-align: right;
-            padding: 0 4px;
-        }
-
-        /* ========================================
-           STYLES IMPRESSION — A4 PAYSAGE
-        ======================================== */
-        @media print {
-            @page { size: A4 landscape; margin: 12mm 15mm; }
-
-            header, footer, .export-bar, nav, .main-nav {
-                display: none !important;
-            }
-
-            body { background: white !important; padding: 0; font-size: 11px; }
-
-            .dashboard-container { max-width: 100%; gap: 10px; }
-
-            .summary-card {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-                padding: 12px;
-                border-radius: 6px;
-            }
-
-            #total-stat { font-size: 2em !important; }
-
-            .dashboard-grid {
-                display: grid !important;
-                grid-template-columns: 1fr 1.4fr !important;
-                gap: 10px;
-            }
-
-            .map-card { grid-row: span 2; }
-
-            .card-dash {
-                box-shadow: none;
-                border: 1px solid #ddd;
-                padding: 10px;
-                break-inside: avoid;
-            }
-
-            #map          { height: 220px !important; }
-            .chart-wrapper { height: 180px !important; }
-
-            canvas {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-        }
-
-        /* ========================================
-           EXPORT GRAPHIQUE SEUL — MODE FOCALISÉ
+                /* ========================================
+           BOUTON EXPORT IMAGE
         ======================================== */
         .btn-export-chart {
             display: inline-flex;
@@ -194,116 +119,20 @@
             gap: 7px;
             background-color: #27ae60;
             color: white;
-            padding: 7px 14px;
+            padding: 8px 16px;
             border-radius: 50px;
-            font-size: 0.8em;
+            font-size: 0.82em;
             font-weight: bold;
             border: none;
             cursor: pointer;
             box-shadow: 0 2px 6px rgba(39,174,96,0.3);
             transition: all 0.2s ease;
-            margin-top: 8px;
+            margin-top: 10px;
         }
         .btn-export-chart:hover {
             background-color: #2ecc71;
             transform: translateY(-2px);
-        }
-
-        /* Tableau des captures — caché en affichage normal, visible en print focalisé */
-        #print-capture-table {
-            display: none;
-        }
-
-        /* Zone d'impression focalisée — cachée par défaut */
-        #print-focus-zone {
-            display: none;
-        }
-
-        @media print {
-            /* MODE EXPORT TOTAL (existant) */
-            body:not(.print-chart-only) header,
-            body:not(.print-chart-only) footer,
-            body:not(.print-chart-only) .export-bar,
-            body:not(.print-chart-only) nav,
-            body:not(.print-chart-only) .main-nav { display: none !important; }
-
-            /* MODE EXPORT GRAPHIQUE SEUL */
-            body.print-chart-only > * { display: none !important; }
-            body.print-chart-only #print-focus-zone { display: block !important; }
-
-            #print-focus-zone {
-                padding: 0;
-            }
-
-            /* En-tête du PDF focalisé */
-            .print-header {
-                text-align: center;
-                margin-bottom: 10px;
-                padding-bottom: 8px;
-                border-bottom: 2px solid #d35400;
-            }
-            .print-header h2 {
-                color: #d35400;
-                margin: 0 0 3px 0;
-                font-size: 1.3em;
-            }
-            .print-header p {
-                color: #666;
-                font-size: 0.85em;
-                margin: 0;
-            }
-
-            /* Graphique en pleine largeur */
-            #print-chart-container {
-                width: 100%;
-                height: 280px;
-                margin-bottom: 14px;
-            }
-
-            /* Tableau des captures */
-            #print-capture-table {
-                display: table !important;
-                width: 100%;
-                border-collapse: collapse;
-                font-size: 0.82em;
-                margin-top: 4px;
-            }
-            #print-capture-table caption {
-                font-weight: bold;
-                color: #d35400;
-                text-align: left;
-                margin-bottom: 4px;
-                font-size: 1em;
-                caption-side: top;
-                padding-bottom: 4px;
-            }
-            #print-capture-table th {
-                background-color: #d35400;
-                color: white;
-                padding: 5px 10px;
-                text-align: left;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            #print-capture-table td {
-                padding: 4px 10px;
-                border-bottom: 1px solid #eee;
-            }
-            #print-capture-table tr:nth-child(even) td {
-                background-color: #fff8f5;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            .print-footer-note {
-                font-size: 0.75em;
-                color: #999;
-                margin-top: 8px;
-                text-align: right;
-            }
-            canvas {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
+            box-shadow: 0 4px 10px rgba(39,174,96,0.4);
         }
     </style>
 </head>
@@ -318,11 +147,6 @@
     </header>
 
     <main>
-        <div class="export-bar">
-            <button class="btn-export-pdf" onclick="window.print()">
-                <i class="fas fa-file-pdf"></i> Exporter en PDF (A4 paysage et echelle 85% pour mise en page)
-            </button>
-        </div>
         <div class="dashboard-container">
 
             <div class="summary-card">
@@ -356,8 +180,8 @@
                         <i class="fas fa-mobile-alt"></i> Pour une meilleure lisibilité sur téléphone, basculez l'appareil en mode <strong>paysage</strong>.<br>
                         <i class="fas fa-thermometer-half"></i> La courbe de température représente la <strong>moyenne diurne</strong> (entre lever et coucher du soleil), calculée à partir des relevés horaires fournis par <a href="https://open-meteo.com" target="_blank" style="color:#2980b9;">Open-Meteo</a>.
                     </p>
-                    <button class="btn-export-chart" onclick="exportChartPDF()">
-                        <i class="fas fa-file-pdf"></i> Exporter graphique + historique (PDF)(en cours de construction)
+                    <button class="btn-export-chart" onclick="exportChartImage()">
+                        <i class="fas fa-image"></i> Exporter le graphique (PNG)
                     </button>
                 </div>
 
@@ -371,30 +195,6 @@
 
             </div>
         </div>
-
-        <!-- ZONE D'IMPRESSION FOCALISÉE (invisible en affichage normal) -->
-        <div id="print-focus-zone">
-            <div class="print-header">
-                <h2><i class="fas fa-chart-line"></i> Évolution Temporelle des Piégeages — La Comté</h2>
-                <p id="print-subtitle">Saison en cours — données issues de data.json</p>
-            </div>
-            <div id="print-chart-container">
-                <canvas id="printChart"></canvas>
-            </div>
-            <table id="print-capture-table">
-                <caption>Historique complet des captures</caption>
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Lieu</th>
-                        <th>Nombre</th>
-                    </tr>
-                </thead>
-                <tbody id="print-table-body">
-                </tbody>
-            </table>
-            <p class="print-footer-note" id="print-footer-note"></p>
-        </div>
     </main>
 
     <footer>
@@ -407,45 +207,33 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="dashboard.js"></script>
     <script src="utils.js"></script>
+
+
     <script>
-    // Remplit la zone d'impression focalisée et déclenche window.print()
-    function exportChartPDF() {
-        // --- Remplir le tableau des captures ---
-        const tbody = document.getElementById('print-table-body');
-        tbody.innerHTML = '';
-        const sorted = [...(window._dashboardData || [])].sort((a, b) => new Date(a.date) - new Date(b.date));
-        let total = 0;
-        sorted.forEach(item => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${item.date}</td><td>${item.lieu}</td><td style="text-align:center">${item.nombre}</td>`;
-            tbody.appendChild(tr);
-            total += item.nombre;
-        });
-        // Ligne total
-        const trTotal = document.createElement('tr');
-        trTotal.innerHTML = `<td colspan="2" style="font-weight:bold; text-align:right; border-top:2px solid #d35400;">Total</td><td style="font-weight:bold; text-align:center; border-top:2px solid #d35400;">${total}</td>`;
-        tbody.appendChild(trTotal);
+    function exportChartImage() {
+        const canvas = document.getElementById('timeChart');
+        if (!canvas) { alert("Graphique non disponible."); return; }
 
-        // --- Sous-titre avec date d'export ---
-        const now = new Date().toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'});
-        document.getElementById('print-subtitle').innerText = `Saison en cours · ${sorted.length} signalement(s) · Export du ${now}`;
-        document.getElementById('print-footer-note').innerText = `Source des données : data.json — Températures : Open-Meteo (open-meteo.com) — Export généré le ${now}`;
+        // On crée un canvas intermédiaire avec fond blanc (sinon fond transparent → noir en PNG)
+        const exportCanvas = document.createElement('canvas');
+        exportCanvas.width  = canvas.width;
+        exportCanvas.height = canvas.height;
+        const ctx = exportCanvas.getContext('2d');
 
-        // --- Copier le graphique dans le canvas d'impression ---
-        // On récupère le canvas source et on le dessine dans printChart
-        const srcCanvas = document.getElementById('timeChart');
-        const dstCanvas = document.getElementById('printChart');
-        dstCanvas.width  = srcCanvas.width;
-        dstCanvas.height = srcCanvas.height;
-        dstCanvas.style.width  = '100%';
-        dstCanvas.style.height = '100%';
-        const ctx = dstCanvas.getContext('2d');
-        ctx.drawImage(srcCanvas, 0, 0);
+        // Fond blanc
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
 
-        // --- Lancer l'impression en mode focalisé ---
-        document.body.classList.add('print-chart-only');
-        window.print();
-        document.body.classList.remove('print-chart-only');
+        // Copie du graphique
+        ctx.drawImage(canvas, 0, 0);
+
+        // Déclenchement du téléchargement
+        const now = new Date();
+        const dateStr = now.toISOString().slice(0, 10); // YYYY-MM-DD
+        const link = document.createElement('a');
+        link.download = `evolution-piegeage-laconte-${dateStr}.png`;
+        link.href = exportCanvas.toDataURL('image/png');
+        link.click();
     }
     </script>
 </body>

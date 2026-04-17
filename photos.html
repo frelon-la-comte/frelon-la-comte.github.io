@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photos de Captures - Frelon La Comté</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script data-goatcounter="https://thomaspoullie.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
+    <style>
+        /* ========================================
+           FILTRES
+        ======================================== */
+        .filters-bar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .filter-input {
+            flex: 1;
+            min-width: 140px;
+            padding: 9px 12px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 0.88em;
+            outline: none;
+            transition: border-color 0.2s;
+            width: auto;
+            margin: 0;
+        }
+        .filter-input:focus { border-color: #d35400; }
+        .filter-count {
+            font-size: 0.85em;
+            color: #888;
+            white-space: nowrap;
+        }
+
+        /* ========================================
+           GRILLE PHOTOS
+        ======================================== */
+        .photos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+        }
+
+        @media (min-width: 600px) {
+            .photos-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+        }
+
+        .photo-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .photo-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+        }
+        .photo-card img {
+            width: 100%;
+            aspect-ratio: 4/3;
+            object-fit: cover;
+            display: block;
+            background: #f0f0f0;
+        }
+        .photo-card-info {
+            padding: 8px 10px;
+        }
+        .photo-date {
+            font-size: 0.78em;
+            color: #d35400;
+            font-weight: bold;
+        }
+        .photo-lieu {
+            font-size: 0.82em;
+            color: #555;
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .photo-nombre {
+            font-size: 0.75em;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        /* ========================================
+           LIGHTBOX
+        ======================================== */
+        .lightbox-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.88);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 16px;
+        }
+        .lightbox-overlay.active { display: flex; }
+
+        .lightbox-img {
+            max-width: 100%;
+            max-height: 75vh;
+            border-radius: 8px;
+            object-fit: contain;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+        }
+        .lightbox-caption {
+            color: white;
+            text-align: center;
+            margin-top: 14px;
+            font-size: 0.95em;
+        }
+        .lightbox-caption strong { color: #f39c12; }
+        .lightbox-nav {
+            display: flex;
+            gap: 20px;
+            margin-top: 16px;
+        }
+        .lightbox-btn {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 22px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: auto;
+            margin: 0;
+        }
+        .lightbox-btn:hover { background: rgba(255,255,255,0.3); }
+        .lightbox-close {
+            position: fixed;
+            top: 16px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.8em;
+            cursor: pointer;
+            width: auto;
+            margin: 0;
+            padding: 4px 10px;
+            line-height: 1;
+        }
+
+        /* ========================================
+           ÉTATS VIDES / CHARGEMENT
+        ======================================== */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #aaa;
+        }
+        .empty-state i { font-size: 3em; margin-bottom: 16px; display: block; }
+        .empty-state p { font-size: 0.95em; }
+
+        /* ========================================
+           CONVENTION DE NOMMAGE
+        ======================================== */
+        .naming-convention {
+            background: #f9f9f9;
+            border-left: 4px solid #3498db;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            font-size: 0.85em;
+            color: #555;
+        }
+        .naming-convention code {
+            background: #eaf0fb;
+            color: #2471a3;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 0.95em;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><i class="fas fa-camera"></i> Photos de Captures</h1>
+        <p>Preuves photographiques des piégeages à La Comté</p>
+        <nav class="main-nav">
+            <a href="index.html" class="nav-button"><i class="fas fa-home"></i> Accueil</a>
+            <a href="dashboard.html" class="nav-button"><i class="fas fa-chart-line"></i> Statistiques</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="card card-compact">
+            <!-- Filtres -->
+            <div class="filters-bar">
+                <input type="date" id="filter-date" class="filter-input" placeholder="Filtrer par date" title="Filtrer par date">
+                <input type="text" id="filter-lieu" class="filter-input" placeholder="🔍 Filtrer par lieu..." title="Filtrer par lieu">
+                <span class="filter-count" id="photo-count"></span>
+                <button class="btn-filter" onclick="resetFilters()" style="width:auto; padding:8px 14px; border-radius:20px; font-size:0.82em; margin:0;">
+                    <i class="fas fa-times"></i> Réinitialiser
+                </button>
+            </div>
+
+            <!-- Grille de photos -->
+            <div class="photos-grid" id="photos-grid">
+                <div class="empty-state" style="grid-column:1/-1;">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Chargement des photos...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Convention de nommage — info pour l'administrateur -->
+        <section class="card card-compact">
+            <h3 style="margin-top:0; color:#2c3e50;"><i class="fas fa-info-circle" style="color:#3498db;"></i> Convention de nommage des photos</h3>
+            <div class="naming-convention">
+                <p><strong>Format :</strong> <code>AAAA-MM-JJ_lieu-du-piegeage_N.jpg</code></p>
+                <p style="margin-top:6px;"><strong>Exemples :</strong></p>
+                <ul style="margin:6px 0 0 16px;">
+                    <li><code>2026-04-10_grande-rue_1.jpg</code></li>
+                    <li><code>2026-04-12_rue-du-chateau_1.jpg</code></li>
+                    <li><code>2026-04-12_rue-du-chateau_2.jpg</code> <em>(2ème photo du même jour)</em></li>
+                </ul>
+                <p style="margin-top:8px;">Placez les fichiers dans le dossier <code>/photos/</code> et ajoutez l'entrée correspondante dans <code>photos.json</code> via le panneau d'administration.</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- LIGHTBOX -->
+    <div class="lightbox-overlay" id="lightbox" onclick="closeLightboxOnOverlay(event)">
+        <button class="lightbox-close" onclick="closeLightbox()"><i class="fas fa-times"></i></button>
+        <img class="lightbox-img" id="lightbox-img" src="" alt="">
+        <div class="lightbox-caption" id="lightbox-caption"></div>
+        <div class="lightbox-nav">
+            <button class="lightbox-btn" onclick="lightboxNav(-1)"><i class="fas fa-chevron-left"></i> Précédent</button>
+            <button class="lightbox-btn" onclick="lightboxNav(1)">Suivant <i class="fas fa-chevron-right"></i></button>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 - La Comté au coeur de la ruche</p>
+        <p><a href="mentions-legales.html" style="color:#666; text-decoration:underline; font-size:0.8em;">Mentions Légales & RGPD</a></p>
+    </footer>
+
+    <script>
+    let allPhotos = [];
+    let filteredPhotos = [];
+    let lightboxIndex = 0;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadPhotos();
+        document.getElementById('filter-date').addEventListener('change', applyFilters);
+        document.getElementById('filter-lieu').addEventListener('input',  applyFilters);
+    });
+
+    async function loadPhotos() {
+        const grid = document.getElementById('photos-grid');
+        try {
+            const resp = await fetch('photos.json');
+            if (!resp.ok) throw new Error('photos.json introuvable');
+            allPhotos = await resp.json();
+            // Tri du plus récent au plus ancien
+            allPhotos.sort((a, b) => b.date.localeCompare(a.date));
+            filteredPhotos = [...allPhotos];
+            renderGrid();
+        } catch(e) {
+            grid.innerHTML = `
+                <div class="empty-state" style="grid-column:1/-1;">
+                    <i class="fas fa-camera-retro"></i>
+                    <p>Aucune photo disponible pour le moment.</p>
+                    <p style="font-size:0.85em; margin-top:8px;">Les photos apparaîtront ici après avoir été ajoutées via le panneau d'administration.</p>
+                </div>`;
+            document.getElementById('photo-count').innerText = '';
+        }
+    }
+
+    function applyFilters() {
+        const dateVal = document.getElementById('filter-date').value;
+        const lieuVal = document.getElementById('filter-lieu').value.toLowerCase().trim();
+
+        filteredPhotos = allPhotos.filter(p => {
+            const matchDate = !dateVal || p.date === dateVal;
+            const matchLieu = !lieuVal || p.lieu.toLowerCase().includes(lieuVal);
+            return matchDate && matchLieu;
+        });
+        renderGrid();
+    }
+
+    function resetFilters() {
+        document.getElementById('filter-date').value = '';
+        document.getElementById('filter-lieu').value = '';
+        filteredPhotos = [...allPhotos];
+        renderGrid();
+    }
+
+    function renderGrid() {
+        const grid = document.getElementById('photos-grid');
+        const count = document.getElementById('photo-count');
+        count.innerText = `${filteredPhotos.length} photo(s)`;
+
+        if (filteredPhotos.length === 0) {
+            grid.innerHTML = `
+                <div class="empty-state" style="grid-column:1/-1;">
+                    <i class="fas fa-search"></i>
+                    <p>Aucune photo pour ce filtre.</p>
+                </div>`;
+            return;
+        }
+
+        grid.innerHTML = filteredPhotos.map((p, i) => `
+            <div class="photo-card" onclick="openLightbox(${i})">
+                <img
+                    src="photos/${p.fichier}"
+                    alt="Capture du ${p.date} — ${p.lieu}"
+                    loading="lazy"
+                    onerror="this.src=''; this.style.background='#eee'; this.alt='Photo non disponible';">
+                <div class="photo-card-info">
+                    <div class="photo-date"><i class="fas fa-calendar-alt"></i> ${p.date}</div>
+                    <div class="photo-lieu"><i class="fas fa-map-marker-alt"></i> ${p.lieu}</div>
+                    ${p.nombre ? `<div class="photo-nombre"><i class="fas fa-bug"></i> ${p.nombre} frelon(s)</div>` : ''}
+                </div>
+            </div>`).join('');
+    }
+
+    // ── LIGHTBOX ──
+    function openLightbox(index) {
+        lightboxIndex = index;
+        showLightboxItem();
+        document.getElementById('lightbox').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function showLightboxItem() {
+        const p = filteredPhotos[lightboxIndex];
+        document.getElementById('lightbox-img').src = `photos/${p.fichier}`;
+        document.getElementById('lightbox-caption').innerHTML =
+            `<strong>${p.date}</strong> — ${p.lieu}` +
+            (p.nombre ? ` · <i class="fas fa-bug"></i> ${p.nombre} frelon(s)` : '') +
+            `<br><small style="opacity:0.6;">${lightboxIndex + 1} / ${filteredPhotos.length}</small>`;
+    }
+
+    function closeLightbox() {
+        document.getElementById('lightbox').classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function closeLightboxOnOverlay(e) {
+        if (e.target === document.getElementById('lightbox')) closeLightbox();
+    }
+
+    function lightboxNav(delta) {
+        lightboxIndex = (lightboxIndex + delta + filteredPhotos.length) % filteredPhotos.length;
+        showLightboxItem();
+    }
+
+    // Navigation clavier (flèches + Échap)
+    document.addEventListener('keydown', e => {
+        if (!document.getElementById('lightbox').classList.contains('active')) return;
+        if (e.key === 'ArrowRight') lightboxNav(1);
+        if (e.key === 'ArrowLeft')  lightboxNav(-1);
+        if (e.key === 'Escape')     closeLightbox();
+    });
+
+    // Swipe tactile pour mobile
+    let touchStartX = 0;
+    document.getElementById('lightbox').addEventListener('touchstart', e => {
+        touchStartX = e.touches[0].clientX;
+    }, { passive: true });
+    document.getElementById('lightbox').addEventListener('touchend', e => {
+        const delta = e.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(delta) > 50) lightboxNav(delta < 0 ? 1 : -1);
+    }, { passive: true });
+    </script>
+
+    <script src="utils.js"></script>
+</body>
+</html>

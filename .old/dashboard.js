@@ -26,6 +26,9 @@ async function initDashboard() {
         initMap(data);
         await initCharts(data);
 
+        // Expose les données pour la fonction d'export PDF
+        window._dashboardData = data;
+
     } catch (error) {
         console.error("Erreur chargement données dashboard:", error);
         document.querySelector('main').innerHTML = "<p>Impossible de charger les statistiques.</p>";
