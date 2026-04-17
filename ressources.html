@@ -74,5 +74,25 @@
         .resource-links a { color: #d35400; font-weight: bold; text-decoration: none; }
         .resource-links a:hover { text-decoration: underline; }
     </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('signalement-form');
+            if (form) {
+                form.addEventListener('submit', window.formHandler);
+            }
+
+            // Affiche l'année courante dans le titre de la section
+            const yearLabel = document.getElementById('current-year-label');
+            if (yearLabel) yearLabel.innerText = `— Saison ${new Date().getFullYear()}`;
+
+            // Date de dernière modification
+            const dateUpdate = new Date(document.lastModified);
+            const options = { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute:'2-digit' };
+            const dateFormatee = dateUpdate.toLocaleDateString('fr-FR', options).replace(':', 'h');
+            document.getElementById('date-maj').innerText = dateFormatee;
+        });
+    </script>
+
 </body>
 </html>
