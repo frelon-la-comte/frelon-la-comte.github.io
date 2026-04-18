@@ -147,7 +147,7 @@
   {
     "date": "2026-04-09",
     "lieu": "rue de la petite ville",
-    "nombre": 2
+    "nombre": 1
   },
   {
     "date": "2026-04-09",
@@ -258,10 +258,5 @@
     "date": "2026-04-17",
     "lieu": "rue du 11 novembre",
     "nombre": 1
-  },
-  {
-    "date": "2026-04-17",
-    "lieu": "rue de la petite ville",
-    "nombre": 3
   }
 ]
