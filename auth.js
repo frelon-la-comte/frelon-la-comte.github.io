@@ -16,6 +16,8 @@ async function checkLogin() {
         document.getElementById('admin-panel').style.display = 'block';
         errorMsg.style.display = 'none';
         sessionStorage.setItem('isLoggedIn', 'true');
+        // Initialise les sections dynamiques après connexion
+        if (typeof initAdminPanel === 'function') initAdminPanel();
     } else {
         errorMsg.style.display = 'block';
     }
@@ -90,7 +92,8 @@ function utf8_to_b64(str) {
 }
 
 function b64_to_utf8(str) {
-    return decodeURIComponent(escape(window.atob(str)));
+    // GitHub insère des \n dans le base64 — il faut les retirer avant atob()
+    return decodeURIComponent(escape(window.atob(str.replace(/\n/g, ''))));
 }
 
 // --- SYNCHRONISATION GITHUB ---
@@ -329,7 +332,4 @@ async function archiveSeason() {
     }
 }
 
-// Charger la liste au démarrage si déjà logué
-if(sessionStorage.getItem('isLoggedIn') === 'true') {
-    renderPendingList();
-}
+// L'initialisation est gérée par initAdminPanel() dans admin.html
