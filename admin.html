@@ -517,23 +517,17 @@
         // ─────────────────────────────────────────
 
         async function loadCampaignStatus() {
-            const badge = document.getElementById('campaign-status-badge');
-            const info  = document.getElementById('campaign-current-info');
+            const badge     = document.getElementById('campaign-status-badge');
+            const info      = document.getElementById('campaign-current-info');
             const openForm  = document.getElementById('campaign-open-form');
             const closeForm = document.getElementById('campaign-close-form');
             if (!badge) return;
 
             try {
-                const apiBase = `https://api.github.com/repos/${CONFIG.githubUser}/${CONFIG.githubRepo}/contents/`;
-                const token   = localStorage.getItem('gh_token');
-                const headers = token
-                    ? { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
-                    : {};
-
-                const r = await fetch(apiBase + 'campaign.json', { headers });
-                if (!r.ok) throw new Error();
-                const f = await r.json();
-                const campaign = JSON.parse(b64_to_utf8(f.content));
+                // Lecture directe comme data.json — pas besoin de l'API ni du token
+                const r = await fetch('campaign.json?nocache=' + Date.now());
+                if (!r.ok) throw new Error('Fichier introuvable (HTTP ' + r.status + ')');
+                const campaign = await r.json();
 
                 if (campaign.status === 'open') {
                     badge.className = 'campaign-status-badge badge-open';
@@ -547,15 +541,15 @@
                     info.innerText  = `Campagne ${campaign.year} — clôturée.`;
                     openForm.style.display  = 'block';
                     closeForm.style.display = 'none';
-                    // Pré-remplir l'année suivante
                     const yearInput = document.getElementById('camp-year');
                     if (yearInput) yearInput.value = campaign.year + 1;
                 }
             } catch(e) {
                 badge.className = 'campaign-status-badge badge-closed';
                 badge.innerText = '⚠️ Introuvable';
-                info.innerText  = 'campaign.json absent — sera créé à la première action.';
+                info.innerText  = 'campaign.json absent du repo — poussez-le puis actualisez.';
                 if (openForm) openForm.style.display = 'block';
+                console.warn('loadCampaignStatus:', e.message);
             }
         }
 
