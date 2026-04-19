@@ -656,16 +656,19 @@
             document.getElementById('btn-close-campaign').disabled = false;
         }
 
-        // Initialisation si déjà connecté
-        if (sessionStorage.getItem('isLoggedIn') === 'true') {
-            loadCampaignStatus();
-        }
-        // Initialisation
-        if (sessionStorage.getItem('isLoggedIn') === 'true') {
+        // Fonction appelée après connexion (depuis auth.js) et au rechargement si déjà connecté
+        function initAdminPanel() {
+            renderPendingList();
             renderPhotoPendingList();
             loadCampaignStatus();
             loadPhotoFiles();
+            document.getElementById('new-date').valueAsDate  = new Date();
             document.getElementById('photo-date').valueAsDate = new Date();
+        }
+
+        // Auto-init si session déjà active (rechargement de page)
+        if (sessionStorage.getItem('isLoggedIn') === 'true') {
+            initAdminPanel();
         }
     </script>
 </body>
