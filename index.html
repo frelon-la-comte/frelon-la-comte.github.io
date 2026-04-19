@@ -6,12 +6,6 @@
     <title>Lutte Frelon Asiatique - La Comté</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script>
-    // Si le marqueur "skip-gc" est présent dans le navigateur, on bloque GoatCounter
-    if (window.localStorage.getItem('skip-gc') === 'true') {
-        window.goatcounter = {no_onload: true}
-    }
-    </script>
     <script data-goatcounter="https://thomaspoullie.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </head>
 <body>
@@ -125,7 +119,11 @@
     </main>
     
     <footer>
-        <p>&copy; 2026 - La Comté au coeur de la ruche</p>
+        <p>
+            <!-- Triple-clic sur © pour accéder à l'administration -->
+            <span id="secret-admin" style="cursor:default; user-select:none;">&copy;</span>
+            2026 - La Comté au coeur de la ruche
+        </p>
         <p><a href="mentions-legales.html" style="color: #666; text-decoration: underline; font-size: 0.8em;">Mentions Légales & RGPD</a></p>
         <p style="font-size: 0.8em; color: #888; margin-top: 10px;">
             Dernière mise à jour du site : <span id="date-maj">Chargement...</span>
@@ -142,15 +140,28 @@
                 form.addEventListener('submit', window.formHandler);
             }
 
-            // Affiche l'année courante dans le titre de la section
-            const yearLabel = document.getElementById('current-year-label');
-            if (yearLabel) yearLabel.innerText = `— Saison ${new Date().getFullYear()}`;
-
             // Date de dernière modification
             const dateUpdate = new Date(document.lastModified);
             const options = { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute:'2-digit' };
             const dateFormatee = dateUpdate.toLocaleDateString('fr-FR', options).replace(':', 'h');
             document.getElementById('date-maj').innerText = dateFormatee;
+
+            // ── Accès admin discret : triple-clic sur le © du footer ──
+            let clickCount = 0;
+            let clickTimer = null;
+            const secret = document.getElementById('secret-admin');
+            if (secret) {
+                secret.addEventListener('click', () => {
+                    clickCount++;
+                    clearTimeout(clickTimer);
+                    if (clickCount >= 3) {
+                        clickCount = 0;
+                        window.location.href = 'admin.html';
+                    }
+                    // Réinitialise si on n'a pas cliqué 3× en moins de 800ms
+                    clickTimer = setTimeout(() => { clickCount = 0; }, 800);
+                });
+            }
         });
     </script>
     <script src="utils.js"></script>

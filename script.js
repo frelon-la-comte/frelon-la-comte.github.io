@@ -1,7 +1,66 @@
 document.addEventListener('DOMContentLoaded', () => {
-    fetchWeather();
-    loadTrappingData();
+    loadCampaignAndInit();
 });
+
+// ── CHARGEMENT CAMPAGNE ────────────────────────────────────────────────────
+async function loadCampaignAndInit() {
+    try {
+        const resp = await fetch('campaign.json');
+        const campaign = await resp.json();
+
+        // Mise à jour de l'étiquette d'année (Saison XXXX)
+        const yearLabel = document.getElementById('current-year-label');
+        if (yearLabel) yearLabel.innerText = `— Saison ${campaign.year}`;
+
+        if (campaign.status === 'closed') {
+            // ── Campagne fermée : bloquer le formulaire ──
+            blockFormClosed(campaign);
+            // On charge quand même la météo et les stats (lecture seule)
+            fetchWeather();
+            loadTrappingData();
+        } else {
+            // ── Campagne ouverte ──
+            fetchWeather();
+            loadTrappingData();
+        }
+    } catch(e) {
+        // Pas de campaign.json → comportement par défaut
+        console.warn('campaign.json introuvable, mode ouvert par défaut');
+        const yearLabel = document.getElementById('current-year-label');
+        if (yearLabel) yearLabel.innerText = `— Saison ${new Date().getFullYear()}`;
+        fetchWeather();
+        loadTrappingData();
+    }
+}
+
+function blockFormClosed(campaign) {
+    const authSection = document.getElementById('auth-section');
+    const form        = document.getElementById('signalement-form');
+
+    const msg = campaign.message
+        || `La campagne ${campaign.year} est officiellement clôturée. La prochaine saison ouvrira prochainement.`;
+
+    const banner = `
+        <div style="
+            background: #fff3cd;
+            border-left: 5px solid #f39c12;
+            border-radius: 6px;
+            padding: 14px 16px;
+            margin-top: 10px;
+            color: #856404;
+            font-size: 0.95em;">
+            <strong><i class='fas fa-lock'></i> Campagne ${campaign.year} clôturée</strong><br>
+            <span style='margin-top:6px; display:block;'>${msg}</span>
+            ${campaign.dateOuverture
+                ? `<span style='font-size:0.85em; margin-top:6px; display:block;'>
+                   <i class='fas fa-calendar-alt'></i>
+                   Prochaine ouverture prévue : <strong>${campaign.dateOuverture}</strong></span>`
+                : ''}
+        </div>`;
+
+    if (authSection) authSection.innerHTML = banner;
+    if (form)        form.style.display = 'none';
+}
 
 // --- 1. GESTION MÉTÉO — Moyenne diurne sur 5 jours (lever → coucher du soleil) ---
 async function fetchWeather() {

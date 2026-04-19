@@ -23,7 +23,7 @@ async function checkLogin() {
 
 function logout() {
     sessionStorage.removeItem('isLoggedIn');
-    location.reload();
+    window.location.href = 'index.html';
 }
 
 // --- GESTION DU TOKEN ---
@@ -280,11 +280,41 @@ async function archiveSeason() {
         });
         if (!resetResp.ok) throw new Error("Erreur lors de la réinitialisation de data.json");
 
+        // 5. Mettre à jour campaign.json → statut fermé
+        status.innerText = "⏳ Mise à jour du statut de campagne...";
+        let campSha = null;
+        let campCurrent = { year, status: 'open', dateOuverture: null };
+        try {
+            const campResp = await fetch(apiBase + 'campaign.json', { headers });
+            if (campResp.ok) {
+                const campFile = await campResp.json();
+                campSha = campFile.sha;
+                campCurrent = JSON.parse(b64_to_utf8(campFile.content));
+            }
+        } catch(e) {}
+
+        const campBody = {
+            message: `Clôture campagne ${year} — campaign.json`,
+            content: utf8_to_b64(JSON.stringify({
+                ...campCurrent,
+                year,
+                status: 'closed',
+                dateCloture: new Date().toISOString().slice(0, 10),
+                message: `La campagne ${year} est terminée. Merci pour votre participation !`
+            }, null, 2)),
+            ...(campSha && { sha: campSha })
+        };
+        await fetch(apiBase + 'campaign.json', {
+            method: 'PUT',
+            headers: { ...headers, 'Content-Type': 'application/json' },
+            body: JSON.stringify(campBody)
+        });
+
         // Succès
         status.innerHTML = `
             <span class='success'>
                 ✅ Saison ${year} archivée avec succès ! (${total} captures enregistrées)<br>
-                data.json réinitialisé pour la saison ${year + 1}.<br>
+                data.json réinitialisé — campaign.json passé en statut "fermé".<br>
                 <a href="archives.html" style="color:#27ae60;">→ Voir les archives</a>
             </span>`;
 
