@@ -154,10 +154,11 @@
                     <i class="fas fa-key"></i> Token GitHub
                 </legend>
                 <small>Sauvegardé dans votre navigateur — à saisir une seule fois.</small>
-                <div style="display:flex; gap:10px; align-items:center; margin-top:6px;">
-                    <input type="password" id="github-token" placeholder="ghp_..." onchange="saveToken()" style="margin:0; flex:1;">
-                    <span id="token-status" style="font-size:0.85em; white-space:nowrap;"></span>
+                <div style="display:flex; gap:8px; align-items:center; margin-top:6px;">
+                    <input type="password" id="github-token" placeholder="ghp_..." oninput="saveToken()" style="margin:0; flex:1;">
+                    <button onclick="clearToken()" title="Effacer la clé" style="width:auto; padding:7px 10px; background:#e74c3c; margin:0; flex-shrink:0;"><i class="fas fa-trash-alt"></i></button>
                 </div>
+                <div id="token-status" style="margin-top:6px; font-size:0.85em;"></div>
             </fieldset>
 
             <!-- GRILLE 2×2 -->
@@ -677,12 +678,23 @@
             renderPhotoPendingList();
             document.getElementById('new-date').valueAsDate  = new Date();
             document.getElementById('photo-date').valueAsDate = new Date();
+            // Indicateur clé API
+            if (typeof updateTokenStatus === 'function') {
+                updateTokenStatus(!!localStorage.getItem('gh_token'));
+            }
             // Chargements réseau : légèrement différés pour s'assurer
             // que le DOM est affiché et que CONFIG est disponible
             setTimeout(() => {
                 loadCampaignStatus();
                 loadPhotoFiles();
             }, 200);
+        }
+
+        function clearToken() {
+            if (!confirm('Supprimer la clé GitHub du navigateur ?')) return;
+            localStorage.removeItem('gh_token');
+            document.getElementById('github-token').value = '';
+            if (typeof updateTokenStatus === 'function') updateTokenStatus(false);
         }
 
         // Auto-init si session déjà active (rechargement de page)
