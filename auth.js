@@ -30,11 +30,31 @@ function logout() {
 
 // --- GESTION DU TOKEN ---
 function saveToken() {
-    const token = document.getElementById('github-token').value;
-    if(token) {
+    const token = document.getElementById('github-token').value.trim();
+    if (token) {
         localStorage.setItem('gh_token', token);
-        document.getElementById('token-status').innerText = "Token sauvegardé !";
-        document.getElementById('token-status').style.color = "green";
+        updateTokenStatus(true);
+    } else {
+        localStorage.removeItem('gh_token');
+        updateTokenStatus(false);
+    }
+}
+
+function updateTokenStatus(present) {
+    const el = document.getElementById('token-status');
+    if (!el) return;
+    if (present) {
+        const token = localStorage.getItem('gh_token') || '';
+        // Affiche uniquement les 4 derniers caractères pour confirmation visuelle
+        const masked = token.length > 4 ? '••••••••' + token.slice(-4) : '••••';
+        el.innerHTML =
+            '<span style="color:#27ae60; font-weight:bold;">'
+            + '<i class="fas fa-check-circle"></i> Clé enregistrée</span>'
+            + ' <span style="color:#888; font-size:0.9em;">(' + masked + ')</span>';
+    } else {
+        el.innerHTML =
+            '<span style="color:#e74c3c;">'
+            + '<i class="fas fa-times-circle"></i> Aucune clé</span>';
     }
 }
 

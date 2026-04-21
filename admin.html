@@ -154,10 +154,11 @@
                     <i class="fas fa-key"></i> Token GitHub
                 </legend>
                 <small>Sauvegardé dans votre navigateur — à saisir une seule fois.</small>
-                <div style="display:flex; gap:10px; align-items:center; margin-top:6px;">
-                    <input type="password" id="github-token" placeholder="ghp_..." onchange="saveToken()" style="margin:0; flex:1;">
-                    <span id="token-status" style="font-size:0.85em; white-space:nowrap;"></span>
+                <div style="display:flex; gap:8px; align-items:center; margin-top:6px;">
+                    <input type="password" id="github-token" placeholder="ghp_..." oninput="saveToken()" style="margin:0; flex:1;">
+                    <button onclick="clearToken()" title="Effacer la clé" style="width:auto; padding:7px 10px; background:#e74c3c; margin:0; flex-shrink:0;"><i class="fas fa-trash-alt"></i></button>
                 </div>
+                <div id="token-status" style="margin-top:6px; font-size:0.85em;"></div>
             </fieldset>
 
             <!-- GRILLE 2×2 -->
@@ -253,11 +254,16 @@
 
                 <!-- ╔══════════════╗  CELLULE 4 : CAMPAGNE -->
                 <div class="admin-cell">
-                    <h4 class="cell-title">
-                        <i class="fas fa-calendar-alt"></i> Gestion de la Campagne
-                        <span id="campaign-status-badge" class="campaign-status-badge">Chargement...</span>
-                    </h4>
-                    <p id="campaign-current-info" style="font-style:italic; color:#888; font-size:0.85em;">Lecture de campaign.json...</p>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <h4 class="cell-title" style="margin:0; border:none; padding:0;">
+                            <i class="fas fa-calendar-alt"></i> Gestion de la Campagne
+                            <span id="campaign-status-badge" class="campaign-status-badge">—</span>
+                        </h4>
+                        <button onclick="loadCampaignStatus()" style="width:auto;padding:4px 10px;font-size:0.78em;background:#7f8c8d;margin:0;" title="Actualiser le statut">
+                            <i class="fas fa-sync-alt"></i> Actualiser
+                        </button>
+                    </div>
+                    <p id="campaign-current-info" style="font-style:italic; color:#888; font-size:0.85em; margin-bottom:10px;">Cliquez sur "Actualiser" pour lire campaign.json</p>
 
                     <!-- Formulaire ouverture -->
                     <div id="campaign-open-form" style="display:none; margin-top:10px;">
@@ -523,37 +529,52 @@
             const closeForm = document.getElementById('campaign-close-form');
             if (!badge) return;
 
+            badge.innerText  = '⏳';
+            badge.className  = 'campaign-status-badge';
+            info.innerText   = 'Lecture en cours...';
+
             try {
-                // Lecture directe comme data.json — pas besoin de l'API ni du token
-                const r = await fetch('campaign.json?nocache=' + Date.now());
-                if (!r.ok) throw new Error('Fichier introuvable (HTTP ' + r.status + ')');
-                const campaign = await r.json();
+                const url = 'campaign.json?t=' + Date.now();
+                const r   = await fetch(url);
+
+                if (!r.ok) {
+                    throw new Error('HTTP ' + r.status + ' — campaign.json introuvable sur le repo');
+                }
+
+                let campaign;
+                try {
+                    campaign = await r.json();
+                } catch(parseErr) {
+                    throw new Error('campaign.json illisible (JSON invalide) : ' + parseErr.message);
+                }
 
                 if (campaign.status === 'open') {
                     badge.className = 'campaign-status-badge badge-open';
                     badge.innerText = '🟢 Ouverte';
-                    info.innerText  = `Campagne ${campaign.year} — ouverte depuis le ${campaign.dateOuverture || '?'}`;
-                    openForm.style.display  = 'none';
-                    closeForm.style.display = 'block';
+                    info.innerText  = 'Campagne ' + campaign.year + ' — ouverte depuis le ' + (campaign.dateOuverture || '?');
+                    if (openForm)  openForm.style.display  = 'none';
+                    if (closeForm) closeForm.style.display = 'block';
                 } else {
                     badge.className = 'campaign-status-badge badge-closed';
                     badge.innerText = '🔴 Fermée';
-                    info.innerText  = `Campagne ${campaign.year} — clôturée.`;
-                    openForm.style.display  = 'block';
-                    closeForm.style.display = 'none';
+                    info.innerText  = 'Campagne ' + campaign.year + ' — clôturée.';
+                    if (openForm)  openForm.style.display  = 'block';
+                    if (closeForm) closeForm.style.display = 'none';
                     const yearInput = document.getElementById('camp-year');
                     if (yearInput) yearInput.value = campaign.year + 1;
                 }
+
             } catch(e) {
                 badge.className = 'campaign-status-badge badge-closed';
-                badge.innerText = '⚠️ Introuvable';
-                info.innerText  = 'campaign.json absent du repo — poussez-le puis actualisez.';
+                badge.innerText = '⚠️ Erreur';
+                info.innerHTML  = '<span style="color:#c0392b;">' + e.message + '</span>'
+                    + '<br><small>Vérifiez que campaign.json est bien à la racine du repo et que le site est à jour.</small>';
                 if (openForm) openForm.style.display = 'block';
-                console.warn('loadCampaignStatus:', e.message);
+                console.error('loadCampaignStatus error:', e);
             }
         }
 
-        async function writeCampaignJson(campaignObj, statusEl) {
+                async function writeCampaignJson(campaignObj, statusEl) {
             const token   = localStorage.getItem('gh_token');
             if (!token) { alert('Token GitHub manquant.'); return false; }
 
@@ -652,12 +673,28 @@
 
         // Fonction appelée après connexion (depuis auth.js) et au rechargement si déjà connecté
         function initAdminPanel() {
+            // Listes locales (sync, pas de réseau)
             renderPendingList();
             renderPhotoPendingList();
-            loadCampaignStatus();
-            loadPhotoFiles();
             document.getElementById('new-date').valueAsDate  = new Date();
             document.getElementById('photo-date').valueAsDate = new Date();
+            // Indicateur clé API
+            if (typeof updateTokenStatus === 'function') {
+                updateTokenStatus(!!localStorage.getItem('gh_token'));
+            }
+            // Chargements réseau : légèrement différés pour s'assurer
+            // que le DOM est affiché et que CONFIG est disponible
+            setTimeout(() => {
+                loadCampaignStatus();
+                loadPhotoFiles();
+            }, 200);
+        }
+
+        function clearToken() {
+            if (!confirm('Supprimer la clé GitHub du navigateur ?')) return;
+            localStorage.removeItem('gh_token');
+            document.getElementById('github-token').value = '';
+            if (typeof updateTokenStatus === 'function') updateTokenStatus(false);
         }
 
         // Auto-init si session déjà active (rechargement de page)
