@@ -15,6 +15,7 @@ const GPS_MAPPING = {
     "rue du chateau": [50.4242, 2.5010],
     "rue du 19 mars 1962": [50.4244, 2.4963],
     "rue du 11 novembre": [50.4255, 2.4937],
+    "rucher": [50.4272, 2.4962],
 };
 
 // Stockage global des données complètes et des instances de graphiques
