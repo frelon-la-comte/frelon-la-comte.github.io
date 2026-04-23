@@ -94,5 +94,35 @@
     "lieu": "rue du 19 mars 1962",
     "fichier": "2026-04-21_rue-du-19-mars-1962_1.jpeg",
     "nombre": 1
+  },
+  {
+    "date": "2026-04-21",
+    "lieu": "rue jules elby",
+    "fichier": "2026-04-21_rue-jules-elby_1.jpeg",
+    "nombre": 2
+  },
+  {
+    "date": "2026-04-22",
+    "lieu": "rue jules elby",
+    "fichier": "2026-04-22_rue-jules-elby_1.jpeg",
+    "nombre": 3
+  },
+  {
+    "date": "2026-04-23",
+    "lieu": "rue du 11 novembre",
+    "fichier": "2026-04-23_rue-du-11-novembre_1.jpeg",
+    "nombre": 2
+  },
+  {
+    "date": "2026-04-23",
+    "lieu": "rue du 11 novembre",
+    "fichier": "2026-04-23_rue-du-11-novembre_2.jpeg",
+    "nombre": 2
+  },
+  {
+    "date": "2026-04-23",
+    "lieu": "rue jules elby",
+    "fichier": "2026-04-23_rue-jules-elby_1.jpeg",
+    "nombre": 5
   }
 ]
