@@ -124,5 +124,11 @@
     "lieu": "rue jules elby",
     "fichier": "2026-04-23_rue-jules-elby_1.jpeg",
     "nombre": 5
+  },
+  {
+    "date": "2026-04-23",
+    "lieu": "grande rue",
+    "fichier": "2026-04-23_grande-rue_1.jpg",
+    "nombre": 1
   }
 ]
