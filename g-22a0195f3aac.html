@@ -168,6 +168,22 @@
         }
         .btn-admin:hover { background-color: #3498db; }
     </style>
+    <script>
+        // ── GUARD : vérifie le token sessionStorage (généré par gateway.html) ──
+        (function() {
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+            if (isLoggedIn) return; // déjà authentifié, on laisse passer
+
+            const token = sessionStorage.getItem('_gk');
+            const ts    = parseInt(sessionStorage.getItem('_gkt') || '0', 10);
+            const now   = Math.floor(Date.now() / 30000);
+
+            // Token valable sur la fenêtre courante OU la précédente (tolérance réseau)
+            if (!token || (now !== ts && now - 1 !== ts)) {
+                window.location.replace('index.html');
+            }
+        })();
+    </script>
 </head>
 <body>
     <div class="admin-container" style="max-width: 800px;">
