@@ -348,5 +348,20 @@
     "date": "2026-04-23",
     "lieu": "grande rue",
     "nombre": 1
+  },
+  {
+    "date": "2026-04-24",
+    "lieu": "grande rue",
+    "nombre": 3
+  },
+  {
+    "date": "2026-04-24",
+    "lieu": "rue jules elby",
+    "nombre": 3
+  },
+  {
+    "date": "2026-04-24",
+    "lieu": "Rucher",
+    "nombre": 2
   }
 ]
