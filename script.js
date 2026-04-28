@@ -216,3 +216,111 @@ async function verifyParticipant() {
         alert("Le système de vérification ne peut pas fonctionner en local. Veuillez tester sur le site GitHub (HTTPS).");
     }
 }
+
+async function exportSeasonReport(idx) {
+    const seasonData = loadedSeasons[idx];
+    const year = archivesConfig[idx].year;
+    const totalCaptures = archivesConfig[idx].total;
+
+    // 1. Préparation des données pour le graphique (Evolution temporelle)
+    const stats = {};
+    seasonData.forEach(item => {
+        stats[item.date] = (stats[item.date] || 0) + item.nombre;
+    });
+    const labels = Object.keys(stats).sort();
+    const values = labels.map(l => stats[l]);
+
+    // 2. Création d'un canvas invisible pour générer l'image du graphique
+    const canvas = document.createElement('canvas');
+    canvas.width = 800;
+    canvas.height = 400;
+    canvas.style.display = 'none';
+    document.body.appendChild(canvas);
+
+    new Chart(canvas, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Captures par jour',
+                data: values,
+                borderColor: '#d35400',
+                backgroundColor: 'rgba(211, 84, 0, 0.1)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            devicePixelRatio: 2, // Pour une meilleure qualité d'impression
+            plugins: { title: { display: true, text: `Évolution des captures - Saison ${year}` } }
+        }
+    });
+
+    // On attend un peu que le graphique soit dessiné
+    setTimeout(() => {
+        const chartImage = canvas.toDataURL('image/png');
+        
+        // 3. Construction du rapport succinct
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+            <head>
+                <title>Rapport Vigilance Frelon - ${year}</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
+                    .header { text-align: center; border-bottom: 2px solid #d35400; margin-bottom: 30px; padding-bottom: 10px; }
+                    .stats-box { background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px; display: flex; justify-content: space-around; }
+                    .stat-item { text-align: center; }
+                    .stat-value { font-size: 24px; font-weight: bold; color: #d35400; }
+                    .chart-container { text-align: center; margin: 40px 0; }
+                    img { max-width: 100%; border: 1px solid #eee; }
+                    .footer { margin-top: 50px; font-size: 12px; color: #777; text-align: center; border-top: 1px solid #eee; padding-top: 20px; }
+                    @media print { .no-print { display: none; } }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>Rapport de Lutte contre le Frelon Asiatique</h1>
+                    <h3>Commune de La Comté — Saison ${year}</h3>
+                </div>
+
+                <div class="stats-box">
+                    <div class="stat-item">
+                        <div class="stat-value">${totalCaptures}</div>
+                        <div>Fondatrices neutralisées</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${labels[0]}</div>
+                        <div>Date de début</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${labels[labels.length - 1]}</div>
+                        <div>Date de fin</div>
+                    </div>
+                </div>
+
+                <p><strong>Note de synthèse :</strong> Ce rapport présente les données collectées par le réseau de bénévoles "Vigilance Frelon". 
+                Chaque capture a été validée par une preuve photographique, garantissant la sélectivité du piégeage printanier conformément aux recommandations nationales.</p>
+
+                <div class="chart-container">
+                    <img src="${chartImage}" />
+                </div>
+
+                <h4>Détail des zones de pression :</h4>
+                <p>Les captures ont été principalement concentrées sur les zones identifiées dans le dashboard cartographique, permettant une analyse fine de la sortie de diapause des fondatrices.</p>
+
+                <div class="footer">
+                    Document généré par la plateforme Vigilance Frelon - La Comté au cœur de la ruche.<br>
+                    Expertise technique : Thomas [Votre Nom].
+                </div>
+
+                <div style="text-align:center; margin-top: 20px;" class="no-print">
+                    <button onclick="window.print()" style="padding: 10px 20px; cursor:pointer;">Imprimer ou Sauvegarder en PDF</button>
+                </div>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+        document.body.removeChild(canvas); // Nettoyage
+    }, 500);
+}

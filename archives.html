@@ -6,6 +6,7 @@
     <title>Archives des Saisons - Frelon La Comté</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
     // Si le marqueur "skip-gc" est présent dans le navigateur, on bloque GoatCounter
     if (window.localStorage.getItem('skip-gc') === 'true') {
@@ -291,6 +292,10 @@
 
             let html = `
                 <div class="season-summary-bar">
+                    <div style="display: flex; justify-content: flex-end; align-items: center; padding: 10px 15px; background: #f8f9fa; border-bottom: 1px solid #eee; gap: 15px;">
+            		<span style="font-size: 0.9em; color: #666;"><strong>${config.total}</strong> captures enregistrées</span>
+            		<button onclick="exportSeasonReport(${idx})" class="nav-button" style="background-color: #27ae60; margin: 0; padding: 8px 15px; font-size: 0.85em;"><i class="fas fa-file-pdf"></i> Exporter le Rapport</button>
+                    </div>
                     <div class="season-stat">
                         <span class="stat-value">${total}</span>
                         <span class="stat-label">Fondatrices piégées</span>
