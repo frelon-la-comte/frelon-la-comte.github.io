@@ -260,6 +260,11 @@
     "nombre": 1
   },
   {
+    "date": "2026-04-17",
+    "lieu": "rue du 14 juillet",
+    "nombre": 5
+  },
+  {
     "date": "2026-04-18",
     "lieu": "grande rue",
     "nombre": 1
@@ -363,5 +368,10 @@
     "date": "2026-04-24",
     "lieu": "Rucher",
     "nombre": 2
+  },
+  {
+    "date": "2026-04-24",
+    "lieu": "rue de la petite ville",
+    "nombre": 1
   }
 ]
