@@ -130,5 +130,11 @@
     "lieu": "grande rue",
     "fichier": "2026-04-23_grande-rue_1.jpg",
     "nombre": 1
+  },
+  {
+    "date": "2026-04-07",
+    "lieu": "rue du 14 juillet",
+    "fichier": "2026-04-07_rue-du-14-juillet_1.jpeg",
+    "nombre": 1
   }
 ]
