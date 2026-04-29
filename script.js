@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ── CHARGEMENT CAMPAGNE ────────────────────────────────────────────────────
 async function loadCampaignAndInit() {
     try {
-        const resp = await fetch('campaign.json');
+        const resp = await fetch('campaign.json?v=' + Date.now());
         const campaign = await resp.json();
 
         // Mise à jour de l'étiquette d'année (Saison XXXX)
