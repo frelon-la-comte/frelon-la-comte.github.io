@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script>
-    // Si le marqueur "skip-gc" est présent dans le navigateur, on bloque GoatCounter
     if (window.localStorage.getItem('skip-gc') === 'true') {
         window.goatcounter = {no_onload: true}
     }
@@ -106,6 +105,57 @@
             margin-top: 2px;
         }
 
+        /* ========================================
+           GRAPHIQUE TEMPOREL DANS L'ARCHIVE
+        ======================================== */
+        .archive-chart-section {
+            margin: 16px 0 10px 0;
+            background: #fafafa;
+            border: 1px solid #ececec;
+            border-radius: 10px;
+            padding: 14px 16px 10px;
+        }
+
+        .archive-chart-section h4 {
+            margin: 0 0 10px 0;
+            color: #34495e;
+            font-size: 0.95em;
+        }
+
+        .archive-chart-wrapper {
+            position: relative;
+            height: 260px;
+        }
+
+        .archive-chart-note {
+            font-size: 0.78em;
+            color: #999;
+            margin-top: 8px;
+        }
+
+        .btn-export-archive {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #27ae60;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 0.8em;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(39,174,96,0.25);
+            transition: all 0.2s ease;
+            margin-top: 8px;
+            width: auto;
+            margin-bottom: 0;
+        }
+        .btn-export-archive:hover {
+            background-color: #2ecc71;
+            transform: translateY(-1px);
+        }
+
         /* Liste paginée dans l'archive */
         .archive-list {
             list-style: none;
@@ -149,6 +199,14 @@
             margin-bottom: 15px;
             display: block;
         }
+
+        .chart-loading {
+            text-align: center;
+            padding: 20px;
+            color: #aaa;
+            font-style: italic;
+            font-size: 0.85em;
+        }
     </style>
 </head>
 <body>
@@ -166,7 +224,7 @@
         <section class="card card-compact">
             <p style="color:#555; font-size:0.95em;">
                 <i class="fas fa-info-circle" style="color:#d35400;"></i>
-                Retrouvez ici les bilans complets de chaque saison de piégeage. Cliquez sur une saison pour afficher le détail des captures.
+                Retrouvez ici les bilans complets de chaque saison de piégeage. Cliquez sur une saison pour afficher le détail des captures et le graphique d'évolution.
             </p>
             <div id="archives-container">
                 <p><i class="fas fa-spinner fa-spin"></i> Chargement des archives...</p>
@@ -180,11 +238,14 @@
     </footer>
 
     <script src="config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const ARCHIVE_PAGE_SIZE = 5;
-
-        // État de pagination par saison (par index dans la liste)
         const archivePages = {};
+        const loadedSeasons = {};
+
+        // Stockage des instances Chart.js par saison (pour destroy propre)
+        const archiveCharts = {};
 
         document.addEventListener('DOMContentLoaded', () => {
             loadArchives();
@@ -208,7 +269,6 @@
                     return;
                 }
 
-                // Trier par année décroissante
                 archiveIndex.sort((a, b) => b.year - a.year);
 
                 let html = '';
@@ -216,7 +276,7 @@
                     archivePages[idx] = 0;
                     html += `
                         <div class="archive-season" id="season-block-${idx}">
-                            <div class="archive-season-header" onclick="toggleSeason(${idx}, '${season.file}')">
+                            <div class="archive-season-header" onclick="toggleSeason(${idx}, '${season.file}', ${season.year})">
                                 <h3><i class="fas fa-leaf"></i> Saison ${season.year}</h3>
                                 <div style="display:flex; align-items:center; gap:12px;">
                                     <span class="season-total">${season.total} fondatrice(s)</span>
@@ -241,13 +301,9 @@
             }
         }
 
-        // Ouvre/ferme un volet de saison et charge les données si besoin
-        const loadedSeasons = {};
-
-        async function toggleSeason(idx, file) {
+        async function toggleSeason(idx, file, year) {
             const header = document.querySelector(`#season-block-${idx} .archive-season-header`);
             const body = document.getElementById(`season-body-${idx}`);
-
             const isOpen = body.classList.contains('open');
 
             if (isOpen) {
@@ -259,7 +315,6 @@
             header.classList.add('open');
             body.classList.add('open');
 
-            // Charger les données seulement si pas encore fait
             if (!loadedSeasons[idx]) {
                 try {
                     const response = await fetch(file);
@@ -271,10 +326,10 @@
                 }
             }
 
-            renderArchivePage(idx);
+            renderArchiveSeason(idx, year);
         }
 
-        function renderArchivePage(idx) {
+        async function renderArchiveSeason(idx, year) {
             const body = document.getElementById(`season-body-${idx}`);
             const data = loadedSeasons[idx];
             const page = archivePages[idx] || 0;
@@ -282,7 +337,6 @@
             const start = page * ARCHIVE_PAGE_SIZE;
             const pageData = data.slice(start, start + ARCHIVE_PAGE_SIZE);
 
-            // Calcul des stats globales de la saison
             const total = data.reduce((acc, item) => acc + item.nombre, 0);
             const lieux = new Set(data.map(item => item.lieu)).size;
             const dates = data.map(item => item.date).sort();
@@ -311,9 +365,25 @@
                         <span class="stat-value" style="font-size:0.85em;">${lastDate}</span>
                         <span class="stat-label">Dernière capture</span>
                     </div>
-                </div>`;
+                </div>
 
-            html += '<ul class="capture-list archive-list">';
+                <!-- GRAPHIQUE TEMPOREL -->
+                <div class="archive-chart-section">
+                    <h4><i class="fas fa-chart-line" style="color:#d35400;"></i> Évolution temporelle — Saison ${year}</h4>
+                    <div class="archive-chart-wrapper">
+                        <canvas id="archive-chart-${idx}"></canvas>
+                    </div>
+                    <p class="archive-chart-note">
+                        <i class="fas fa-thermometer-half"></i> Température : moyenne diurne (lever → coucher du soleil) — source <a href="https://open-meteo.com" target="_blank" style="color:#2980b9;">Open-Meteo</a>.
+                    </p>
+                    <button class="btn-export-archive" onclick="exportArchiveChart(${idx}, ${year})">
+                        <i class="fas fa-image"></i> Exporter le graphique (PNG)
+                    </button>
+                </div>
+
+                <!-- LISTE PAGINÉE -->
+                <ul class="capture-list archive-list">`;
+
             pageData.forEach(item => {
                 html += `
                     <li class="capture-item">
@@ -326,24 +396,251 @@
             if (totalPages > 1) {
                 html += `
                     <div class="archive-pagination">
-                        <button onclick="changeArchivePage(${idx}, -1)" ${page === 0 ? 'disabled' : ''}>
+                        <button onclick="changeArchivePage(${idx}, ${year}, -1)" ${page === 0 ? 'disabled' : ''}>
                             <i class="fas fa-chevron-left"></i> Précédent
                         </button>
                         <span class="page-indicator">Volet ${page + 1} / ${totalPages}</span>
-                        <button onclick="changeArchivePage(${idx}, 1)" ${page >= totalPages - 1 ? 'disabled' : ''}>
+                        <button onclick="changeArchivePage(${idx}, ${year}, 1)" ${page >= totalPages - 1 ? 'disabled' : ''}>
                             Suivant <i class="fas fa-chevron-right"></i>
                         </button>
                     </div>`;
             }
 
             body.innerHTML = html;
+
+            // Construire le graphique après l'injection du HTML
+            await buildArchiveChart(idx, data);
         }
 
-        function changeArchivePage(idx, delta) {
+        function changeArchivePage(idx, year, delta) {
             const data = loadedSeasons[idx];
             const totalPages = Math.ceil(data.length / ARCHIVE_PAGE_SIZE);
             archivePages[idx] = Math.max(0, Math.min((archivePages[idx] || 0) + delta, totalPages - 1));
-            renderArchivePage(idx);
+            renderArchiveSeason(idx, year);
+        }
+
+        // ── GRAPHIQUE TEMPOREL ────────────────────────────────────────────────
+        async function buildArchiveChart(idx, data) {
+            const canvas = document.getElementById(`archive-chart-${idx}`);
+            if (!canvas) return;
+
+            // Agrégation captures par date
+            const parDate = {};
+            data.forEach(item => {
+                parDate[item.date] = (parDate[item.date] || 0) + item.nombre;
+            });
+
+            const datesCaptures = Object.keys(parDate).sort();
+            if (datesCaptures.length === 0) {
+                canvas.parentElement.innerHTML = '<p class="chart-loading">Aucune donnée à afficher.</p>';
+                return;
+            }
+
+            const startDate = datesCaptures[0];
+            const endDate   = datesCaptures[datesCaptures.length - 1];
+
+            // Plage continue de dates
+            const allDates = [];
+            const cursor = new Date(startDate);
+            const dEnd   = new Date(endDate);
+            while (cursor <= dEnd) {
+                allDates.push(cursor.toISOString().slice(0, 10));
+                cursor.setDate(cursor.getDate() + 1);
+            }
+
+            const captureValues = allDates.map(d => parDate[d] || 0);
+            const seuilValues   = allDates.map(() => 10);
+
+            // Météo Open-Meteo
+            const { tempMap, precipMap } = await fetchWeatherDataArchive(startDate, endDate);
+            const tempValues   = allDates.map(d => tempMap[d]   ?? null);
+            const precipValues = allDates.map(d => precipMap[d] ?? 0);
+
+            // Détruire l'instance précédente si elle existe
+            if (archiveCharts[idx]) {
+                archiveCharts[idx].destroy();
+                archiveCharts[idx] = null;
+            }
+
+            archiveCharts[idx] = new Chart(canvas, {
+                data: {
+                    labels: allDates,
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Précipitations (mm)',
+                            data: precipValues,
+                            backgroundColor: 'rgba(100, 149, 237, 0.25)',
+                            borderColor: 'rgba(100, 149, 237, 0.5)',
+                            borderWidth: 1,
+                            borderRadius: 2,
+                            yAxisID: 'yPrecip',
+                            order: 4
+                        },
+                        {
+                            type: 'bar',
+                            label: 'Fondatrices piégées',
+                            data: captureValues,
+                            backgroundColor: 'rgba(211, 84, 0, 0.70)',
+                            borderColor: '#922b00',
+                            borderWidth: 1,
+                            borderRadius: 3,
+                            yAxisID: 'yCaptures',
+                            order: 3
+                        },
+                        {
+                            type: 'line',
+                            label: 'Moy. diurne (°C)',
+                            data: tempValues,
+                            borderColor: '#2980b9',
+                            backgroundColor: 'rgba(41, 128, 185, 0.06)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 2,
+                            pointBackgroundColor: '#2980b9',
+                            borderWidth: 2,
+                            yAxisID: 'yTemp',
+                            order: 2,
+                            spanGaps: true
+                        },
+                        {
+                            type: 'line',
+                            label: 'Seuil vol (10°C)',
+                            data: seuilValues,
+                            borderColor: '#e74c3c',
+                            borderWidth: 2,
+                            borderDash: [6, 4],
+                            pointRadius: 0,
+                            fill: false,
+                            tension: 0,
+                            yAxisID: 'yTemp',
+                            order: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: { boxWidth: 14, font: { size: 11 }, usePointStyle: true }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    if (ctx.dataset.label === 'Fondatrices piégées')  return ` ${ctx.parsed.y} capture(s)`;
+                                    if (ctx.dataset.label === 'Seuil vol (10°C)')     return ` Seuil : 10°C`;
+                                    if (ctx.dataset.label === 'Précipitations (mm)')  return ` ${ctx.parsed.y} mm de pluie`;
+                                    return ` Moy. diurne : ${ctx.parsed.y}°C`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { maxTicksLimit: 12, maxRotation: 45, font: { size: 10 } }
+                        },
+                        yCaptures: {
+                            type: 'linear',
+                            position: 'left',
+                            beginAtZero: true,
+                            ticks: { precision: 0, color: '#d35400', font: { size: 10 } },
+                            title: { display: true, text: 'Captures', color: '#d35400', font: { size: 11 } },
+                            grid: { color: 'rgba(211, 84, 0, 0.08)' }
+                        },
+                        yTemp: {
+                            type: 'linear',
+                            position: 'right',
+                            ticks: { color: '#2980b9', font: { size: 10 }, callback: v => `${v}°C` },
+                            title: { display: true, text: 'Température (°C)', color: '#2980b9', font: { size: 11 } },
+                            grid: { drawOnChartArea: false }
+                        },
+                        yPrecip: {
+                            type: 'linear',
+                            position: 'right',
+                            beginAtZero: true,
+                            offset: true,
+                            ticks: { color: 'rgba(100,149,237,0.7)', font: { size: 9 }, callback: v => `${v}mm` },
+                            title: { display: true, text: 'Pluie (mm)', color: 'rgba(100,149,237,0.8)', font: { size: 10 } },
+                            grid: { drawOnChartArea: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ── MÉTÉO (API archive Open-Meteo) ────────────────────────────────────
+        async function fetchWeatherDataArchive(startDate, endDate) {
+            const today = new Date().toISOString().slice(0, 10);
+            const safeEnd = endDate > today ? today : endDate;
+
+            const url = `https://archive-api.open-meteo.com/v1/archive` +
+                `?latitude=${CONFIG.lat}&longitude=${CONFIG.lon}` +
+                `&start_date=${startDate}&end_date=${safeEnd}` +
+                `&hourly=temperature_2m` +
+                `&daily=sunrise,sunset,precipitation_sum` +
+                `&timezone=auto`;
+
+            try {
+                const resp = await fetch(url);
+                const json = await resp.json();
+
+                const hourlyIndex = {};
+                json.hourly.time.forEach((t, i) => {
+                    hourlyIndex[t] = json.hourly.temperature_2m[i];
+                });
+
+                const tempMap   = {};
+                const precipMap = {};
+
+                json.daily.time.forEach((date, i) => {
+                    const sunrise = new Date(json.daily.sunrise[i]);
+                    const sunset  = new Date(json.daily.sunset[i]);
+                    const dayTemps = [];
+                    const cur = new Date(sunrise);
+                    cur.setMinutes(0, 0, 0);
+                    while (cur <= sunset) {
+                        const key = `${date}T${String(cur.getHours()).padStart(2, '0')}:00`;
+                        const temp = hourlyIndex[key];
+                        if (temp !== undefined && temp !== null) dayTemps.push(temp);
+                        cur.setHours(cur.getHours() + 1);
+                    }
+                    tempMap[date] = dayTemps.length > 0
+                        ? parseFloat((dayTemps.reduce((a, b) => a + b, 0) / dayTemps.length).toFixed(1))
+                        : null;
+
+                    const p = json.daily.precipitation_sum[i];
+                    precipMap[date] = (p !== undefined && p !== null) ? parseFloat(p.toFixed(1)) : 0;
+                });
+
+                return { tempMap, precipMap };
+
+            } catch (e) {
+                console.warn("Météo archive indisponible :", e);
+                return { tempMap: {}, precipMap: {} };
+            }
+        }
+
+        // ── EXPORT PNG ────────────────────────────────────────────────────────
+        function exportArchiveChart(idx, year) {
+            const canvas = document.getElementById(`archive-chart-${idx}`);
+            if (!canvas) { alert("Graphique non disponible."); return; }
+
+            const exportCanvas = document.createElement('canvas');
+            exportCanvas.width  = canvas.width;
+            exportCanvas.height = canvas.height;
+            const ctx = exportCanvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+            ctx.drawImage(canvas, 0, 0);
+
+            const link = document.createElement('a');
+            link.download = `evolution-piegeage-laconte-${year}.png`;
+            link.href = exportCanvas.toDataURL('image/png');
+            link.click();
         }
     </script>
 </body>
