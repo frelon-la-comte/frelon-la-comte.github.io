@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bilan de Saison — Frelon La Comté</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* ========================================
+           VARIABLES & BASE
+        ======================================== */
+        :root {
+            --orange:    #d35400;
+            --orange-lt: #e67e22;
+            --dark:      #2c3e50;
+            --mid:       #34495e;
+            --light:     #f4f4f9;
+            --border:    #e0e0e0;
+            --blue:      #2980b9;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #eaecef;
+            color: #333;
+            padding: 24px 16px;
+        }
+
+        /* ========================================
+           WRAPPER A4
+        ======================================== */
+        .report-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* ========================================
+           BARRE D'ACTIONS (hors impression)
+        ======================================== */
+        .action-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--mid);
+            color: white;
+            text-decoration: none;
+            padding: 9px 18px;
+            border-radius: 50px;
+            font-size: 0.85em;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .btn-back:hover { background: var(--dark); }
+
+        .btn-print {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--orange);
+            color: white;
+            border: none;
+            padding: 9px 22px;
+            border-radius: 50px;
+            font-size: 0.88em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(211,84,0,0.3);
+            transition: all 0.2s;
+        }
+        .btn-print:hover {
+            background: var(--orange-lt);
+            transform: translateY(-2px);
+        }
+
+        /* ========================================
+           RAPPORT (feuille blanche)
+        ======================================== */
+        .report {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+            overflow: hidden;
+        }
+
+        /* ── En-tête du rapport ── */
+        .report-header {
+            background: linear-gradient(135deg, var(--dark) 0%, var(--mid) 100%);
+            color: white;
+            padding: 28px 32px 22px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .report-header-left h1 {
+            font-size: 1.6em;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+        }
+
+        .report-header-left .subtitle {
+            font-size: 0.9em;
+            opacity: 0.75;
+        }
+
+        .report-header-right {
+            text-align: right;
+            font-size: 0.8em;
+            opacity: 0.7;
+            white-space: nowrap;
+        }
+
+        .season-badge {
+            display: inline-block;
+            background: var(--orange);
+            color: white;
+            font-size: 2em;
+            font-weight: 900;
+            padding: 4px 20px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            letter-spacing: 1px;
+        }
+
+        /* ── Corps du rapport ── */
+        .report-body {
+            padding: 24px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* ── Sections ── */
+        .section-title {
+            font-size: 0.8em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--orange);
+            border-bottom: 2px solid var(--orange);
+            padding-bottom: 5px;
+            margin-bottom: 14px;
+        }
+
+        /* ── Stats ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+
+        @media (max-width: 700px) {
+            .stats-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        .stat-box {
+            background: var(--light);
+            border-radius: 10px;
+            padding: 14px 10px;
+            text-align: center;
+            border-top: 3px solid var(--orange);
+        }
+
+        .stat-box .val {
+            font-size: 1.7em;
+            font-weight: 800;
+            color: var(--orange);
+            line-height: 1;
+        }
+
+        .stat-box .val.small { font-size: 1.1em; }
+
+        .stat-box .lbl {
+            font-size: 0.72em;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        /* ── Carte ── */
+        .map-container {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: #f0ede8;
+            min-height: 320px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .map-container img {
+            width: 100%;
+            display: block;
+            border-radius: 10px;
+        }
+
+        .map-loading {
+            text-align: center;
+            color: #aaa;
+            font-style: italic;
+            font-size: 0.9em;
+            padding: 20px;
+        }
+
+        /* Légende carte */
+        .map-legend {
+            margin-top: 8px;
+            font-size: 0.78em;
+            color: #888;
+        }
+
+        /* ── Graphique ── */
+        .chart-box {
+            position: relative;
+            height: 280px;
+        }
+
+        /* img de remplacement lors de l'impression */
+        .chart-img {
+            display: none;
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        /* ── Tableau des lieux ── */
+        .lieu-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88em;
+        }
+
+        .lieu-table thead tr {
+            background: var(--dark);
+            color: white;
+        }
+
+        .lieu-table th {
+            padding: 8px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .lieu-table td {
+            padding: 7px 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .lieu-table tr:nth-child(even) td { background: #fafafa; }
+
+        .lieu-table .bar-cell { width: 180px; }
+
+        .bar-track {
+            background: #f0f0f0;
+            border-radius: 4px;
+            height: 10px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            background: linear-gradient(90deg, var(--orange), var(--orange-lt));
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.8s ease;
+        }
+
+        .pct {
+            font-size: 0.8em;
+            color: #aaa;
+            margin-left: 6px;
+        }
+
+        /* ── Pied de rapport ── */
+        .report-footer {
+            background: var(--light);
+            border-top: 1px solid var(--border);
+            padding: 14px 28px;
+            font-size: 0.75em;
+            color: #999;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        /* ========================================
+           IMPRESSION — CSS MEDIA PRINT
+        ======================================== */
+        @media print {
+            @page {
+                size: A4;
+                margin: 1.2cm 1.4cm;
+            }
+
+            body {
+                background: white !important;
+                padding: 0 !important;
+            }
+
+            .action-bar { display: none !important; }
+
+            .report {
+                box-shadow: none !important;
+                border-radius: 0 !important;
+            }
+
+            .chart-box canvas { display: none !important; }
+            .chart-img        { display: block !important; }
+
+            /* Évite les coupures malheureuses */
+            .stat-box, .lieu-table, .report-header { break-inside: avoid; }
+            .section-title { break-after: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="report-wrapper">
+
+    <!-- BARRE D'ACTIONS (masquée à l'impression) -->
+    <div class="action-bar">
+        <a href="archives.html" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Retour aux archives
+        </a>
+        <button class="btn-print" onclick="printReport()">
+            <i class="fas fa-file-pdf"></i> Télécharger le bilan (PDF)
+        </button>
+    </div>
+
+    <!-- RAPPORT -->
+    <div class="report" id="report">
+
+        <!-- EN-TÊTE -->
+        <div class="report-header">
+            <div class="report-header-left">
+                <div class="season-badge" id="rpt-year">—</div>
+                <h1><i class="fas fa-bug"></i> Bilan de Saison — Frelon Asiatique</h1>
+                <div class="subtitle">Commune de La Comté · Plan de lutte collective</div>
+            </div>
+            <div class="report-header-right">
+                <div>Généré le</div>
+                <div id="rpt-date" style="font-weight:bold; color:white; font-size:1.1em; margin-top:2px;">—</div>
+            </div>
+        </div>
+
+        <!-- CORPS -->
+        <div class="report-body">
+
+            <!-- STATS -->
+            <div>
+                <div class="section-title"><i class="fas fa-chart-bar"></i> Résumé de la saison</div>
+                <div class="stats-grid" id="rpt-stats">
+                    <div class="stat-box"><div class="val">—</div><div class="lbl">Fondatrices piégées</div></div>
+                    <div class="stat-box"><div class="val">—</div><div class="lbl">Signalements</div></div>
+                    <div class="stat-box"><div class="val">—</div><div class="lbl">Lieux actifs</div></div>
+                    <div class="stat-box"><div class="val small">—</div><div class="lbl">1ère capture</div></div>
+                    <div class="stat-box"><div class="val small">—</div><div class="lbl">Dernière capture</div></div>
+                </div>
+            </div>
+
+            <!-- CARTE -->
+            <div>
+                <div class="section-title"><i class="fas fa-map-marked-alt"></i> Cartographie des piégeages</div>
+                <div class="map-container" id="rpt-map">
+                    <div class="map-loading"><i class="fas fa-spinner fa-spin"></i> Chargement de la carte...</div>
+                </div>
+                <div class="map-legend">
+                    <i class="fas fa-circle" style="color:var(--orange);"></i>
+                    La taille des cercles est proportionnelle au nombre de captures. Coordonnées approximatives par rue.
+                </div>
+            </div>
+
+            <!-- GRAPHIQUE -->
+            <div>
+                <div class="section-title"><i class="fas fa-chart-line"></i> Évolution temporelle</div>
+                <div class="chart-box">
+                    <canvas id="rpt-chart"></canvas>
+                    <!-- Remplacé par cette image lors de l'impression -->
+                    <img class="chart-img" id="rpt-chart-img" src="" alt="Graphique d'évolution">
+                </div>
+                <p style="font-size:0.75em; color:#aaa; margin-top:6px;">
+                    <i class="fas fa-thermometer-half"></i> Température : moyenne diurne calculée entre lever et coucher du soleil — source Open-Meteo.
+                </p>
+            </div>
+
+            <!-- TABLEAU PAR LIEU -->
+            <div>
+                <div class="section-title"><i class="fas fa-list-ol"></i> Détail par lieu de piégeage</div>
+                <table class="lieu-table" id="rpt-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Lieu</th>
+                            <th style="text-align:right;">Captures</th>
+                            <th style="text-align:right;">Signalements</th>
+                            <th class="bar-cell">Proportion</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rpt-tbody">
+                        <tr><td colspan="5" style="text-align:center; color:#aaa; padding:20px;">Chargement...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <!-- PIED DE RAPPORT -->
+        <div class="report-footer">
+            <span><i class="fas fa-leaf"></i> La Comté au cœur de la ruche — Plan de lutte contre le frelon asiatique</span>
+            <span>Données : <em id="rpt-footer-src">archives/XXXX.json</em> · Open-Meteo</span>
+        </div>
+
+    </div><!-- /.report -->
+
+</div><!-- /.report-wrapper -->
+
+<script>
+// ── COORDONNÉES GPS ────────────────────────────────────────────────────
+const GPS_MAPPING = {
+    "rue de l'église":        [50.4282, 2.4915],
+    "grande rue":             [50.4278, 2.4957],
+    "rue jules elby":         [50.4282, 2.4985],
+    "impasse jules elby":     [50.4293, 2.4961],
+    "rue du 14 juillet":      [50.4270, 2.5039],
+    "rue de la petite ville": [50.4254, 2.4987],
+    "rue du 8 mai 1945":      [50.4215, 2.5022],
+    "rue du chateau":         [50.4242, 2.5010],
+    "rue du 19 mars 1962":    [50.4244, 2.4963],
+    "rue du 11 novembre":     [50.4255, 2.4937],
+    "rucher":                 [50.4272, 2.4962],
+    "rucher grande rue":      [50.4272, 2.4960],
+};
+
+const CENTRE = [50.4256, 2.4993];
+
+// ── INIT ───────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+    // Date de génération
+    document.getElementById('rpt-date').innerText = new Date().toLocaleDateString('fr-FR', {
+        day: 'numeric', month: 'long', year: 'numeric'
+    });
+
+    // Année depuis l'URL
+    const params = new URLSearchParams(window.location.search);
+    const year   = params.get('year') || new Date().getFullYear();
+    document.getElementById('rpt-year').innerText = `Saison ${year}`;
+    document.title = `Bilan Saison ${year} — Frelon La Comté`;
+
+    // Source du fichier
+    const src = params.get('src') || `archives/${year}.json`;
+    document.getElementById('rpt-footer-src').innerText = src;
+
+    // Chargement des données
+    let data = [];
+    try {
+        const resp = await fetch(src + '?v=' + Date.now());
+        data = await resp.json();
+    } catch(e) {
+        console.error('Impossible de charger les données :', e);
+        document.getElementById('rpt-tbody').innerHTML =
+            '<tr><td colspan="5" style="color:red; text-align:center; padding:20px;">Impossible de charger les données.</td></tr>';
+        return;
+    }
+
+    buildStats(data);
+    buildTable(data);
+    buildMap(data);
+    await buildChart(data);
+});
+
+// ── STATS ──────────────────────────────────────────────────────────────
+function buildStats(data) {
+    const total      = data.reduce((s, d) => s + d.nombre, 0);
+    const signalements = data.length;
+    const lieux      = new Set(data.map(d => d.lieu.toLowerCase().trim())).size;
+    const dates      = data.map(d => d.date).sort();
+    const first      = dates[0]  || '—';
+    const last       = dates[dates.length - 1] || '—';
+
+    const boxes = document.querySelectorAll('#rpt-stats .stat-box');
+    const vals  = [total, signalements, lieux, first, last];
+    const isSmall = [false, false, false, true, true];
+    vals.forEach((v, i) => {
+        boxes[i].querySelector('.val').innerText = v;
+        if (isSmall[i]) boxes[i].querySelector('.val').classList.add('small');
+    });
+}
+
+// ── TABLEAU ────────────────────────────────────────────────────────────
+function buildTable(data) {
+    const parLieu = {};
+    data.forEach(d => {
+        const k = d.lieu.toLowerCase().trim();
+        if (!parLieu[k]) parLieu[k] = { label: d.lieu, total: 0, count: 0 };
+        parLieu[k].total += d.nombre;
+        parLieu[k].count++;
+    });
+
+    const rows   = Object.values(parLieu).sort((a, b) => b.total - a.total);
+    const maxTot = rows[0]?.total || 1;
+    const grand  = rows.reduce((s, r) => s + r.total, 0);
+
+    const tbody = document.getElementById('rpt-tbody');
+    tbody.innerHTML = rows.map((r, i) => {
+        const pct = ((r.total / grand) * 100).toFixed(1);
+        const barW = ((r.total / maxTot) * 100).toFixed(1);
+        return `
+            <tr>
+                <td style="color:#aaa; font-weight:bold;">${i + 1}</td>
+                <td style="font-weight:${i < 3 ? 'bold' : 'normal'};">
+                    ${i === 0 ? '<i class="fas fa-trophy" style="color:#f39c12; margin-right:4px;"></i>' : ''}
+                    ${r.label}
+                </td>
+                <td style="text-align:right; font-weight:bold; color:var(--orange);">${r.total}</td>
+                <td style="text-align:right; color:#888;">${r.count}</td>
+                <td class="bar-cell">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <div class="bar-track" style="flex:1;">
+                            <div class="bar-fill" style="width:${barW}%;"></div>
+                        </div>
+                        <span class="pct">${pct}%</span>
+                    </div>
+                </td>
+            </tr>`;
+    }).join('');
+}
+
+// ── CARTE STATIQUE ─────────────────────────────────────────────────────
+function buildMap(data) {
+    const mapDiv = document.getElementById('rpt-map');
+
+    // Agrégation par lieu (normalisé)
+    const parLieu = {};
+    data.forEach(d => {
+        const k = d.lieu.toLowerCase().trim();
+        parLieu[k] = (parLieu[k] || 0) + d.nombre;
+    });
+
+    // Construire les marqueurs pour l'URL staticmap
+    const markers = Object.entries(parLieu).map(([lieu, total]) => {
+        const coords = GPS_MAPPING[lieu];
+        if (!coords) return null;
+        return `${coords[0]},${coords[1]},ltblue`;
+    }).filter(Boolean);
+
+    // Tenter de charger la carte statique OSM
+    const markerStr = markers.join('|');
+    const mapUrl = `https://staticmap.openstreetmap.de/staticmap.php`
+        + `?center=${CENTRE[0]},${CENTRE[1]}`
+        + `&zoom=14`
+        + `&size=860x340`
+        + `&maptype=mapnik`
+        + (markerStr ? `&markers=${markerStr}` : '');
+
+    const img = document.createElement('img');
+    img.style.width = '100%';
+    img.style.borderRadius = '10px';
+    img.alt = 'Carte des piégeages';
+
+    img.onload = () => {
+        mapDiv.innerHTML = '';
+        mapDiv.appendChild(img);
+
+        // Superposer une légende SVG avec cercles proportionnels
+        const svgOverlay = buildMapSVGOverlay(parLieu);
+        mapDiv.style.position = 'relative';
+        mapDiv.appendChild(svgOverlay);
+    };
+
+    img.onerror = () => {
+        // Fallback : carte SVG autonome
+        mapDiv.innerHTML = '';
+        mapDiv.appendChild(buildFallbackSVGMap(parLieu));
+    };
+
+    img.src = mapUrl;
+}
+
+// Superposition SVG des cercles proportionnels sur la carte statique
+function buildMapSVGOverlay(parLieu) {
+    // Projection lat/lon → pixel pour zoom 14, taille 860x340
+    const W = 860, H = 340;
+    const zoom = 14;
+
+    function latLonToPixel(lat, lon) {
+        const n = Math.pow(2, zoom);
+        const x = (lon + 180) / 360 * n;
+        const latRad = lat * Math.PI / 180;
+        const y = (1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n;
+
+        // Pixel du centre
+        const cx = (CENTRE[1] + 180) / 360 * n;
+        const latRadC = CENTRE[0] * Math.PI / 180;
+        const cy = (1 - Math.log(Math.tan(latRadC) + 1 / Math.cos(latRadC)) / Math.PI) / 2 * n;
+
+        // Taille en pixels d'une tuile = 256px
+        const tileSize = 256;
+        const px = W / 2 + (x - cx) * tileSize;
+        const py = H / 2 + (y - cy) * tileSize;
+        return [px, py];
+    }
+
+    const maxTotal = Math.max(...Object.values(parLieu));
+    let circles = '';
+
+    Object.entries(parLieu).forEach(([lieu, total]) => {
+        const coords = GPS_MAPPING[lieu];
+        if (!coords) return;
+        const [px, py] = latLonToPixel(coords[0], coords[1]);
+        const r = 8 + (total / maxTotal) * 20;
+
+        circles += `
+            <circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${r.toFixed(1)}"
+                fill="rgba(211,84,0,0.65)" stroke="#922b00" stroke-width="1.5"/>
+            <text x="${px.toFixed(1)}" y="${(py - r - 3).toFixed(1)}"
+                text-anchor="middle" font-size="10" font-family="Segoe UI, sans-serif"
+                fill="#2c3e50" font-weight="bold">${total}</text>`;
+    });
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.style.position = 'absolute';
+    svg.style.top = '0';
+    svg.style.left = '0';
+    svg.style.pointerEvents = 'none';
+    svg.innerHTML = circles;
+    return svg;
+}
+
+// Carte SVG de secours si l'image statique ne charge pas
+function buildFallbackSVGMap(parLieu) {
+    const W = 860, H = 340;
+    const zoom = 14;
+
+    function latLonToPixel(lat, lon) {
+        const n = Math.pow(2, zoom);
+        const x = (lon + 180) / 360 * n;
+        const latRad = lat * Math.PI / 180;
+        const y = (1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n;
+        const cx = (CENTRE[1] + 180) / 360 * n;
+        const latRadC = CENTRE[0] * Math.PI / 180;
+        const cy = (1 - Math.log(Math.tan(latRadC) + 1 / Math.cos(latRadC)) / Math.PI) / 2 * n;
+        const tileSize = 256;
+        return [W / 2 + (x - cx) * tileSize, H / 2 + (y - cy) * tileSize];
+    }
+
+    const maxTotal = Math.max(...Object.values(parLieu));
+    let items = '';
+    Object.entries(parLieu).forEach(([lieu, total]) => {
+        const coords = GPS_MAPPING[lieu];
+        if (!coords) return;
+        const [px, py] = latLonToPixel(coords[0], coords[1]);
+        const r = 10 + (total / maxTotal) * 22;
+        const labelY = py - r - 4;
+        items += `
+            <circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${r.toFixed(1)}"
+                fill="rgba(211,84,0,0.7)" stroke="#922b00" stroke-width="2"/>
+            <text x="${px.toFixed(1)}" y="${py.toFixed(1)}" dy="4"
+                text-anchor="middle" font-size="11" font-weight="bold"
+                font-family="Segoe UI,sans-serif" fill="white">${total}</text>
+            <text x="${px.toFixed(1)}" y="${labelY.toFixed(1)}"
+                text-anchor="middle" font-size="9"
+                font-family="Segoe UI,sans-serif" fill="#2c3e50">${lieu}</text>`;
+    });
+
+    const div = document.createElement('div');
+    div.style.width = '100%';
+    div.innerHTML = `
+        <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"
+             style="width:100%; background:#e8e0d5; border-radius:10px;">
+            <text x="${W/2}" y="16" text-anchor="middle" font-size="11"
+                font-family="Segoe UI,sans-serif" fill="#aaa" font-style="italic">
+                Carte schématique — fond non disponible
+            </text>
+            ${items}
+        </svg>`;
+    return div;
+}
+
+// ── GRAPHIQUE ──────────────────────────────────────────────────────────
+async function buildChart(data) {
+    const parDate = {};
+    data.forEach(d => { parDate[d.date] = (parDate[d.date] || 0) + d.nombre; });
+
+    const datesCaptures = Object.keys(parDate).sort();
+    if (datesCaptures.length === 0) return;
+
+    const startDate = datesCaptures[0];
+    const endDate   = datesCaptures[datesCaptures.length - 1];
+
+    const allDates = [];
+    const cur = new Date(startDate);
+    const end = new Date(endDate);
+    while (cur <= end) {
+        allDates.push(cur.toISOString().slice(0, 10));
+        cur.setDate(cur.getDate() + 1);
+    }
+
+    const captureValues = allDates.map(d => parDate[d] || 0);
+    const seuilValues   = allDates.map(() => 10);
+
+    // Météo archive Open-Meteo
+    const { tempMap, precipMap } = await fetchWeatherArchive(startDate, endDate);
+    const tempValues   = allDates.map(d => tempMap[d]   ?? null);
+    const precipValues = allDates.map(d => precipMap[d] ?? 0);
+
+    const canvas = document.getElementById('rpt-chart');
+    new Chart(canvas, {
+        data: {
+            labels: allDates,
+            datasets: [
+                {
+                    type: 'bar', label: 'Précipitations (mm)', data: precipValues,
+                    backgroundColor: 'rgba(100,149,237,0.25)', borderColor: 'rgba(100,149,237,0.5)',
+                    borderWidth: 1, borderRadius: 2, yAxisID: 'yPrecip', order: 4
+                },
+                {
+                    type: 'bar', label: 'Fondatrices piégées', data: captureValues,
+                    backgroundColor: 'rgba(211,84,0,0.70)', borderColor: '#922b00',
+                    borderWidth: 1, borderRadius: 3, yAxisID: 'yCaptures', order: 3
+                },
+                {
+                    type: 'line', label: 'Moy. diurne (°C)', data: tempValues,
+                    borderColor: '#2980b9', backgroundColor: 'rgba(41,128,185,0.06)',
+                    fill: true, tension: 0.4, pointRadius: 2, borderWidth: 2,
+                    yAxisID: 'yTemp', order: 2, spanGaps: true
+                },
+                {
+                    type: 'line', label: 'Seuil vol (10°C)', data: seuilValues,
+                    borderColor: '#e74c3c', borderWidth: 2, borderDash: [6,4],
+                    pointRadius: 0, fill: false, tension: 0, yAxisID: 'yTemp', order: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            animation: { onComplete: () => {
+                // Pré-générer l'image pour l'impression
+                document.getElementById('rpt-chart-img').src = canvas.toDataURL('image/png');
+            }},
+            plugins: {
+                legend: { display: true, position: 'top',
+                    labels: { boxWidth: 12, font: { size: 10 }, usePointStyle: true }},
+                tooltip: { callbacks: { label: ctx => {
+                    if (ctx.dataset.label === 'Fondatrices piégées') return ` ${ctx.parsed.y} capture(s)`;
+                    if (ctx.dataset.label === 'Seuil vol (10°C)')    return ` Seuil : 10°C`;
+                    if (ctx.dataset.label === 'Précipitations (mm)') return ` ${ctx.parsed.y} mm`;
+                    return ` Moy. diurne : ${ctx.parsed.y}°C`;
+                }}}
+            },
+            scales: {
+                x: { ticks: { maxTicksLimit: 12, maxRotation: 45, font: { size: 10 } } },
+                yCaptures: {
+                    type: 'linear', position: 'left', beginAtZero: true,
+                    ticks: { precision: 0, color: '#d35400', font: { size: 10 } },
+                    title: { display: true, text: 'Captures', color: '#d35400', font: { size: 11 } },
+                    grid: { color: 'rgba(211,84,0,0.08)' }
+                },
+                yTemp: {
+                    type: 'linear', position: 'right',
+                    ticks: { color: '#2980b9', font: { size: 10 }, callback: v => `${v}°C` },
+                    title: { display: true, text: 'Température (°C)', color: '#2980b9', font: { size: 11 } },
+                    grid: { drawOnChartArea: false }
+                },
+                yPrecip: {
+                    type: 'linear', position: 'right', beginAtZero: true, offset: true,
+                    ticks: { color: 'rgba(100,149,237,0.7)', font: { size: 9 }, callback: v => `${v}mm` },
+                    title: { display: true, text: 'Pluie (mm)', color: 'rgba(100,149,237,0.8)', font: { size: 10 } },
+                    grid: { drawOnChartArea: false }
+                }
+            }
+        }
+    });
+}
+
+// ── MÉTÉO (archive Open-Meteo) ─────────────────────────────────────────
+async function fetchWeatherArchive(startDate, endDate) {
+    const today  = new Date().toISOString().slice(0, 10);
+    const safeEnd = endDate > today ? today : endDate;
+
+    // Coordonnées depuis config.js ou valeur par défaut La Comté
+    const lat = (typeof CONFIG !== 'undefined') ? CONFIG.lat : 50.4256;
+    const lon = (typeof CONFIG !== 'undefined') ? CONFIG.lon : 2.4993;
+
+    const url = `https://archive-api.open-meteo.com/v1/archive`
+        + `?latitude=${lat}&longitude=${lon}`
+        + `&start_date=${startDate}&end_date=${safeEnd}`
+        + `&hourly=temperature_2m`
+        + `&daily=sunrise,sunset,precipitation_sum`
+        + `&timezone=auto`;
+
+    try {
+        const resp = await fetch(url);
+        const json = await resp.json();
+
+        const hourlyIndex = {};
+        json.hourly.time.forEach((t, i) => { hourlyIndex[t] = json.hourly.temperature_2m[i]; });
+
+        const tempMap = {}, precipMap = {};
+        json.daily.time.forEach((date, i) => {
+            const sunrise = new Date(json.daily.sunrise[i]);
+            const sunset  = new Date(json.daily.sunset[i]);
+            const temps = [];
+            const c = new Date(sunrise);
+            c.setMinutes(0, 0, 0);
+            while (c <= sunset) {
+                const k = `${date}T${String(c.getHours()).padStart(2,'0')}:00`;
+                if (hourlyIndex[k] != null) temps.push(hourlyIndex[k]);
+                c.setHours(c.getHours() + 1);
+            }
+            tempMap[date]   = temps.length ? parseFloat((temps.reduce((a,b)=>a+b,0)/temps.length).toFixed(1)) : null;
+            precipMap[date] = json.daily.precipitation_sum[i] != null
+                ? parseFloat(json.daily.precipitation_sum[i].toFixed(1)) : 0;
+        });
+        return { tempMap, precipMap };
+    } catch(e) {
+        return { tempMap: {}, precipMap: {} };
+    }
+}
+
+// ── IMPRESSION ─────────────────────────────────────────────────────────
+function printReport() {
+    // S'assurer que l'image du graphique est à jour
+    const canvas = document.getElementById('rpt-chart');
+    if (canvas) {
+        document.getElementById('rpt-chart-img').src = canvas.toDataURL('image/png');
+    }
+    window.print();
+}
+</script>
+
+<!-- config.js du projet (optionnel, pour les coordonnées GPS) -->
+<script src="config.js" onerror="console.log('config.js non chargé, coordonnées par défaut utilisées.')"></script>
+
+</body>
+</html>
