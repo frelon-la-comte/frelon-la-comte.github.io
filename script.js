@@ -16,11 +16,11 @@ async function loadCampaignAndInit() {
             // ── Campagne fermée : bloquer le formulaire ──
             blockFormClosed(campaign);
             // On charge quand même la météo et les stats (lecture seule)
-            fetchWeather();
+            fetchWeather(campaign);
             loadTrappingData();
         } else {
             // ── Campagne ouverte ──
-            fetchWeather();
+            fetchWeather(campaign);
             loadTrappingData();
         }
     } catch(e) {
@@ -28,7 +28,7 @@ async function loadCampaignAndInit() {
         console.warn('campaign.json introuvable, mode ouvert par défaut');
         const yearLabel = document.getElementById('current-year-label');
         if (yearLabel) yearLabel.innerText = `— Saison ${new Date().getFullYear()}`;
-        fetchWeather();
+        fetchWeather(null);
         loadTrappingData();
     }
 }
@@ -63,8 +63,53 @@ function blockFormClosed(campaign) {
 }
 
 // --- 1. GESTION MÉTÉO — Moyenne diurne sur 5 jours (lever → coucher du soleil) ---
-async function fetchWeather() {
+async function fetchWeather(campaign) {
     const statusDiv = document.getElementById('weather-status');
+
+    // ── Banderole statut campagne ──
+    let campagneBanner = '';
+    if (campaign) {
+        if (campaign.status === 'closed') {
+            campagneBanner = `
+                <div style="
+                    background: #f8d7da;
+                    border-left: 5px solid #e74c3c;
+                    border-radius: 6px;
+                    padding: 10px 14px;
+                    margin-bottom: 12px;
+                    color: #721c24;
+                    font-size: 0.9em;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;">
+                    <i class="fas fa-lock" style="font-size:1.2em;"></i>
+                    <div>
+                        <strong>Campagne ${campaign.year} clôturée</strong>
+                        ${campaign.dateCloture ? `<span style="margin-left:8px; font-size:0.85em; opacity:0.8;">(le ${campaign.dateCloture})</span>` : ''}
+                        ${campaign.dateOuverture ? `<br><span style="font-size:0.85em;">Prochaine ouverture prévue : <strong>${campaign.dateOuverture}</strong></span>` : ''}
+                    </div>
+                </div>`;
+        } else {
+            campagneBanner = `
+                <div style="
+                    background: #d4edda;
+                    border-left: 5px solid #27ae60;
+                    border-radius: 6px;
+                    padding: 10px 14px;
+                    margin-bottom: 12px;
+                    color: #155724;
+                    font-size: 0.9em;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;">
+                    <i class="fas fa-leaf" style="font-size:1.2em;"></i>
+                    <div>
+                        <strong>Campagne ${campaign.year} en cours</strong>
+                        ${campaign.dateCloture ? `<br><span style="font-size:0.85em;">Clôture prévue le : <strong>${campaign.dateCloture}</strong></span>` : ''}
+                    </div>
+                </div>`;
+        }
+    }
 
     // On demande 5 jours (4 passés + aujourd'hui) :
     //   - hourly=temperature_2m  → relevés heure par heure
@@ -110,7 +155,8 @@ async function fetchWeather() {
         // Moyenne des moyennes diurnes sur les 5 jours
         const avg = (dailyDiurnal.reduce((a, b) => a + b, 0) / dailyDiurnal.length).toFixed(1);
 
-        let html = `<p>Moyenne diurne (5 jours, lever → coucher du soleil) : <strong>${avg}°C</strong></p>`;
+        let html = campagneBanner;
+        html += `<p>Moyenne diurne (5 jours, lever → coucher du soleil) : <strong>${avg}°C</strong></p>`;
 
         if (avg >= 10) {
             html += `<div class="status-go"><i class="fas fa-exclamation-triangle"></i> ALERTE : Conditions favorables au vol des fondatrices ! Vérifiez vos pièges.</div>`;
@@ -120,7 +166,7 @@ async function fetchWeather() {
         statusDiv.innerHTML = html;
 
     } catch (error) {
-        statusDiv.innerHTML = "Impossible de récupérer la météo.";
+        statusDiv.innerHTML = campagneBanner + "Impossible de récupérer la météo.";
         console.error(error);
     }
 }
