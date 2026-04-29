@@ -206,6 +206,9 @@
         <section class="card card-compact">
             <!-- Filtres -->
             <div class="filters-bar">
+                <select id="filter-year" class="filter-input" title="Filtrer par année" style="min-width:130px; cursor:pointer;">
+                    <option value="">📅 Toutes les années</option>
+                </select>
                 <input type="date" id="filter-date" class="filter-input" placeholder="Filtrer par date" title="Filtrer par date">
                 <input type="text" id="filter-lieu" class="filter-input" placeholder="🔍 Filtrer par lieu..." title="Filtrer par lieu">
                 <span class="filter-count" id="photo-count"></span>
@@ -221,6 +224,9 @@
                     <p>Chargement des photos...</p>
                 </div>
             </div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="photos-pagination" style="display:none; margin-top:16px;"></div>
         </section>
 
         <!-- Convention de nommage — info pour l'administrateur -->
@@ -286,12 +292,16 @@
     </footer>
 
     <script>
-    let allPhotos = [];
+    const PHOTOS_PER_PAGE = 20; // 5 lignes × 4 colonnes desktop
+
+    let allPhotos      = [];
     let filteredPhotos = [];
-    let lightboxIndex = 0;
+    let currentPage    = 0;
+    let lightboxIndex  = 0;
 
     document.addEventListener('DOMContentLoaded', () => {
         loadPhotos();
+        document.getElementById('filter-year').addEventListener('change', applyFilters);
         document.getElementById('filter-date').addEventListener('change', applyFilters);
         document.getElementById('filter-lieu').addEventListener('input',  applyFilters);
     });
@@ -302,10 +312,26 @@
             const resp = await fetch('photos.json');
             if (!resp.ok) throw new Error('photos.json introuvable');
             allPhotos = await resp.json();
-            // Tri du plus récent au plus ancien
             allPhotos.sort((a, b) => b.date.localeCompare(a.date));
             filteredPhotos = [...allPhotos];
-            renderGrid();
+
+            // Alimenter le select années dynamiquement
+            const years = [...new Set(allPhotos.map(p => p.date.slice(0, 4)))].sort((a, b) => b - a);
+            const select = document.getElementById('filter-year');
+            years.forEach(y => {
+                const opt = document.createElement('option');
+                opt.value = y;
+                opt.textContent = `📅 Saison ${y}`;
+                select.appendChild(opt);
+            });
+
+            // Présélectionner l'année la plus récente
+            if (years.length > 0) {
+                select.value = years[0];
+                applyFilters();
+            } else {
+                renderGrid();
+            }
         } catch(e) {
             grid.innerHTML = `
                 <div class="empty-state" style="grid-column:1/-1;">
@@ -318,28 +344,37 @@
     }
 
     function applyFilters() {
+        const yearVal = document.getElementById('filter-year').value;
         const dateVal = document.getElementById('filter-date').value;
         const lieuVal = document.getElementById('filter-lieu').value.toLowerCase().trim();
 
         filteredPhotos = allPhotos.filter(p => {
+            const matchYear = !yearVal || p.date.startsWith(yearVal);
             const matchDate = !dateVal || p.date === dateVal;
             const matchLieu = !lieuVal || p.lieu.toLowerCase().includes(lieuVal);
-            return matchDate && matchLieu;
+            return matchYear && matchDate && matchLieu;
         });
+
+        currentPage = 0;
         renderGrid();
     }
 
     function resetFilters() {
-        document.getElementById('filter-date').value = '';
-        document.getElementById('filter-lieu').value = '';
-        filteredPhotos = [...allPhotos];
-        renderGrid();
+        const years = [...document.getElementById('filter-year').options]
+            .map(o => o.value).filter(v => v).sort((a, b) => b - a);
+        document.getElementById('filter-year').value = years[0] || '';
+        document.getElementById('filter-date').value  = '';
+        document.getElementById('filter-lieu').value  = '';
+        applyFilters();
     }
 
     function renderGrid() {
-        const grid = document.getElementById('photos-grid');
-        const count = document.getElementById('photo-count');
-        count.innerText = `${filteredPhotos.length} photo(s)`;
+        const grid       = document.getElementById('photos-grid');
+        const pagination = document.getElementById('photos-pagination');
+        const count      = document.getElementById('photo-count');
+
+        const totalPages = Math.ceil(filteredPhotos.length / PHOTOS_PER_PAGE);
+        count.innerText  = `${filteredPhotos.length} photo(s)`;
 
         if (filteredPhotos.length === 0) {
             grid.innerHTML = `
@@ -347,11 +382,17 @@
                     <i class="fas fa-search"></i>
                     <p>Aucune photo pour ce filtre.</p>
                 </div>`;
+            pagination.style.display = 'none';
             return;
         }
 
-        grid.innerHTML = filteredPhotos.map((p, i) => `
-            <div class="photo-card" onclick="openLightbox(${i})">
+        // Tranche de la page courante
+        const start    = currentPage * PHOTOS_PER_PAGE;
+        const pageData = filteredPhotos.slice(start, start + PHOTOS_PER_PAGE);
+
+        // Les indices lightbox correspondent à filteredPhotos (pas pageData)
+        grid.innerHTML = pageData.map((p, i) => `
+            <div class="photo-card" onclick="openLightbox(${start + i})">
                 <img
                     src="photos/${p.fichier}"
                     alt="Capture du ${p.date} — ${p.lieu}"
@@ -363,6 +404,28 @@
                     ${p.nombre ? `<div class="photo-nombre"><i class="fas fa-bug"></i> ${p.nombre} frelon(s)</div>` : ''}
                 </div>
             </div>`).join('');
+
+        // Pagination
+        if (totalPages <= 1) {
+            pagination.style.display = 'none';
+        } else {
+            pagination.style.display = 'flex';
+            pagination.innerHTML = `
+                <button onclick="changePage(-1)" ${currentPage === 0 ? 'disabled' : ''}>
+                    <i class="fas fa-chevron-left"></i> Précédent
+                </button>
+                <span class="page-indicator">Page ${currentPage + 1} / ${totalPages}</span>
+                <button onclick="changePage(1)" ${currentPage >= totalPages - 1 ? 'disabled' : ''}>
+                    Suivant <i class="fas fa-chevron-right"></i>
+                </button>`;
+        }
+    }
+
+    function changePage(delta) {
+        const totalPages = Math.ceil(filteredPhotos.length / PHOTOS_PER_PAGE);
+        currentPage = Math.max(0, Math.min(currentPage + delta, totalPages - 1));
+        renderGrid();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // ── LIGHTBOX ──
@@ -396,7 +459,6 @@
         showLightboxItem();
     }
 
-    // Navigation clavier (flèches + Échap)
     document.addEventListener('keydown', e => {
         if (!document.getElementById('lightbox').classList.contains('active')) return;
         if (e.key === 'ArrowRight') lightboxNav(1);
@@ -404,7 +466,6 @@
         if (e.key === 'Escape')     closeLightbox();
     });
 
-    // Swipe tactile pour mobile
     let touchStartX = 0;
     document.getElementById('lightbox').addEventListener('touchstart', e => {
         touchStartX = e.touches[0].clientX;
