@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bilan de Saison — Frelon La Comté</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
         /* ========================================
@@ -195,29 +197,18 @@
 
         /* ── Carte ── */
         .map-container {
-            position: relative;
             border-radius: 10px;
             overflow: hidden;
             border: 1px solid var(--border);
-            background: #f0ede8;
-            min-height: 320px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            height: 320px;
         }
 
-        .map-container img {
-            width: 100%;
-            display: block;
+        /* SVG de secours affiché uniquement à l'impression */
+        .map-print {
+            display: none;
             border-radius: 10px;
-        }
-
-        .map-loading {
-            text-align: center;
-            color: #aaa;
-            font-style: italic;
-            font-size: 0.9em;
-            padding: 20px;
+            overflow: hidden;
+            border: 1px solid var(--border);
         }
 
         /* Légende carte */
@@ -327,6 +318,10 @@
             .chart-box canvas { display: none !important; }
             .chart-img        { display: block !important; }
 
+            /* Carte : masquer Leaflet, afficher SVG */
+            .map-container { display: none !important; }
+            .map-print     { display: block !important; }
+
             /* Évite les coupures malheureuses */
             .stat-box, .lieu-table, .report-header { break-inside: avoid; }
             .section-title { break-after: avoid; }
@@ -381,9 +376,10 @@
             <!-- CARTE -->
             <div>
                 <div class="section-title"><i class="fas fa-map-marked-alt"></i> Cartographie des piégeages</div>
-                <div class="map-container" id="rpt-map">
-                    <div class="map-loading"><i class="fas fa-spinner fa-spin"></i> Chargement de la carte...</div>
-                </div>
+                <!-- Carte Leaflet (web) -->
+                <div class="map-container" id="rpt-map"></div>
+                <!-- Carte SVG (impression uniquement) -->
+                <div class="map-print" id="rpt-map-print"></div>
                 <div class="map-legend">
                     <i class="fas fa-circle" style="color:var(--orange);"></i>
                     La taille des cercles est proportionnelle au nombre de captures. Coordonnées approximatives par rue.
@@ -527,8 +523,8 @@ function buildTable(data) {
         return `
             <tr>
                 <td style="color:#aaa; font-weight:bold;">${i + 1}</td>
-                <td style="font-weight:${i < 3 ? 'bold' : 'normal'};">
-                    ${i === 0 ? '<i class="fas fa-trophy" style="color:#f39c12; margin-right:4px;"></i>' : ''}
+                <td>
+                    ${r.label}
                     ${r.label}
                 </td>
                 <td style="text-align:right; font-weight:bold; color:var(--orange);">${r.total}</td>
@@ -545,107 +541,38 @@ function buildTable(data) {
     }).join('');
 }
 
-// ── CARTE STATIQUE ─────────────────────────────────────────────────────
+// ── CARTE LEAFLET (web) + SVG (impression) ────────────────────────────
 function buildMap(data) {
-    const mapDiv = document.getElementById('rpt-map');
-
-    // Agrégation par lieu (normalisé)
+    // Agrégation par lieu
     const parLieu = {};
     data.forEach(d => {
         const k = d.lieu.toLowerCase().trim();
-        parLieu[k] = (parLieu[k] || 0) + d.nombre;
+        if (!parLieu[k]) parLieu[k] = { label: d.lieu, total: 0 };
+        parLieu[k].total += d.nombre;
     });
 
-    // Construire les marqueurs pour l'URL staticmap
-    const markers = Object.entries(parLieu).map(([lieu, total]) => {
-        const coords = GPS_MAPPING[lieu];
-        if (!coords) return null;
-        return `${coords[0]},${coords[1]},ltblue`;
-    }).filter(Boolean);
+    // ── Leaflet pour l'affichage web ──
+    const lat = (typeof CONFIG !== 'undefined') ? CONFIG.lat : CENTRE[0];
+    const lon = (typeof CONFIG !== 'undefined') ? CONFIG.lon : CENTRE[1];
 
-    // Tenter de charger la carte statique OSM
-    const markerStr = markers.join('|');
-    const mapUrl = `https://staticmap.openstreetmap.de/staticmap.php`
-        + `?center=${CENTRE[0]},${CENTRE[1]}`
-        + `&zoom=14`
-        + `&size=860x340`
-        + `&maptype=mapnik`
-        + (markerStr ? `&markers=${markerStr}` : '');
+    const map = L.map('rpt-map').setView([lat, lon], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
 
-    const img = document.createElement('img');
-    img.style.width = '100%';
-    img.style.borderRadius = '10px';
-    img.alt = 'Carte des piégeages';
-
-    img.onload = () => {
-        mapDiv.innerHTML = '';
-        mapDiv.appendChild(img);
-
-        // Superposer une légende SVG avec cercles proportionnels
-        const svgOverlay = buildMapSVGOverlay(parLieu);
-        mapDiv.style.position = 'relative';
-        mapDiv.appendChild(svgOverlay);
-    };
-
-    img.onerror = () => {
-        // Fallback : carte SVG autonome
-        mapDiv.innerHTML = '';
-        mapDiv.appendChild(buildFallbackSVGMap(parLieu));
-    };
-
-    img.src = mapUrl;
-}
-
-// Superposition SVG des cercles proportionnels sur la carte statique
-function buildMapSVGOverlay(parLieu) {
-    // Projection lat/lon → pixel pour zoom 14, taille 860x340
-    const W = 860, H = 340;
-    const zoom = 14;
-
-    function latLonToPixel(lat, lon) {
-        const n = Math.pow(2, zoom);
-        const x = (lon + 180) / 360 * n;
-        const latRad = lat * Math.PI / 180;
-        const y = (1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n;
-
-        // Pixel du centre
-        const cx = (CENTRE[1] + 180) / 360 * n;
-        const latRadC = CENTRE[0] * Math.PI / 180;
-        const cy = (1 - Math.log(Math.tan(latRadC) + 1 / Math.cos(latRadC)) / Math.PI) / 2 * n;
-
-        // Taille en pixels d'une tuile = 256px
-        const tileSize = 256;
-        const px = W / 2 + (x - cx) * tileSize;
-        const py = H / 2 + (y - cy) * tileSize;
-        return [px, py];
-    }
-
-    const maxTotal = Math.max(...Object.values(parLieu));
-    let circles = '';
-
-    Object.entries(parLieu).forEach(([lieu, total]) => {
+    Object.entries(parLieu).forEach(([lieu, info]) => {
         const coords = GPS_MAPPING[lieu];
         if (!coords) return;
-        const [px, py] = latLonToPixel(coords[0], coords[1]);
-        const r = 8 + (total / maxTotal) * 20;
-
-        circles += `
-            <circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${r.toFixed(1)}"
-                fill="rgba(211,84,0,0.65)" stroke="#922b00" stroke-width="1.5"/>
-            <text x="${px.toFixed(1)}" y="${(py - r - 3).toFixed(1)}"
-                text-anchor="middle" font-size="10" font-family="Segoe UI, sans-serif"
-                fill="#2c3e50" font-weight="bold">${total}</text>`;
+        const radius = Math.min(8 + info.total * 3, 40);
+        L.circleMarker(coords, {
+            radius, fillColor: '#d35400', color: '#922b00',
+            weight: 2, opacity: 1, fillOpacity: 0.75
+        }).addTo(map).bindPopup(`<b>${info.label}</b><br>${info.total} frelon(s)`);
     });
 
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('width', '100%');
-    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-    svg.style.position = 'absolute';
-    svg.style.top = '0';
-    svg.style.left = '0';
-    svg.style.pointerEvents = 'none';
-    svg.innerHTML = circles;
-    return svg;
+    // ── SVG autonome pour l'impression ──
+    const svgEl = buildFallbackSVGMap(parLieu);
+    document.getElementById('rpt-map-print').appendChild(svgEl);
 }
 
 // Carte SVG de secours si l'image statique ne charge pas
