@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    if (window.localStorage.getItem('skip-gc') === 'true') {
+        window.goatcounter = {no_onload: true}
+    }
+    </script>
     <script data-goatcounter="https://thomaspoullie.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
     <style>
         .archive-season {
@@ -76,6 +81,7 @@
             border-bottom: 1px solid #f0f0f0;
             margin-bottom: 10px;
             flex-wrap: wrap;
+            justify-content: center;
         }
 
         .season-stat {
@@ -145,6 +151,69 @@
             display: block;
         }
 
+        /* ── Bouton export rapport ── */
+        .btn-export-rapport {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: #2980b9;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background 0.2s;
+            width: auto;
+            margin-top: 0;
+            flex-shrink: 0;
+        }
+        .btn-export-rapport:hover { background: #3498db; }
+
+        @media print {
+            @page { size: A4 portrait; margin: 15mm 20mm; }
+            body > *:not(#print-rapport) { display: none !important; }
+            #print-rapport {
+                display: block !important;
+                font-family: 'Segoe UI', sans-serif;
+                font-size: 11px;
+                color: #333;
+            }
+            #print-rapport h1 { color: #d35400; font-size: 18px; margin-bottom: 4px; }
+            #print-rapport .rapport-meta {
+                color: #666; font-size: 10px; margin-bottom: 16px;
+                border-bottom: 2px solid #d35400; padding-bottom: 8px;
+            }
+            #print-rapport .rapport-stats {
+                display: flex; gap: 16px; margin-bottom: 14px; flex-wrap: wrap;
+            }
+            #print-rapport .stat-box {
+                background: #f8f9fa; border: 1px solid #ddd;
+                padding: 8px 14px; border-radius: 4px; text-align: center;
+                -webkit-print-color-adjust: exact; print-color-adjust: exact;
+            }
+            #print-rapport .stat-box .val {
+                font-size: 1.8em; font-weight: bold; color: #d35400; display: block;
+            }
+            #print-rapport .stat-box .lbl { font-size: 0.8em; color: #888; }
+            #print-rapport table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 10px; }
+            #print-rapport th {
+                background: #d35400; color: white; padding: 5px 8px; text-align: left;
+                -webkit-print-color-adjust: exact; print-color-adjust: exact;
+            }
+            #print-rapport td { padding: 4px 8px; border-bottom: 1px solid #eee; }
+            #print-rapport tr:nth-child(even) td {
+                background: #fff8f5;
+                -webkit-print-color-adjust: exact; print-color-adjust: exact;
+            }
+            #print-rapport .rapport-footer {
+                margin-top: 14px; font-size: 9px; color: #aaa;
+                border-top: 1px solid #eee; padding-top: 6px;
+            }
+        }
+
         /* ── Graphique inter-annuel ── */
         .interannual-card {
             background: white;
@@ -156,79 +225,28 @@
             margin-left: auto;
             margin-right: auto;
         }
-        .interannual-card h2 {
-            margin: 0 0 4px 0;
-            font-size: 1.1em;
-            color: #2c3e50;
-        }
-        .interannual-card .subtitle {
-            font-size: 0.82em;
-            color: #888;
-            margin-bottom: 16px;
-        }
-        .chart-toggle {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 14px;
-        }
+        .interannual-card h2 { margin: 0 0 4px 0; font-size: 1.1em; color: #2c3e50; }
+        .interannual-card .subtitle { font-size: 0.82em; color: #888; margin-bottom: 16px; }
+        .chart-toggle { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
         .chart-toggle button {
-            width: auto;
-            padding: 5px 14px;
-            font-size: 0.8em;
-            border-radius: 20px;
-            margin: 0;
-            background: #ecf0f1;
-            color: #555;
-            border: 1px solid #ddd;
-            transition: all 0.2s;
+            width: auto; padding: 5px 14px; font-size: 0.8em;
+            border-radius: 20px; margin: 0;
+            background: #ecf0f1; color: #555; border: 1px solid #ddd; transition: all 0.2s;
         }
-        .chart-toggle button.active {
-            background: #d35400;
-            color: white;
-            border-color: #d35400;
-        }
-        .chart-toggle button:hover:not(.active) {
-            background: #dde;
-        }
-        .chart-container {
-            position: relative;
-            height: 280px;
-        }
+        .chart-toggle button.active { background: #d35400; color: white; border-color: #d35400; }
+        .chart-toggle button:hover:not(.active) { background: #dde; }
+        .chart-container { position: relative; height: 280px; }
         .no-data-chart {
-            height: 280px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ccc;
-            font-size: 0.9em;
-            flex-direction: column;
-            gap: 10px;
-            border: 2px dashed #eee;
-            border-radius: 8px;
+            height: 280px; display: flex; align-items: center; justify-content: center;
+            color: #ccc; font-size: 0.9em; flex-direction: column; gap: 10px;
+            border: 2px dashed #eee; border-radius: 8px;
         }
-        .stats-summary {
-            display: flex;
-            gap: 12px;
-            margin-top: 14px;
-            flex-wrap: wrap;
-        }
+        .stats-summary { display: flex; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
         .stat-pill {
-            background: #f8f9fa;
-            border-radius: 6px;
-            padding: 8px 14px;
-            font-size: 0.82em;
-            color: #555;
-            flex: 1;
-            min-width: 120px;
-            text-align: center;
+            background: #f8f9fa; border-radius: 6px; padding: 8px 14px;
+            font-size: 0.82em; color: #555; flex: 1; min-width: 120px; text-align: center;
         }
-        .stat-pill strong {
-            display: block;
-            font-size: 1.4em;
-            color: #d35400;
-            line-height: 1.2;
-        }
+        .stat-pill strong { display: block; font-size: 1.4em; color: #d35400; line-height: 1.2; }
     </style>
 </head>
 <body>
@@ -282,185 +300,6 @@
 
     <script src="config.js"></script>
     <script>
-
-        // ─────────────────────────────────────
-        // GRAPHIQUE INTER-ANNUEL
-        // ─────────────────────────────────────
-
-        let interannualData = [];   // [{year, total, signalements, lieux, ratio}]
-        let interannualChart = null;
-        let currentMetric = 'total';
-
-        const METRIC_CONFIG = {
-            total:        { label: 'Fondatrices piégées',    color: '#d35400', bg: 'rgba(211,84,0,0.15)' },
-            signalements: { label: 'Nombre de signalements', color: '#2980b9', bg: 'rgba(41,128,185,0.15)' },
-            lieux:        { label: 'Lieux distincts',        color: '#27ae60', bg: 'rgba(39,174,96,0.15)' },
-            ratio:        { label: 'Fondatrices par lieu',   color: '#8e44ad', bg: 'rgba(142,68,173,0.15)' },
-        };
-
-        async function loadInterannualData() {
-            try {
-                const resp = await fetch('archives.json');
-                if (!resp.ok) throw new Error();
-                const index = await resp.json();
-                if (!index || index.length === 0) {
-                    document.getElementById('no-data-msg').style.display = 'flex';
-                    document.getElementById('interannualChart').style.display = 'none';
-                    return;
-                }
-
-                // Charger chaque fichier d'archive pour calculer les stats
-                const sorted = [...index].sort((a, b) => a.year - b.year);
-                const results = await Promise.all(sorted.map(async season => {
-                    try {
-                        const r = await fetch(season.file);
-                        const data = await r.json();
-                        const total = data.reduce((acc, d) => acc + d.nombre, 0);
-                        const lieux = new Set(data.map(d => d.lieu.trim().toLowerCase())).size;
-                        return {
-                            year:         season.year,
-                            total,
-                            signalements: data.length,
-                            lieux,
-                            ratio:        lieux > 0 ? parseFloat((total / lieux).toFixed(1)) : 0
-                        };
-                    } catch(e) {
-                        return { year: season.year, total: season.total, signalements: 0, lieux: 0, ratio: 0 };
-                    }
-                }));
-
-                interannualData = results;
-                drawInterannualChart();
-                updateStatsSummary();
-
-            } catch(e) {
-                document.getElementById('no-data-msg').style.display = 'flex';
-                document.getElementById('interannualChart').style.display = 'none';
-            }
-        }
-
-        function drawInterannualChart() {
-            if (!interannualData.length) return;
-
-            const cfg = METRIC_CONFIG[currentMetric];
-            const labels = interannualData.map(d => 'Saison ' + d.year);
-            const values = interannualData.map(d => d[currentMetric]);
-
-            // Ligne de tendance (régression linéaire simple)
-            const n = values.length;
-            let trendData = null;
-            if (n >= 2) {
-                const sumX = values.reduce((_, __, i) => _ + i, 0);
-                const sumY = values.reduce((a, b) => a + b, 0);
-                const sumXY = values.reduce((acc, v, i) => acc + i * v, 0);
-                const sumX2 = values.reduce((acc, _, i) => acc + i * i, 0);
-                const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-                const intercept = (sumY - slope * sumX) / n;
-                trendData = values.map((_, i) => parseFloat((intercept + slope * i).toFixed(1)));
-            }
-
-            const datasets = [
-                {
-                    type: 'bar',
-                    label: cfg.label,
-                    data: values,
-                    backgroundColor: cfg.bg,
-                    borderColor: cfg.color,
-                    borderWidth: 2,
-                    borderRadius: 5,
-                    order: 2
-                }
-            ];
-
-            if (trendData && n >= 2) {
-                datasets.push({
-                    type: 'line',
-                    label: 'Tendance',
-                    data: trendData,
-                    borderColor: cfg.color,
-                    borderWidth: 2,
-                    borderDash: [6, 4],
-                    pointRadius: 0,
-                    fill: false,
-                    tension: 0,
-                    order: 1
-                });
-            }
-
-            if (interannualChart) interannualChart.destroy();
-
-            interannualChart = new Chart(
-                document.getElementById('interannualChart'),
-                {
-                    data: { labels, datasets },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: { mode: 'index', intersect: false },
-                        plugins: {
-                            legend: {
-                                display: true,
-                                position: 'top',
-                                labels: { boxWidth: 12, font: { size: 11 }, usePointStyle: true }
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    afterBody: (items) => {
-                                        const idx = items[0].dataIndex;
-                                        const d = interannualData[idx];
-                                        return [
-                                            '',
-                                            `Total : ${d.total} fondatrices`,
-                                            `Signalements : ${d.signalements}`,
-                                            `Lieux : ${d.lieux}`,
-                                            `Moy./lieu : ${d.ratio}`
-                                        ];
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: { grid: { display: false } },
-                            y: {
-                                beginAtZero: true,
-                                ticks: { precision: 0, font: { size: 10 } },
-                                title: { display: true, text: cfg.label, font: { size: 10 }, color: '#888' }
-                            }
-                        }
-                    }
-                }
-            );
-        }
-
-        function switchMetric(metric, btn) {
-            currentMetric = metric;
-            document.querySelectorAll('.chart-toggle button').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            drawInterannualChart();
-        }
-
-        function updateStatsSummary() {
-            if (!interannualData.length) return;
-            const el = document.getElementById('stats-summary');
-            const totals  = interannualData.map(d => d.total);
-            const maxYear = interannualData.reduce((a, b) => b.total > a.total ? b : a);
-            const avg     = Math.round(totals.reduce((a,b) => a+b, 0) / totals.length);
-            const trend   = interannualData.length >= 2
-                ? (totals[totals.length-1] - totals[0] >= 0 ? '📈 En hausse' : '📉 En baisse')
-                : '—';
-
-            el.innerHTML = `
-                <div class="stat-pill"><strong>${interannualData.length}</strong>saison(s) archivée(s)</div>
-                <div class="stat-pill"><strong>${totals.reduce((a,b)=>a+b,0)}</strong>total cumulé</div>
-                <div class="stat-pill"><strong>${avg}</strong>moyenne / saison</div>
-                <div class="stat-pill"><strong>${maxYear.year}</strong>meilleure saison (${maxYear.total})</div>
-                <div class="stat-pill"><strong>${trend}</strong>tendance globale</div>
-            `;
-        }
-
-        // Charger au démarrage
-        document.addEventListener('DOMContentLoaded', loadInterannualData);
-
         const ARCHIVE_PAGE_SIZE = 5;
 
         // État de pagination par saison (par index dans la liste)
@@ -625,6 +464,200 @@
             archivePages[idx] = Math.max(0, Math.min((archivePages[idx] || 0) + delta, totalPages - 1));
             renderArchivePage(idx);
         }
+
+        // ─────────────────────────────────────
+        // GRAPHIQUE INTER-ANNUEL
+        // ─────────────────────────────────────
+        let interannualData = [];
+        let interannualChart = null;
+        let currentMetric = 'total';
+
+        const METRIC_CONFIG = {
+            total:        { label: 'Fondatrices piégées',    color: '#d35400', bg: 'rgba(211,84,0,0.15)' },
+            signalements: { label: 'Nombre de signalements', color: '#2980b9', bg: 'rgba(41,128,185,0.15)' },
+            lieux:        { label: 'Lieux distincts',        color: '#27ae60', bg: 'rgba(39,174,96,0.15)' },
+            ratio:        { label: 'Fondatrices par lieu',   color: '#8e44ad', bg: 'rgba(142,68,173,0.15)' },
+        };
+
+        async function loadInterannualData() {
+            try {
+                const resp = await fetch('archives.json');
+                if (!resp.ok) throw new Error();
+                const index = await resp.json();
+                if (!index || index.length === 0) {
+                    document.getElementById('no-data-msg').style.display = 'flex';
+                    document.getElementById('interannualChart').style.display = 'none';
+                    return;
+                }
+                const sorted = [...index].sort((a, b) => a.year - b.year);
+                const results = await Promise.all(sorted.map(async season => {
+                    try {
+                        const r = await fetch(season.file);
+                        const data = await r.json();
+                        const total = data.reduce((acc, d) => acc + d.nombre, 0);
+                        const lieux = new Set(data.map(d => d.lieu.trim().toLowerCase())).size;
+                        return { year: season.year, total, signalements: data.length, lieux,
+                            ratio: lieux > 0 ? parseFloat((total / lieux).toFixed(1)) : 0 };
+                    } catch(e) {
+                        return { year: season.year, total: season.total, signalements: 0, lieux: 0, ratio: 0 };
+                    }
+                }));
+                interannualData = results;
+                drawInterannualChart();
+                updateStatsSummary();
+                markArchivesSeen();
+            } catch(e) {
+                document.getElementById('no-data-msg').style.display = 'flex';
+                document.getElementById('interannualChart').style.display = 'none';
+            }
+        }
+
+        function markArchivesSeen() {
+            if (!interannualData.length) return;
+            const maxYear = Math.max(...interannualData.map(d => d.year));
+            localStorage.setItem('lastSeenArchiveYear', String(maxYear));
+        }
+
+        function drawInterannualChart() {
+            if (!interannualData.length) return;
+            const cfg = METRIC_CONFIG[currentMetric];
+            const labels = interannualData.map(d => 'Saison ' + d.year);
+            const values = interannualData.map(d => d[currentMetric]);
+            const n = values.length;
+            let trendData = null;
+            if (n >= 2) {
+                const sumX = values.reduce((_, __, i) => _ + i, 0);
+                const sumY = values.reduce((a, b) => a + b, 0);
+                const sumXY = values.reduce((acc, v, i) => acc + i * v, 0);
+                const sumX2 = values.reduce((acc, _, i) => acc + i * i, 0);
+                const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+                const intercept = (sumY - slope * sumX) / n;
+                trendData = values.map((_, i) => parseFloat((intercept + slope * i).toFixed(1)));
+            }
+            const datasets = [{
+                type: 'bar', label: cfg.label, data: values,
+                backgroundColor: cfg.bg, borderColor: cfg.color,
+                borderWidth: 2, borderRadius: 5, order: 2
+            }];
+            if (trendData && n >= 2) {
+                datasets.push({
+                    type: 'line', label: 'Tendance', data: trendData,
+                    borderColor: cfg.color, borderWidth: 2, borderDash: [6, 4],
+                    pointRadius: 0, fill: false, tension: 0, order: 1
+                });
+            }
+            if (interannualChart) interannualChart.destroy();
+            interannualChart = new Chart(document.getElementById('interannualChart'), {
+                data: { labels, datasets },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { display: true, position: 'top',
+                            labels: { boxWidth: 12, font: { size: 11 }, usePointStyle: true } },
+                        tooltip: {
+                            callbacks: {
+                                afterBody: (items) => {
+                                    const d = interannualData[items[0].dataIndex];
+                                    return ['', 'Total : ' + d.total + ' fondatrices',
+                                        'Signalements : ' + d.signalements,
+                                        'Lieux : ' + d.lieux, 'Moy./lieu : ' + d.ratio];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { beginAtZero: true, ticks: { precision: 0, font: { size: 10 } },
+                            title: { display: true, text: cfg.label, font: { size: 10 }, color: '#888' } }
+                    }
+                }
+            });
+        }
+
+        function switchMetric(metric, btn) {
+            currentMetric = metric;
+            document.querySelectorAll('.chart-toggle button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            drawInterannualChart();
+        }
+
+        function updateStatsSummary() {
+            if (!interannualData.length) return;
+            const totals  = interannualData.map(d => d.total);
+            const maxYear = interannualData.reduce((a, b) => b.total > a.total ? b : a);
+            const avg     = Math.round(totals.reduce((a, b) => a + b, 0) / totals.length);
+            const trend   = interannualData.length >= 2
+                ? (totals[totals.length - 1] >= totals[0] ? '📈 En hausse' : '📉 En baisse') : '—';
+            document.getElementById('stats-summary').innerHTML =
+                '<div class="stat-pill"><strong>' + interannualData.length + '</strong>saison(s) archivée(s)</div>' +
+                '<div class="stat-pill"><strong>' + totals.reduce((a,b)=>a+b,0) + '</strong>total cumulé</div>' +
+                '<div class="stat-pill"><strong>' + avg + '</strong>moyenne / saison</div>' +
+                '<div class="stat-pill"><strong>' + maxYear.year + '</strong>meilleure saison (' + maxYear.total + ')</div>' +
+                '<div class="stat-pill"><strong>' + trend + '</strong>tendance globale</div>';
+        }
+
+        document.addEventListener('DOMContentLoaded', loadInterannualData);
+
+        // ─────────────────────────────────────
+        // EXPORT BILAN PDF
+        // ─────────────────────────────────────
+        async function exportRapport(idx, year, file) {
+            // Charger les données si pas encore fait
+            if (!loadedSeasons[idx]) {
+                try {
+                    const r = await fetch(file);
+                    const data = await r.json();
+                    loadedSeasons[idx] = [...data].sort((a, b) => new Date(a.date) - new Date(b.date));
+                } catch(e) { alert('Impossible de charger les données.'); return; }
+            }
+            const data     = loadedSeasons[idx];
+            const total    = data.reduce((acc, item) => acc + item.nombre, 0);
+            const lieux    = [...new Set(data.map(i => i.lieu.trim()))];
+            const dates    = data.map(i => i.date).sort();
+            const firstDate = dates[0] || '—';
+            const lastDate  = dates[dates.length - 1] || '—';
+            const now = new Date().toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' });
+
+            // Agréger par lieu
+            const parLieu = {};
+            data.forEach(item => {
+                const k = item.lieu.trim();
+                if (!parLieu[k]) parLieu[k] = 0;
+                parLieu[k] += item.nombre;
+            });
+
+            document.getElementById('print-rapport').innerHTML =
+                '<h1>Bilan de Piégeage — Saison ' + year + '</h1>' +
+                '<div class="rapport-meta">' +
+                    'Commune de La Comté (62150) — Lutte contre le frelon asiatique<br>' +
+                    'Document établi le ' + now + ' — À l\'attention du FREDON Hauts-de-France' +
+                '</div>' +
+                '<div class="rapport-stats">' +
+                    '<div class="stat-box"><span class="val">' + total + '</span><span class="lbl">Fondatrices piégées</span></div>' +
+                    '<div class="stat-box"><span class="val">' + data.length + '</span><span class="lbl">Signalements</span></div>' +
+                    '<div class="stat-box"><span class="val">' + lieux.length + '</span><span class="lbl">Lieux distincts</span></div>' +
+                    '<div class="stat-box"><span class="val">' + firstDate + '</span><span class="lbl">1ère capture</span></div>' +
+                    '<div class="stat-box"><span class="val">' + lastDate + '</span><span class="lbl">Dernière capture</span></div>' +
+                '</div>' +
+                '<h3 style="margin-bottom:6px; color:#2c3e50;">Détail par lieu</h3>' +
+                '<table><thead><tr><th>Lieu</th><th>Total captures</th></tr></thead><tbody>' +
+                Object.entries(parLieu).sort((a,b)=>b[1]-a[1])
+                    .map(([lieu, nb]) => '<tr><td>' + lieu + '</td><td>' + nb + '</td></tr>').join('') +
+                '<tr><td style="font-weight:bold;border-top:2px solid #d35400;">TOTAL</td>' +
+                '<td style="font-weight:bold;border-top:2px solid #d35400;">' + total + '</td></tr>' +
+                '</tbody></table>' +
+                '<h3 style="margin-top:14px;margin-bottom:6px;color:#2c3e50;">Historique complet</h3>' +
+                '<table><thead><tr><th>Date</th><th>Lieu</th><th>Nombre</th></tr></thead><tbody>' +
+                data.map(item => '<tr><td>' + item.date + '</td><td>' + item.lieu + '</td><td>' + item.nombre + '</td></tr>').join('') +
+                '</tbody></table>' +
+                '<div class="rapport-footer">Source : frelon-la-comte.github.io — ' +
+                'Piégeage des fondatrices de Vespa velutina nigrithorax — Pièges coréens à ailes (sélectifs).</div>';
+
+            window.print();
+        }
+
     </script>
+    <div id="print-rapport" style="display:none;"></div>
 </body>
 </html>
