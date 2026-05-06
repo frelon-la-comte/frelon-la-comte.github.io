@@ -338,6 +338,98 @@
             color: #aaa;
             font-size: 0.9em;
         }
+
+        /* ========================================
+           MODE ARCHIVE
+        ======================================== */
+        .archive-mode-banner {
+            display: none;
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            border-radius: 10px;
+            padding: 12px 18px;
+            margin-bottom: 16px;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            box-shadow: 0 3px 10px rgba(44,62,80,0.3);
+        }
+        .archive-mode-banner.active { display: flex; }
+        .archive-mode-banner .banner-left {
+            display: flex; align-items: center; gap: 10px;
+        }
+        .archive-mode-banner .banner-icon {
+            font-size: 1.6em; opacity: 0.9;
+        }
+        .archive-mode-banner .banner-text strong {
+            display: block; font-size: 1em;
+        }
+        .archive-mode-banner .banner-text small {
+            opacity: 0.75; font-size: 0.8em;
+        }
+        .btn-back-live {
+            background: #d35400;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            cursor: pointer;
+            width: auto;
+            margin: 0;
+            white-space: nowrap;
+            transition: background 0.2s;
+        }
+        .btn-back-live:hover { background: #e67e22; }
+
+        /* Sélecteur d'archive dans la filter-card */
+        .archive-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding-top: 10px;
+            margin-top: 10px;
+            border-top: 1px solid #f0f0f0;
+        }
+        .archive-selector label {
+            font-size: 0.85em;
+            color: #666;
+            white-space: nowrap;
+        }
+        .archive-selector select {
+            padding: 7px 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 0.85em;
+            width: auto;
+            margin: 0;
+            flex: 1;
+            min-width: 120px;
+            max-width: 160px;
+            background: white;
+            cursor: pointer;
+        }
+        .btn-load-archive {
+            background-color: #34495e;
+            color: white;
+            border: none;
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            cursor: pointer;
+            width: auto;
+            margin: 0;
+            transition: background 0.2s;
+        }
+        .btn-load-archive:hover { background-color: #2c3e50; }
+        #archive-load-status {
+            font-size: 0.8em;
+            color: #888;
+        }
     </style>
 </head>
 <body>
@@ -364,6 +456,20 @@
 
         <!-- ONGLET 1 : VUE GÉNÉRALE (existant) -->
         <div id="tab-vue-generale" class="tab-panel active">
+        <!-- BANDEAU MODE ARCHIVE -->
+        <div class="archive-mode-banner" id="archive-mode-banner">
+            <div class="banner-left">
+                <div class="banner-icon"><i class="fas fa-archive"></i></div>
+                <div class="banner-text">
+                    <strong id="archive-banner-title">Visualisation archive</strong>
+                    <small>Les données en cours ne sont pas affectées — rechargez pour revenir.</small>
+                </div>
+            </div>
+            <button class="btn-back-live" onclick="loadLiveData()">
+                <i class="fas fa-sync-alt"></i> Retour saison en cours
+            </button>
+        </div>
+
         <div class="dashboard-container">
 
             <div class="summary-card">
@@ -399,6 +505,18 @@
                     <i class="fas fa-info-circle"></i>
                     Les graphiques et statistiques se mettent à jour selon la période choisie.
                 </p>
+
+                <!-- Chargement d'une archive -->
+                <div class="archive-selector">
+                    <label><i class="fas fa-archive"></i> Visualiser une archive :</label>
+                    <select id="archive-year-select">
+                        <option value="">— Choisir une saison —</option>
+                    </select>
+                    <button class="btn-load-archive" onclick="loadArchiveYear()">
+                        <i class="fas fa-upload"></i> Charger
+                    </button>
+                    <span id="archive-load-status"></span>
+                </div>
             </div>
 
             <div class="dashboard-grid">

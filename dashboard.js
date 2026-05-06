@@ -15,13 +15,105 @@ const GPS_MAPPING = {
     "rue du chateau": [50.4242, 2.5010],
     "rue du 19 mars 1962": [50.4244, 2.4963],
     "rue du 11 novembre": [50.4255, 2.4937],
-    "rucher": [50.4272, 2.4962],
 };
 
 // Stockage global des données complètes et des instances de graphiques
 let _allData = [];
 let _chartTime = null;
 let _chartLocation = null;
+
+
+// ─────────────────────────────────────────────
+// MODE ARCHIVE — chargement temporaire
+// ─────────────────────────────────────────────
+
+let _isArchiveMode = false;
+
+// Peuple le sélecteur d'années au démarrage
+async function loadArchiveIndex() {
+    const select = document.getElementById('archive-year-select');
+    if (!select) return;
+    try {
+        const resp = await fetch('archives.json');
+        if (!resp.ok) return;
+        const index = await resp.json();
+        index.sort((a, b) => b.year - a.year).forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.file;
+            opt.textContent = 'Saison ' + s.year + ' (' + s.total + ' fondatrices)';
+            opt.dataset.year = s.year;
+            select.appendChild(opt);
+        });
+    } catch(e) { /* pas d'archive, sélecteur reste vide */ }
+}
+
+// Charge les données d'une saison archivée
+async function loadArchiveYear() {
+    const select = document.getElementById('archive-year-select');
+    const status = document.getElementById('archive-load-status');
+    const file   = select.value;
+    if (!file) { status.textContent = 'Choisissez une saison.'; return; }
+
+    const year = select.options[select.selectedIndex].dataset.year;
+    status.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Chargement…';
+
+    try {
+        const resp = await fetch(file);
+        if (!resp.ok) throw new Error('Fichier introuvable');
+        const data = await resp.json();
+
+        // Remplace _allData par les données de l'archive
+        _allData = data;
+        _isArchiveMode = true;
+        window._dashboardData = _allData;
+
+        // Mise à jour de la carte et des filtres
+        initMap(_allData);
+        initFilterBounds(_allData);
+        applyFilter();
+
+        // Afficher le bandeau
+        const banner = document.getElementById('archive-mode-banner');
+        const title  = document.getElementById('archive-banner-title');
+        if (banner) banner.classList.add('active');
+        if (title)  title.textContent = 'Archive — Saison ' + year + ' (' + data.length + ' signalements)';
+
+        // Mettre à jour le titre du bilan
+        const totalStatEl = document.getElementById('total-stat');
+        const lastDateEl  = document.getElementById('last-date');
+        const sorted = [...data].sort((a, b) => new Date(b.date) - new Date(a.date));
+        if (lastDateEl && sorted.length) lastDateEl.textContent = sorted[0].date;
+
+        status.innerHTML = '<span style="color:#27ae60;">✅ Saison ' + year + ' chargée</span>';
+
+    } catch(e) {
+        status.innerHTML = '<span style="color:#e74c3c;">❌ ' + e.message + '</span>';
+    }
+}
+
+// Retour aux données en direct
+async function loadLiveData() {
+    const status = document.getElementById('archive-load-status');
+    const banner = document.getElementById('archive-mode-banner');
+    const select = document.getElementById('archive-year-select');
+
+    _isArchiveMode = false;
+    if (banner) banner.classList.remove('active');
+    if (select) select.value = '';
+    if (status) status.textContent = '';
+
+    // Recharger data.json
+    try {
+        const resp = await fetch('data.json');
+        _allData = await resp.json();
+        window._dashboardData = _allData;
+        initMap(_allData);
+        initFilterBounds(_allData);
+        applyFilter();
+    } catch(e) {
+        console.error('loadLiveData:', e);
+    }
+}
 
 async function initDashboard() {
     try {
@@ -39,6 +131,9 @@ async function initDashboard() {
 
         // La carte Leaflet se construit une seule fois (données complètes)
         initMap(_allData);
+
+        // Peupler le sélecteur d'archives
+        loadArchiveIndex();
 
     } catch (error) {
         console.error("Erreur chargement données dashboard:", error);

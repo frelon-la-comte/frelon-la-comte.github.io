@@ -7,11 +7,6 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-    if (window.localStorage.getItem('skip-gc') === 'true') {
-        window.goatcounter = {no_onload: true}
-    }
-    </script>
     <script data-goatcounter="https://thomaspoullie.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
     <style>
         .archive-season {
@@ -339,6 +334,11 @@
                                 <h3><i class="fas fa-leaf"></i> Saison ${season.year}</h3>
                                 <div style="display:flex; align-items:center; gap:12px;">
                                     <span class="season-total">${season.total} fondatrice(s)</span>
+                                    <button class="btn-export-rapport"
+                                        onclick="event.stopPropagation(); exportRapport(${idx}, ${season.year}, '${season.file}')"
+                                        title="Générer le bilan FREDON">
+                                        <i class="fas fa-file-export"></i> Bilan
+                                    </button>
                                     <i class="fas fa-chevron-down toggle-icon"></i>
                                 </div>
                             </div>
