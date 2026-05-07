@@ -555,7 +555,7 @@ function buildMap(data) {
     const lat = (typeof CONFIG !== 'undefined') ? CONFIG.lat : CENTRE[0];
     const lon = (typeof CONFIG !== 'undefined') ? CONFIG.lon : CENTRE[1];
 
-    const map = L.map('rpt-map').setView([lat, lon], 14);
+    const map = L.map('rpt-map').setView([lat, lon], 15);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
