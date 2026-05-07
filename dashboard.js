@@ -28,6 +28,7 @@ let _chartLocation = null;
 // ─────────────────────────────────────────────
 
 let _isArchiveMode = false;
+let _leafletMap = null;
 
 // Peuple le sélecteur d'années au démarrage
 async function loadArchiveIndex() {
@@ -197,7 +198,9 @@ function updateKeyFigures(data) {
 
 // 2. CARTE LEAFLET — avec agrégation par lieu
 function initMap(data) {
+    if (_leafletMap) { _leafletMap.remove(); _leafletMap = null; }
     const map = L.map('map').setView([CONFIG.lat, CONFIG.lon], 14);
+    _leafletMap = map;
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
