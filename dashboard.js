@@ -73,6 +73,9 @@ async function loadArchiveYear() {
         initFilterBounds(_allData);
         applyFilter();
 
+        // Réinitialise l'onglet Tendances pour qu'il se recharge avec les données d'archive
+        window._trendsLoaded = false;
+
         // Afficher le bandeau
         const banner = document.getElementById('archive-mode-banner');
         const title  = document.getElementById('archive-banner-title');
@@ -99,6 +102,7 @@ async function loadLiveData() {
     const select = document.getElementById('archive-year-select');
 
     _isArchiveMode = false;
+    window._trendsLoaded = false;
     if (banner) banner.classList.remove('active');
     if (select) select.value = '';
     if (status) status.textContent = '';

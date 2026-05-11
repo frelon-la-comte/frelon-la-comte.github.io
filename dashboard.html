@@ -384,51 +384,81 @@
         }
         .btn-back-live:hover { background: #e67e22; }
 
-        /* Sélecteur d'archive dans la filter-card */
-        .archive-selector {
+        /* ========================================
+           CARTE SÉLECTEUR D'ARCHIVE (proéminente)
+        ======================================== */
+        .archive-select-card {
+            background: linear-gradient(135deg, #2c3e50 0%, #3d5a73 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 18px 22px;
+            box-shadow: 0 4px 16px rgba(44,62,80,0.28);
+        }
+        .asc-header {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 14px;
+            margin-bottom: 14px;
             flex-wrap: wrap;
-            padding-top: 10px;
-            margin-top: 10px;
-            border-top: 1px solid #f0f0f0;
         }
-        .archive-selector label {
-            font-size: 0.85em;
-            color: #666;
+        .asc-icon {
+            font-size: 2em;
+            opacity: 0.85;
+            flex-shrink: 0;
+        }
+        .asc-header > div { flex: 1; min-width: 140px; }
+        .asc-header strong { display: block; font-size: 1em; }
+        .asc-header small { opacity: 0.72; font-size: 0.82em; }
+        .asc-link {
+            background: rgba(255,255,255,0.14);
+            color: white;
+            text-decoration: none;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.82em;
+            font-weight: bold;
+            transition: background 0.2s;
             white-space: nowrap;
+            flex-shrink: 0;
         }
-        .archive-selector select {
-            padding: 7px 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 0.85em;
-            width: auto;
-            margin: 0;
+        .asc-link:hover { background: rgba(255,255,255,0.24); }
+        .asc-body {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .asc-body select {
             flex: 1;
-            min-width: 120px;
-            max-width: 160px;
-            background: white;
+            min-width: 180px;
+            padding: 9px 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.88em;
+            background: rgba(255,255,255,0.95);
+            color: #333;
+            margin: 0;
+            width: auto;
             cursor: pointer;
         }
         .btn-load-archive {
-            background-color: #34495e;
+            background: #d35400;
             color: white;
             border: none;
-            padding: 7px 16px;
+            padding: 9px 18px;
             border-radius: 20px;
-            font-size: 0.85em;
+            font-size: 0.88em;
             font-weight: bold;
             cursor: pointer;
             width: auto;
             margin: 0;
             transition: background 0.2s;
+            white-space: nowrap;
         }
-        .btn-load-archive:hover { background-color: #2c3e50; }
+        .btn-load-archive:hover { background: #e67e22; }
         #archive-load-status {
-            font-size: 0.8em;
-            color: #888;
+            font-size: 0.82em;
+            color: rgba(255,255,255,0.88);
         }
     </style>
 </head>
@@ -482,6 +512,29 @@
                 </div>
             </div>
 
+            <!-- CARTE CHARGEMENT ARCHIVE -->
+            <div class="archive-select-card">
+                <div class="asc-header">
+                    <i class="fas fa-box-archive asc-icon"></i>
+                    <div>
+                        <strong>Visualiser une saison passée</strong>
+                        <small>Chargez une archive pour explorer les données historiques sur tous les graphiques</small>
+                    </div>
+                    <a href="archives.html" class="asc-link">
+                        <i class="fas fa-external-link-alt"></i> Toutes les archives
+                    </a>
+                </div>
+                <div class="asc-body">
+                    <select id="archive-year-select">
+                        <option value="">— Choisir une saison archivée —</option>
+                    </select>
+                    <button class="btn-load-archive" onclick="loadArchiveYear()">
+                        <i class="fas fa-rotate-left"></i> Charger cette saison
+                    </button>
+                    <span id="archive-load-status"></span>
+                </div>
+            </div>
+
             <!-- FILTRE DE PÉRIODE -->
             <div class="filter-card">
                 <h3>
@@ -505,18 +558,6 @@
                     <i class="fas fa-info-circle"></i>
                     Les graphiques et statistiques se mettent à jour selon la période choisie.
                 </p>
-
-                <!-- Chargement d'une archive -->
-                <div class="archive-selector">
-                    <label><i class="fas fa-archive"></i> Visualiser une archive :</label>
-                    <select id="archive-year-select">
-                        <option value="">— Choisir une saison —</option>
-                    </select>
-                    <button class="btn-load-archive" onclick="loadArchiveYear()">
-                        <i class="fas fa-upload"></i> Charger
-                    </button>
-                    <span id="archive-load-status"></span>
-                </div>
             </div>
 
             <div class="dashboard-grid">
@@ -719,9 +760,13 @@
         const loading = document.getElementById('trends-loading');
 
         try {
-            // 1. Données de captures
-            const dataResp = await fetch('data.json');
-            const rawData  = await dataResp.json();
+            // 1. Données de captures — utilise _allData si une archive est chargée
+            let rawData = window._dashboardData || [];
+            if (!rawData.length) {
+                const dataResp = await fetch('data.json');
+                rawData = await dataResp.json();
+                window._dashboardData = rawData;
+            }
             if (!rawData.length) throw new Error('Pas de données');
 
             // Agréger par date

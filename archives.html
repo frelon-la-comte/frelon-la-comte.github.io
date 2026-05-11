@@ -267,8 +267,10 @@
         /* ── Graphique inter-annuel ── */
         .interannual-card {
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.09);
+            padding: 22px 26px;
+            margin-bottom: 24px;
         }
         .chart-loading {
             text-align: center;
@@ -278,31 +280,38 @@
             margin-left: auto;
             margin-right: auto;
         }
-        .interannual-card h2 { margin: 0 0 4px 0; font-size: 1.1em; color: #2c3e50; }
+        .interannual-card h2 { margin: 0 0 4px 0; font-size: 1.15em; color: #2c3e50; }
         .interannual-card .subtitle { font-size: 0.82em; color: #888; margin-bottom: 16px; }
         .chart-toggle { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
         .chart-toggle button {
-            width: auto; padding: 5px 14px; font-size: 0.8em;
+            width: auto; padding: 6px 16px; font-size: 0.82em;
             border-radius: 20px; margin: 0;
-            background: #ecf0f1; color: #555; border: 1px solid #ddd; transition: all 0.2s;
+            background: #f0f2f5; color: #555; border: 1px solid #ddd; transition: all 0.2s;
+            font-weight: 600; cursor: pointer;
         }
         .chart-toggle button.active { background: #d35400; color: white; border-color: #d35400; }
-        .chart-toggle button:hover:not(.active) { background: #dde; }
-        .chart-container { position: relative; height: 280px; }
+        .chart-toggle button:hover:not(.active) { background: #e0e4e8; }
+        .chart-container { position: relative; height: 300px; }
         .no-data-chart {
-            height: 280px; display: flex; align-items: center; justify-content: center;
+            height: 300px; display: flex; align-items: center; justify-content: center;
             color: #ccc; font-size: 0.9em; flex-direction: column; gap: 10px;
             border: 2px dashed #eee; border-radius: 8px;
         }
-        .stats-summary { display: flex; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
-        .stat-pill {
-            background: #f8f9fa; border-radius: 6px; padding: 8px 14px;
-            font-size: 0.82em; color: #555; flex: 1; min-width: 120px; text-align: center;
+        .stats-summary {
+            display: flex; gap: 12px; margin-top: 18px; flex-wrap: wrap;
+            border-top: 1px solid #f0f0f0; padding-top: 16px;
         }
-        .stat-pill strong { display: block; font-size: 1.4em; color: #d35400; line-height: 1.2;
-            color: #aaa;
-            font-style: italic;
-            font-size: 0.85em;
+        .stat-pill {
+            background: #f8f9fa; border-radius: 8px; padding: 10px 16px;
+            font-size: 0.82em; color: #777; flex: 1; min-width: 110px; text-align: center;
+            border: 1px solid #efefef;
+        }
+        .stat-pill strong {
+            display: block;
+            font-size: 1.5em;
+            color: #d35400;
+            line-height: 1.2;
+            margin-bottom: 2px;
         }
     </style>
 </head>
@@ -363,9 +372,157 @@
         // Stockage des instances Chart.js par saison (pour destroy propre)
         const archiveCharts = {};
 
+        // ── GRAPHIQUE INTER-ANNUEL ─────────────────────────────────────────────
+        let interannualData = [];
+        let interannualChart = null;
+        let currentMetric = 'total';
+
         document.addEventListener('DOMContentLoaded', () => {
             loadArchives();
+            loadInterannualData();
         });
+
+        async function loadInterannualData() {
+            const canvas = document.getElementById('interannualChart');
+            const noData = document.getElementById('no-data-msg');
+
+            try {
+                const resp = await fetch('archives.json');
+                if (!resp.ok) throw new Error('Aucune archive');
+                const index = await resp.json();
+
+                if (!index || !index.length) {
+                    noData.style.display = 'flex';
+                    canvas.style.display = 'none';
+                    return;
+                }
+
+                // Initialise avec les données de l'index (total connu)
+                interannualData = index.map(s => ({
+                    year: s.year,
+                    total: s.total,
+                    signalements: null,
+                    lieux: null,
+                    ratio: null
+                }));
+
+                // Charge les détails de chaque saison en parallèle
+                await Promise.all(index.map(async (s, i) => {
+                    try {
+                        const r = await fetch(s.file);
+                        const data = await r.json();
+                        interannualData[i].signalements = data.length;
+                        const lieuxDistincts = new Set(data.map(d => d.lieu.trim().toLowerCase())).size;
+                        interannualData[i].lieux = lieuxDistincts;
+                        interannualData[i].ratio = lieuxDistincts > 0
+                            ? parseFloat((s.total / lieuxDistincts).toFixed(1))
+                            : 0;
+                    } catch(e) { /* données partiellement indisponibles */ }
+                }));
+
+                // Trier par année croissante pour l'affichage
+                interannualData.sort((a, b) => a.year - b.year);
+
+                buildInterannualChart('total');
+                buildStatsSummary();
+
+            } catch(e) {
+                noData.style.display = 'flex';
+                canvas.style.display = 'none';
+                console.warn('Inter-annuel:', e);
+            }
+        }
+
+        function switchMetric(metric, btn) {
+            currentMetric = metric;
+            document.querySelectorAll('.chart-toggle button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            buildInterannualChart(metric);
+        }
+
+        function buildInterannualChart(metric) {
+            const canvas = document.getElementById('interannualChart');
+            const noData = document.getElementById('no-data-msg');
+
+            if (!interannualData.length) {
+                noData.style.display = 'flex';
+                canvas.style.display = 'none';
+                return;
+            }
+
+            noData.style.display = 'none';
+            canvas.style.display = '';
+
+            const metricMap = {
+                total:        { key: 'total',        label: 'Fondatrices piégées', color: '#d35400', unit: 'fondatrices' },
+                signalements: { key: 'signalements',  label: 'Signalements',        color: '#2980b9', unit: 'signalements' },
+                lieux:        { key: 'lieux',         label: 'Lieux distincts',     color: '#27ae60', unit: 'lieux' },
+                ratio:        { key: 'ratio',         label: 'Fondatrices / lieu',  color: '#8e44ad', unit: 'fond./lieu' }
+            };
+            const m = metricMap[metric];
+            const labels = interannualData.map(d => 'Saison ' + d.year);
+            const values = interannualData.map(d => d[m.key] ?? 0);
+            const maxVal = Math.max(...values);
+
+            if (interannualChart) { interannualChart.destroy(); interannualChart = null; }
+
+            interannualChart = new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: m.label,
+                        data: values,
+                        backgroundColor: values.map(v =>
+                            v === maxVal ? m.color : m.color + '55'
+                        ),
+                        borderColor: m.color,
+                        borderWidth: 2,
+                        borderRadius: 7,
+                        hoverBackgroundColor: m.color
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => ` ${ctx.parsed.y} ${m.unit}`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: metric === 'ratio' ? 1 : 0, font: { size: 11 } },
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            title: { display: true, text: m.label, font: { size: 11 }, color: m.color }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 12, weight: '600' } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function buildStatsSummary() {
+            if (!interannualData.length) return;
+            const grandTotal = interannualData.reduce((a, d) => a + d.total, 0);
+            const best = interannualData.reduce((a, b) => b.total > a.total ? b : a);
+            const moy = Math.round(grandTotal / interannualData.length);
+
+            document.getElementById('stats-summary').innerHTML = `
+                <div class="stat-pill"><strong>${grandTotal}</strong>Total toutes saisons</div>
+                <div class="stat-pill"><strong>${interannualData.length}</strong>Saisons archivées</div>
+                <div class="stat-pill"><strong>${moy}</strong>Moy. par saison</div>
+                <div class="stat-pill"><strong>${best.year}</strong>Meilleure saison · ${best.total} cap.</div>
+            `;
+        }
+        // ─────────────────────────────────────────────────────────────────────
 
         async function loadArchives() {
             const container = document.getElementById('archives-container');
