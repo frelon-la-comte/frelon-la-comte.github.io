@@ -116,6 +116,23 @@ function b64_to_utf8(str) {
     return decodeURIComponent(escape(window.atob(str.replace(/\n/g, ''))));
 }
 
+async function getActiveCampaign(apiBase, headers) {
+    const fallback = { year: new Date().getFullYear(), type: 'spring', dataFile: CONFIG.githubFilePath };
+    try {
+        const r = await fetch(apiBase + 'campaign.json', { headers });
+        if (!r.ok) return fallback;
+        const f = await r.json();
+        const c = JSON.parse(b64_to_utf8(f.content));
+        return {
+            ...c,
+            type: c.type || 'spring',
+            dataFile: c.dataFile || CONFIG.githubFilePath
+        };
+    } catch (e) {
+        return fallback;
+    }
+}
+
 // --- SYNCHRONISATION GITHUB ---
 async function syncToGithub() {
     const token = localStorage.getItem('gh_token');
@@ -136,8 +153,13 @@ async function syncToGithub() {
     btn.disabled = true;
 
     try {
-        const apiUrl = `https://api.github.com/repos/${CONFIG.githubUser}/${CONFIG.githubRepo}/contents/${CONFIG.githubFilePath}`;
-        
+        const apiBase = `https://api.github.com/repos/${CONFIG.githubUser}/${CONFIG.githubRepo}/contents/`;
+        const hdrs = { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' };
+        const camp = await getActiveCampaign(apiBase, hdrs);
+        const apiUrl = apiBase + camp.dataFile;
+
+        status.innerText = `⏳ Envoi vers ${camp.dataFile}...`;
+
         const response = await fetch(apiUrl, {
             headers: { 
                 'Authorization': `token ${token}`,
@@ -145,7 +167,7 @@ async function syncToGithub() {
             }
         });
 
-        if (!response.ok) throw new Error("Impossible de lire data.json (Vérifiez votre Token et le nom du repo)");
+        if (!response.ok) throw new Error(`Impossible de lire ${camp.dataFile} (Vérifiez votre Token et le nom du repo)`);
 
         const fileData = await response.json();
         const currentSha = fileData.sha;
@@ -169,7 +191,7 @@ async function syncToGithub() {
 
         if (!updateResponse.ok) throw new Error("Erreur lors de l'écriture sur GitHub");
 
-        status.innerHTML = "<span class='success'>✅ Données mises à jour avec succès ! Le site sera à jour dans 1 ou 2 minutes.</span>";
+        status.innerHTML = `<span class='success'>✅ ${pendingData.length} ajout(s) envoyé(s) vers <strong>${camp.dataFile}</strong>. Le site sera à jour dans 1 ou 2 minutes.</span>`;
         localStorage.removeItem('pending_frelons');
         renderPendingList();
 
@@ -191,21 +213,38 @@ async function archiveSeason() {
         return;
     }
 
-    const currentYear = new Date().getFullYear();
+    const apiBase = `https://api.github.com/repos/${CONFIG.githubUser}/${CONFIG.githubRepo}/contents/`;
+    const headers = {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json'
+    };
+
+    // Campagne active : détermine le type et le fichier de données
+    const camp = await getActiveCampaign(apiBase, headers);
+    const campType   = camp.type;
+    const activeFile = camp.dataFile;
+    const typeLabel  = campType === 'autumn' ? "d'automne" : 'de printemps';
+
     const yearInput = prompt(
-        `Quelle saison souhaitez-vous archiver ?\n(Entrez l'année, ex: ${currentYear - 1})`,
-        currentYear - 1
+        `Archiver la campagne ${typeLabel} (fichier ${activeFile}).\nEntrez l'année :`,
+        camp.year
     );
     if (!yearInput) return;
     const year = parseInt(yearInput);
     if (isNaN(year)) { alert("Année invalide."); return; }
 
+    // Printemps : nom historique conservé ; automne : suffixe pour ne rien écraser
+    const archivePath = campType === 'autumn'
+        ? `archives/${year}_automne.json`
+        : `archives/${year}.json`;
+
     const confirmed = confirm(
-        `⚠️ Vous êtes sur le point d'archiver la saison ${year}.\n\n` +
+        `⚠️ Vous êtes sur le point d'archiver la campagne ${typeLabel} ${year}.\n\n` +
         `Cela va :\n` +
-        `  • Copier data.json → archives/${year}.json\n` +
+        `  • Copier ${activeFile} → ${archivePath}\n` +
         `  • Mettre à jour l'index archives.json\n` +
-        `  • Réinitialiser data.json à [] pour la nouvelle saison\n\n` +
+        `  • Réinitialiser ${activeFile} à []\n` +
+        `  • Passer campaign.json en statut "fermé"\n\n` +
         `Cette action est irréversible. Continuer ?`
     );
     if (!confirmed) return;
@@ -214,24 +253,25 @@ async function archiveSeason() {
     const btn = document.getElementById('btn-archive');
     btn.disabled = true;
 
-    const apiBase = `https://api.github.com/repos/${CONFIG.githubUser}/${CONFIG.githubRepo}/contents/`;
-    const headers = {
-        'Authorization': `token ${token}`,
-        'Accept': 'application/vnd.github.v3+json'
-    };
-
     try {
-        // 1. Lire data.json actuel
-        const dataResp = await fetch(apiBase + CONFIG.githubFilePath, { headers });
-        if (!dataResp.ok) throw new Error("Impossible de lire data.json");
+        // 1. Lire le fichier de données actif
+        const dataResp = await fetch(apiBase + activeFile, { headers });
+        if (!dataResp.ok) throw new Error(`Impossible de lire ${activeFile}`);
         const dataFile = await dataResp.json();
         const currentData = JSON.parse(b64_to_utf8(dataFile.content));
         const total = currentData.reduce((acc, item) => acc + item.nombre, 0);
 
-        status.innerText = `⏳ Écriture de l'archive ${year}.json... (${total} captures)`;
+        // Garde-fou : ne pas archiver un fichier vide par erreur
+        if (currentData.length === 0 &&
+            !confirm(`${activeFile} est vide. Archiver quand même une saison à 0 capture ?`)) {
+            btn.disabled = false;
+            status.innerText = '';
+            return;
+        }
 
-        // 2. Écrire archives/YEAR.json
-        const archivePath = `archives/${year}.json`;
+        status.innerText = `⏳ Écriture de ${archivePath}... (${total} captures)`;
+
+        // 2. Écrire l'archive
         let archiveSha = null;
         try {
             const existResp = await fetch(apiBase + archivePath, { headers });
@@ -242,7 +282,7 @@ async function archiveSeason() {
         } catch(e) { /* Fichier n'existe pas encore, c'est normal */ }
 
         const archiveBody = {
-            message: `Archive saison ${year} - ${total} fondatrices piégées`,
+            message: `Archive ${typeLabel} ${year} - ${total} captures`,
             content: utf8_to_b64(JSON.stringify(currentData, null, 2)),
             ...(archiveSha && { sha: archiveSha })
         };
@@ -252,11 +292,11 @@ async function archiveSeason() {
             headers: { ...headers, 'Content-Type': 'application/json' },
             body: JSON.stringify(archiveBody)
         });
-        if (!archiveResp.ok) throw new Error(`Erreur lors de l'écriture de archives/${year}.json`);
+        if (!archiveResp.ok) throw new Error(`Erreur lors de l'écriture de ${archivePath}`);
 
         status.innerText = "⏳ Mise à jour de l'index des archives...";
 
-        // 3. Mettre à jour archives.json (index)
+        // 3. Index archives.json (avec le type)
         let archivesIndex = [];
         let archivesIndexSha = null;
         try {
@@ -268,14 +308,16 @@ async function archiveSeason() {
             }
         } catch(e) { /* Pas encore d'index */ }
 
-        const entry = { year, total, file: archivePath };
-        const existingIdx = archivesIndex.findIndex(a => a.year === year);
+        const entry = { year, type: campType, total, file: archivePath };
+        const existingIdx = archivesIndex.findIndex(
+            a => a.year === year && (a.type || 'spring') === campType
+        );
         if (existingIdx >= 0) archivesIndex[existingIdx] = entry;
         else archivesIndex.push(entry);
         archivesIndex.sort((a, b) => b.year - a.year);
 
         const indexBody = {
-            message: `Mise à jour index archives - saison ${year}`,
+            message: `Mise à jour index archives - ${typeLabel} ${year}`,
             content: utf8_to_b64(JSON.stringify(archivesIndex, null, 2)),
             ...(archivesIndexSha && { sha: archivesIndexSha })
         };
@@ -287,26 +329,26 @@ async function archiveSeason() {
         });
         if (!indexResp2.ok) throw new Error("Erreur lors de la mise à jour de archives.json");
 
-        status.innerText = `⏳ Réinitialisation de data.json pour la saison ${year + 1}...`;
+        status.innerText = `⏳ Réinitialisation de ${activeFile}...`;
 
-        // 4. Réinitialiser data.json
+        // 4. Réinitialiser le fichier de données actif
         const resetBody = {
-            message: `🌱 Nouvelle saison ${year + 1} - Réinitialisation des données`,
+            message: `Réinitialisation de ${activeFile} après archivage ${typeLabel} ${year}`,
             content: utf8_to_b64(JSON.stringify([], null, 2)),
             sha: dataFile.sha
         };
 
-        const resetResp = await fetch(apiBase + CONFIG.githubFilePath, {
+        const resetResp = await fetch(apiBase + activeFile, {
             method: 'PUT',
             headers: { ...headers, 'Content-Type': 'application/json' },
             body: JSON.stringify(resetBody)
         });
-        if (!resetResp.ok) throw new Error("Erreur lors de la réinitialisation de data.json");
+        if (!resetResp.ok) throw new Error(`Erreur lors de la réinitialisation de ${activeFile}`);
 
-        // 5. Mettre à jour campaign.json → statut fermé
+        // 5. campaign.json → statut fermé (type et dataFile conservés via ...campCurrent)
         status.innerText = "⏳ Mise à jour du statut de campagne...";
         let campSha = null;
-        let campCurrent = { year, status: 'open', dateOuverture: null };
+        let campCurrent = { ...camp };
         try {
             const campResp = await fetch(apiBase + 'campaign.json', { headers });
             if (campResp.ok) {
@@ -317,27 +359,27 @@ async function archiveSeason() {
         } catch(e) {}
 
         const campBody = {
-            message: `Clôture campagne ${year} — campaign.json`,
+            message: `Clôture campagne ${typeLabel} ${year} — campaign.json`,
             content: utf8_to_b64(JSON.stringify({
                 ...campCurrent,
                 year,
                 status: 'closed',
                 dateCloture: new Date().toISOString().slice(0, 10),
-                message: `La campagne ${year} est terminée. Merci pour votre participation !`
+                message: `La campagne ${typeLabel} ${year} est terminée. Merci pour votre participation !`
             }, null, 2)),
             ...(campSha && { sha: campSha })
         };
-        await fetch(apiBase + 'campaign.json', {
+        const campResp2 = await fetch(apiBase + 'campaign.json', {
             method: 'PUT',
             headers: { ...headers, 'Content-Type': 'application/json' },
             body: JSON.stringify(campBody)
         });
+        if (!campResp2.ok) throw new Error("Archive faite, mais campaign.json n'a pas pu être fermé");
 
-        // Succès
         status.innerHTML = `
             <span class='success'>
-                ✅ Saison ${year} archivée avec succès ! (${total} captures enregistrées)<br>
-                data.json réinitialisé — campaign.json passé en statut "fermé".<br>
+                ✅ Campagne ${typeLabel} ${year} archivée ! (${total} captures)<br>
+                ${activeFile} réinitialisé — campaign.json passé en statut "fermé".<br>
                 <a href="archives.html" style="color:#27ae60;">→ Voir les archives</a>
             </span>`;
 
