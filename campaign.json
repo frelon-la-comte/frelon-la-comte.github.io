@@ -1,7 +1,10 @@
 {
   "year": 2026,
-  "status": "closed",
-  "dateOuverture": "2027-03-01",
-  "dateCloture": "2026-04-28",
-  "message": "La campagne 2026 est terminée. Merci pour votre participation !"
+  "type": "autumn",
+  "season": "Automne",
+  "status": "open",
+  "dataFile": "data_automne.json",
+  "dateOuverture": "2026-09-01",
+  "dateCloture": null,
+  "message": "Campagne automnale 2026 — piégeage des individus reproducteurs potentiels."
 }

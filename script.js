@@ -2,34 +2,68 @@ document.addEventListener('DOMContentLoaded', () => {
     loadCampaignAndInit();
 });
 
+function adaptLabels(type) {
+    if (type !== 'autumn') return;
+
+    // Titre du suivi
+    const statsTitle = document.getElementById('stats-container')
+        ?.closest('section')?.querySelector('h2');
+    if (statsTitle) statsTitle.innerHTML =
+        '<i class="fas fa-chart-bar"></i> Suivi des Piégeages d\'automne <span id="current-year-label"></span>';
+
+    // Compteur
+    const totalLine = document.querySelector('.total-line');
+    if (totalLine) totalLine.innerHTML =
+        '<strong>Total captures : <span id="total-count">0</span></strong>';
+
+    const meteoTitle = document.querySelector('#meteo-indicator h2');
+    if (meteoTitle) meteoTitle.innerHTML =
+        '<i class="fas fa-thermometer-half"></i> Météo des 5 derniers jours';
+
+    // Texte d'accroche du formulaire
+    const intro = document.querySelector('#auth-section p');
+    if (intro) intro.textContent = 'Veuillez vous identifier pour signaler une capture :';
+
+    // Encart explicatif
+    const stats = document.getElementById('stats-container')?.closest('section');
+    if (stats) {
+        const box = document.createElement('div');
+        box.style.cssText = 'background:#fff3cd;border-left:4px solid #f39c12;padding:10px 14px;margin:10px 0;border-radius:4px;font-size:0.88em;color:#856404;';
+        box.innerHTML = '<i class="fas fa-info-circle"></i> <strong>Campagne d\'automne :</strong> les individus piégés peuvent être de futures fondatrices ou des ouvrières, difficilement distinguables. Les chiffres sont donnés à titre indicatif.';
+        stats.querySelector('.stats-header')?.after(box);
+    }
+}
+
 // ── CHARGEMENT CAMPAGNE ────────────────────────────────────────────────────
+let currentCampaign = null;
+
 async function loadCampaignAndInit() {
     try {
         const resp = await fetch('campaign.json?v=' + Date.now());
-        const campaign = await resp.json();
+        currentCampaign = await resp.json();
+        currentCampaign.type     = currentCampaign.type     || 'spring';
+        currentCampaign.dataFile = currentCampaign.dataFile || 'data.json';
 
-        // Mise à jour de l'étiquette d'année (Saison XXXX)
+        // sinon il recrée le <span id="current-year-label"> vide
+        adaptLabels(currentCampaign.type);
+
         const yearLabel = document.getElementById('current-year-label');
-        if (yearLabel) yearLabel.innerText = `— Saison ${campaign.year}`;
-
-        if (campaign.status === 'closed') {
-            // ── Campagne fermée : bloquer le formulaire ──
-            blockFormClosed(campaign);
-            // On charge quand même la météo et les stats (lecture seule)
-            fetchWeather(campaign);
-            loadTrappingData();
-        } else {
-            // ── Campagne ouverte ──
-            fetchWeather(campaign);
-            loadTrappingData();
+        if (yearLabel) {
+            const prefix = currentCampaign.type === 'autumn' ? 'Automne' : 'Saison';
+            yearLabel.innerText = `— ${prefix} ${currentCampaign.year}`;
         }
+
+        if (currentCampaign.status === 'closed') blockFormClosed(currentCampaign);
+        fetchWeather(currentCampaign);
+        loadTrappingData(currentCampaign.dataFile);
+
     } catch(e) {
-        // Pas de campaign.json → comportement par défaut
-        console.warn('campaign.json introuvable, mode ouvert par défaut');
+        console.warn('campaign.json introuvable, mode printemps par défaut');
+        currentCampaign = { year: new Date().getFullYear(), type: 'spring', dataFile: 'data.json' };
         const yearLabel = document.getElementById('current-year-label');
-        if (yearLabel) yearLabel.innerText = `— Saison ${new Date().getFullYear()}`;
+        if (yearLabel) yearLabel.innerText = `— Saison ${currentCampaign.year}`;
         fetchWeather(null);
-        loadTrappingData();
+        loadTrappingData('data.json');
     }
 }
 
@@ -158,7 +192,10 @@ async function fetchWeather(campaign) {
         let html = campagneBanner;
         html += `<p>Moyenne diurne (5 jours, lever → coucher du soleil) : <strong>${avg}°C</strong></p>`;
 
-        if (avg >= 10) {
+        if (campaign && campaign.type === 'autumn') {
+            html += `<div style="background:#eaf2f8;border-left:4px solid #2980b9;padding:10px 14px;border-radius:4px;font-size:0.9em;color:#1b4f72;">
+                        <i class="fas fa-info-circle"></i> Information météo à titre indicatif.</div>`;
+        } else if (avg >= 10) {
             html += `<div class="status-go"><i class="fas fa-exclamation-triangle"></i> ALERTE : Conditions favorables au vol des fondatrices ! Vérifiez vos pièges.</div>`;
         } else {
             html += `<div class="status-stop"><i class="fas fa-snowflake"></i> CALME : Températures trop basses pour un vol actif.</div>`;
@@ -178,7 +215,7 @@ const PAGE_SIZE = 5;
 
 async function loadTrappingData() {
     try {
-        const response = await fetch('data.json');
+        const response = await fetch(dataFile + '?v=' + Date.now());
         const data = await response.json();
         
         // Tri du plus récent au plus ancien
@@ -202,6 +239,7 @@ function renderPage() {
     const totalPages = Math.ceil(allTrappingData.length / PAGE_SIZE);
     const start = currentPage * PAGE_SIZE;
     const pageData = allTrappingData.slice(start, start + PAGE_SIZE);
+    const unit = (currentCampaign?.type === 'autumn') ? 'capture(s)' : 'frelon(s)';
 
     if (allTrappingData.length === 0) {
         container.innerHTML = '<p style="color:#999; font-style:italic;">Aucune capture enregistrée pour le moment.</p>';
@@ -213,7 +251,7 @@ function renderPage() {
         html += `
             <li class="capture-item">
                 <span class="capture-date"><i class="fas fa-calendar-alt"></i> ${item.date}</span>
-                <span class="capture-info">${item.nombre} frelon(s) — <em>${item.lieu}</em></span>
+                <span class="capture-info">${item.nombre} ${unit} — <em>${item.lieu}</em></span>
             </li>`;
     });
     html += '</ul>';

@@ -8,11 +8,10 @@ const CONFIG = {
     githubUser: "frelon-la-comte", 
     githubRepo: "frelon-la-comte.github.io",
     githubFilePath: "data.json", // Le nom du fichier à modifier
+    githubFilePathAutomne: "data_automne.json", // Pour les capture d'automne uniquement
 
     // Hash SHA256 du mot de passe ""
     adminHash: "d618f05387e6c6e5ca497f984c36549ee69b5c47e6e81a2c0466790057d3997b",
     emailDest: "lacomteaucoeurdelaruche@gmail.com"
 
 };
-
-
