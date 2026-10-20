@@ -5,6 +5,9 @@ document.addEventListener('DOMContentLoaded', () => {
 function adaptLabels(type) {
     if (type !== 'autumn') return;
 
+    const sigIntro = document.getElementById('signalement-intro');
+    if (sigIntro) sigIntro.textContent = 'Vous avez piégé des frelons ? Signalez-le nous.';
+
     // Titre du suivi
     const statsTitle = document.getElementById('stats-container')
         ?.closest('section')?.querySelector('h2');
@@ -213,7 +216,7 @@ let allTrappingData = [];
 let currentPage = 0;
 const PAGE_SIZE = 5;
 
-async function loadTrappingData() {
+async function loadTrappingData(dataFile = 'data.json') {
     try {
         const response = await fetch(dataFile + '?v=' + Date.now());
         const data = await response.json();
@@ -229,7 +232,7 @@ async function loadTrappingData() {
         renderPage();
 
     } catch (e) {
-        console.log("Pas encore de données ou erreur JSON");
+        console.error("loadTrappingData :", e);
         document.getElementById('stats-container').innerHTML = '<p style="color:#999; font-style:italic;">Aucune capture enregistrée pour le moment.</p>';
     }
 }
