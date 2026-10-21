@@ -224,6 +224,7 @@
                 <!-- ╔══════════════╗  CELLULE 1 : SIGNALEMENTS -->
                 <div class="admin-cell">
                     <h4 class="cell-title"><i class="fas fa-bug"></i> Signalements de captures</h4>
+                    <p id="sync-target" style="font-size:0.78em; color:#888; margin:-4px 0 10px 0;"></p>
 
                     <div style="display:grid; grid-template-columns:1fr 1fr 1fr 50px; gap:8px; margin-bottom:8px;">
                         <input type="date" id="new-date">
@@ -346,6 +347,13 @@
                     <!-- Formulaire ouverture -->
                     <div id="campaign-open-form" style="display:none; margin-top:10px;">
                         <p style="font-size:0.85em; font-weight:bold; margin-bottom:8px;">Ouvrir une nouvelle campagne :</p>
+                        <div style="margin-bottom:8px;">
+                            <label style="font-size:0.8em;">Type de campagne</label>
+                            <select id="camp-type" style="margin-top:3px; width:100%;">
+                                <option value="spring">Printemps — fondatrices</option>
+                                <option value="autumn">Automne — fondatrices potentielles / ouvrières</option>
+                            </select>
+                        </div>
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
                             <div>
                                 <label style="font-size:0.8em;">Année</label>
@@ -717,53 +725,78 @@
             const info      = document.getElementById('campaign-current-info');
             const openForm  = document.getElementById('campaign-open-form');
             const closeForm = document.getElementById('campaign-close-form');
+            const target    = document.getElementById('sync-target');
             if (!badge) return;
 
-            badge.innerText  = '⏳';
-            badge.className  = 'campaign-status-badge';
-            info.innerText   = 'Lecture en cours...';
+            badge.innerText = '⏳';
+            badge.className = 'campaign-status-badge';
+            info.innerText  = 'Lecture en cours...';
 
             try {
-                const url = 'campaign.json?t=' + Date.now();
-                const r   = await fetch(url);
+                let campaign = null;
+                const token = localStorage.getItem('gh_token');
 
-                if (!r.ok) {
-                    throw new Error('HTTP ' + r.status + ' — campaign.json introuvable sur le repo');
+                // 1. Lecture fraîche via l'API GitHub (si token disponible)
+                if (token) {
+                    try {
+                        const apiUrl = `https://api.github.com/repos/${CONFIG.githubUser}/${CONFIG.githubRepo}/contents/campaign.json`;
+                        const r = await fetch(apiUrl, {
+                            headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+                        });
+                        if (r.ok) {
+                            const f = await r.json();
+                            campaign = JSON.parse(b64_to_utf8(f.content));
+                        }
+                    } catch(e) { /* on retombe sur la lecture publique */ }
                 }
 
-                let campaign;
-                try {
+                // 2. Repli : lecture publique (peut avoir 1-2 min de retard)
+                if (!campaign) {
+                    const r = await fetch('campaign.json?t=' + Date.now());
+                    if (!r.ok) throw new Error('HTTP ' + r.status + ' — campaign.json introuvable sur le repo');
                     campaign = await r.json();
-                } catch(parseErr) {
-                    throw new Error('campaign.json illisible (JSON invalide) : ' + parseErr.message);
                 }
+
+                const type     = campaign.type || 'spring';
+                const dataFile = campaign.dataFile || CONFIG.githubFilePath;
+                const typeTxt  = type === 'autumn' ? "d'automne" : 'de printemps';
+
+                if (target) target.innerHTML = `<i class="fas fa-bullseye"></i> Les saisies partent vers : <strong>${dataFile}</strong>`;
 
                 if (campaign.status === 'open') {
                     badge.className = 'campaign-status-badge badge-open';
                     badge.innerText = '🟢 Ouverte';
-                    info.innerText  = 'Campagne ' + campaign.year + ' — ouverte depuis le ' + (campaign.dateOuverture || '?');
+                    info.innerText  = `Campagne ${typeTxt} ${campaign.year} — ouverte depuis le ${campaign.dateOuverture || '?'}`;
                     if (openForm)  openForm.style.display  = 'none';
                     if (closeForm) closeForm.style.display = 'block';
                 } else {
                     badge.className = 'campaign-status-badge badge-closed';
                     badge.innerText = '🔴 Fermée';
-                    info.innerText  = 'Campagne ' + campaign.year + ' — clôturée.';
+                    info.innerText  = `Campagne ${typeTxt} ${campaign.year} — clôturée.`;
                     if (openForm)  openForm.style.display  = 'block';
                     if (closeForm) closeForm.style.display = 'none';
+
+                    // Pré-remplissage : printemps → automne (même année), automne → printemps (année suivante)
+                    const typeSel   = document.getElementById('camp-type');
                     const yearInput = document.getElementById('camp-year');
-                    if (yearInput) yearInput.value = campaign.year + 1;
+                    if (type === 'spring') {
+                        if (typeSel)   typeSel.value = 'autumn';
+                        if (yearInput) yearInput.value = campaign.year;
+                    } else {
+                        if (typeSel)   typeSel.value = 'spring';
+                        if (yearInput) yearInput.value = campaign.year + 1;
+                    }
                 }
 
             } catch(e) {
                 badge.className = 'campaign-status-badge badge-closed';
                 badge.innerText = '⚠️ Erreur';
                 info.innerHTML  = '<span style="color:#c0392b;">' + e.message + '</span>'
-                    + '<br><small>Vérifiez que campaign.json est bien à la racine du repo et que le site est à jour.</small>';
+                    + '<br><small>Vérifiez que campaign.json est bien à la racine du repo.</small>';
                 if (openForm) openForm.style.display = 'block';
                 console.error('loadCampaignStatus error:', e);
             }
         }
-
                 async function writeCampaignJson(campaignObj, statusEl) {
             const token   = localStorage.getItem('gh_token');
             if (!token) { alert('Token GitHub manquant.'); return false; }
@@ -803,28 +836,65 @@
         async function openNewCampaign() {
             const year    = parseInt(document.getElementById('camp-year').value);
             const dateOuv = document.getElementById('camp-date-open').value;
+            const type    = document.getElementById('camp-type').value;
             const msg     = document.getElementById('camp-message').value.trim();
             const status  = document.getElementById('campaign-action-status');
 
             if (!year || !dateOuv) { alert("Veuillez saisir l'année et la date d'ouverture."); return; }
 
-            status.innerText = '⏳ Mise à jour en cours...';
+            const dataFile = type === 'autumn' ? CONFIG.githubFilePathAutomne : CONFIG.githubFilePath;
+            const typeTxt  = type === 'autumn' ? "d'automne" : 'de printemps';
+            const token    = localStorage.getItem('gh_token');
+            if (!token) { alert('Token GitHub manquant.'); return; }
+
+            status.innerText = '⏳ Vérification du fichier de données...';
             document.getElementById('btn-open-campaign').disabled = true;
 
-            const campaign = {
-                year,
-                status: 'open',
-                dateOuverture: dateOuv,
-                dateCloture: null,
-                message: msg
-            };
+            try {
+                // Garde-fou : le fichier cible doit être vide (sinon on mélangerait deux campagnes)
+                const apiUrl = `https://api.github.com/repos/${CONFIG.githubUser}/${CONFIG.githubRepo}/contents/${dataFile}`;
+                const r = await fetch(apiUrl, {
+                    headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+                });
+                if (r.status === 404) {
+                    throw new Error(`${dataFile} n'existe pas sur le repo : créez-le avec le contenu [] avant d'ouvrir la campagne.`);
+                }
+                if (r.ok) {
+                    const f = await r.json();
+                    const existing = JSON.parse(b64_to_utf8(f.content));
+                    if (existing.length > 0 &&
+                        !confirm(`⚠️ ${dataFile} contient déjà ${existing.length} signalement(s) non archivé(s).\n\nOuvrir la campagne les mélangerait avec la nouvelle.\nContinuer quand même ?`)) {
+                        status.innerText = '';
+                        document.getElementById('btn-open-campaign').disabled = false;
+                        return;
+                    }
+                }
 
-            const ok = await writeCampaignJson(campaign, status);
-            if (ok) {
-                status.innerHTML = `<span class="success">✅ Campagne ${year} ouverte ! Le formulaire de signalement est maintenant actif.</span>`;
-                setTimeout(loadCampaignStatus, 1500);
+                status.innerText = '⏳ Mise à jour en cours...';
+
+                const campaign = {
+                    year,
+                    type,
+                    season: type === 'autumn' ? 'Automne' : 'Printemps',
+                    status: 'open',
+                    dataFile,
+                    dateOuverture: dateOuv,
+                    dateCloture: null,
+                    message: msg || (type === 'autumn'
+                        ? `Campagne d'automne ${year} — piégeage des individus reproducteurs potentiels.`
+                        : `Campagne de printemps ${year} — piégeage des fondatrices.`)
+                };
+
+                const ok = await writeCampaignJson(campaign, status);
+                if (ok) {
+                    status.innerHTML = `<span class="success">✅ Campagne ${typeTxt} ${year} ouverte ! Saisies dirigées vers ${dataFile}.</span>`;
+                    setTimeout(loadCampaignStatus, 1500);
+                }
+            } catch (e) {
+                status.innerHTML = `<span class="error">❌ ${e.message}</span>`;
+            } finally {
+                document.getElementById('btn-open-campaign').disabled = false;
             }
-            document.getElementById('btn-open-campaign').disabled = false;
         }
 
         async function closeCampaignOnly() {
