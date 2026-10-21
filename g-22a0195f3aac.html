@@ -100,6 +100,18 @@
         }
         .sheet-table tr:nth-child(even) td { background: #f0f7ff; }
         .sheet-table tr:hover td { background: #dbeeff; }
+        /* Suivi du traitement des réponses */
+        .sheet-table tr.row-todo td { background: #fff1d6 !important; font-weight: 600; color: #6b4300; }
+        .sheet-table tr.row-todo:hover td { background: #ffe5b0 !important; }
+        .sheet-table tr.row-done td:not(.cell-check) { color: #9aa5a0; opacity: 0.7; }
+        .sheet-table .cell-check { text-align: center; width: 34px; }
+        .sheet-table .cell-check input { width: 17px; height: 17px; margin: 0; cursor: pointer; }
+        .sheet-table .cell-check input:disabled { cursor: not-allowed; opacity: 0.4; }
+        .badge-new { display:inline-block; background:#e74c3c; color:#fff; font-size:0.72em; font-weight:700;
+                     padding:1px 7px; border-radius:10px; margin-left:6px; vertical-align:middle; white-space:nowrap; }
+        .sheet-toolbar { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;
+                         font-size:0.8em; margin-bottom:6px; }
+        .sheet-toolbar label { cursor:pointer; color:#555; white-space:nowrap; }
         /* Section nouvelle campagne */
         .campaign-section {
             background: #fef9e7;
@@ -253,16 +265,21 @@
                         <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap;">
                             <input type="text" id="sheet-id" placeholder="ID du Google Sheet (dans l'URL)" style="margin:0; flex:1; min-width:140px; font-size:0.8em; padding:6px 8px;">
                             <input type="text" id="sheet-api-key" placeholder="Clé API Google (lecture)" style="margin:0; flex:1; min-width:140px; font-size:0.8em; padding:6px 8px;">
+                            <input type="password" id="sheet-admin-code" placeholder="Code admin (pour cocher « traité »)" oninput="saveSheetAdminCode(this.value)" autocomplete="off" style="margin:0; flex:1; min-width:140px; font-size:0.8em; padding:6px 8px;">
                             <button onclick="loadSheet()" style="width:auto; padding:6px 12px; font-size:0.8em; background:#2980b9; margin:0; white-space:nowrap;">
                                 <i class="fas fa-sync-alt"></i> Charger
                             </button>
                         </div>
                         <div style="font-size:0.75em; color:#888; margin-bottom:6px;">
                             <i class="fas fa-info-circle"></i>
-                            Renseignez l'ID du Sheet (visible dans l'URL) et une clé API en lecture seule.
-                            Ces valeurs sont sauvegardées localement.
+                            Renseignez l'ID du Sheet (visible dans l'URL), une clé API en lecture seule et le code admin
+                            (pour cocher « traité »). Ces valeurs sont sauvegardées localement.
                         </div>
                         <div id="sheet-status" style="font-size:0.8em; margin-bottom:6px;"></div>
+                        <div class="sheet-toolbar" id="sheet-toolbar" style="display:none;">
+                            <span id="sheet-counters"></span>
+                            <label><input type="checkbox" id="sheet-hide-done" onchange="onToggleHideDone(this.checked)" style="width:auto; margin:0 4px 0 0; vertical-align:middle;"> Masquer les lignes traitées</label>
+                        </div>
                         <div class="sheet-table-wrap" id="sheet-table-wrap" style="display:none;">
                             <table class="sheet-table" id="sheet-table"></table>
                         </div>
@@ -613,8 +630,11 @@
         function initSheetFields() {
             const sid = localStorage.getItem('sheet_id');
             const sak = localStorage.getItem('sheet_api_key');
+            const sac = localStorage.getItem('sheet_admin_secret');
             if (sid) document.getElementById('sheet-id').value = sid;
             if (sak) document.getElementById('sheet-api-key').value = sak;
+            if (sac) document.getElementById('sheet-admin-code').value = sac;
+            document.getElementById('sheet-hide-done').checked = localStorage.getItem('sheet_hide_done') === '1';
         }
 
         async function loadSheet() {
@@ -678,42 +698,194 @@
             }
         }
 
+        // ── Suivi des réponses : « traité » + « nouveau » ──────────────────
+        // URL du script Apps Script (la même que celle de form-handler.js)
+        const SHEET_SCRIPT_URL = (typeof CONFIG !== 'undefined' && CONFIG.sheetScriptUrl)
+            || 'https://script.google.com/macros/s/AKfycbydLYfaOC2nkVheuFZv1AWRgUILUMwF2la8YMGfq0qPpFarV_GW1CAWEn74huVCqlPA/exec';
+
+        let _sheetRows = [];            // [{ cells, sheetRow, ms, done, isNew }]
+        let _sheetCols = null;          // indices des colonnes utiles
+        let _sheetPrevSeen = undefined; // repère « nouveau » : dernière réponse vue à la visite précédente
+
+        // Échappe le HTML : le contenu du Sheet vient des visiteurs, il ne doit jamais être interprété
+        function escHtml(v) {
+            return String(v ?? '').replace(/[&<>"']/g, c =>
+                ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        function normHeader(h) {
+            return String(h ?? '').trim().toLowerCase().replace(/[éèêë]/g, 'e');
+        }
+
+        // « 24/04/2026 16:50:32 » (format français du Sheet) → Date
+        function parseFrDateTime(str) {
+            const m = String(str ?? '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[ ,T]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+            if (m) return new Date(+m[3], +m[2] - 1, +m[1], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0));
+            const d = new Date(str);
+            return isNaN(d) ? null : d;
+        }
+
+        function saveSheetAdminCode(v) {
+            localStorage.setItem('sheet_admin_secret', v.trim());
+            drawSheetTable();
+        }
+
+        function onToggleHideDone(checked) {
+            localStorage.setItem('sheet_hide_done', checked ? '1' : '0');
+            drawSheetTable();
+        }
+
         function renderSheetTable(rows, table, wrap, statusEl) {
             if (!rows || rows.length === 0) {
                 statusEl.innerHTML = '<span style="color:#888;">Le Sheet est vide.</span>';
                 wrap.style.display = 'none';
+                document.getElementById('sheet-toolbar').style.display = 'none';
                 return;
             }
 
-            const headers = rows[0];
-            const dataRows = rows.slice(1);
+            const headers = rows[0].map(h => String(h ?? ''));
+            const find = (re, fallback) => {
+                const i = headers.findIndex(h => re.test(normHeader(h)));
+                return i >= 0 ? i : fallback;
+            };
+            _sheetCols = {
+                headers,
+                date:   find(/date|horodatage|timestamp/, -1),
+                nom:    find(/^nom$/, 1),
+                email:  find(/mail/, 4),
+                traite: headers.findIndex(h => normHeader(h) === 'traite')
+            };
 
-            // Trier par date décroissante si une colonne "date" ou "horodatage" existe
-            const dateColIdx = headers.findIndex(h =>
-                /date|horodatage|timestamp/i.test(h)
-            );
-            if (dateColIdx >= 0) {
-                dataRows.sort((a, b) => {
-                    const da = new Date(a[dateColIdx] || 0);
-                    const db = new Date(b[dateColIdx] || 0);
-                    return db - da;
+            // Lignes de données (numéro de ligne du Sheet conservé : en-tête = ligne 1)
+            _sheetRows = [];
+            rows.slice(1).forEach((cells, k) => {
+                if (!cells || !cells.some(c => String(c ?? '').trim() !== '')) return;   // ligne vide
+                const d = _sheetCols.date >= 0 ? parseFrDateTime(cells[_sheetCols.date]) : null;
+                _sheetRows.push({
+                    cells,
+                    sheetRow: k + 2,
+                    ms: d ? d.getTime() : 0,
+                    done: _sheetCols.traite >= 0 && String(cells[_sheetCols.traite] ?? '').trim() !== ''
                 });
+            });
+
+            // « Nouveau » = reçu depuis la dernière consultation de l'admin
+            if (_sheetPrevSeen === undefined) {
+                const saved = parseInt(localStorage.getItem('sheet_last_seen'), 10);
+                _sheetPrevSeen = isNaN(saved) ? null : saved;   // null = première visite : rien n'est « nouveau »
+            }
+            const newest = _sheetRows.reduce((m, r) => Math.max(m, r.ms), 0);
+            _sheetRows.forEach(r => { r.isNew = _sheetPrevSeen !== null && r.ms > _sheetPrevSeen; });
+            if (newest > (parseInt(localStorage.getItem('sheet_last_seen'), 10) || 0)) {
+                localStorage.setItem('sheet_last_seen', String(newest));
             }
 
-            let html = '<thead><tr>'
-                + headers.map(h => `<th>${h}</th>`).join('')
+            // Tri : à traiter d'abord, puis du plus récent au plus ancien
+            _sheetRows.sort((a, b) => (a.done - b.done) || (b.ms - a.ms) || (b.sheetRow - a.sheetRow));
+
+            drawSheetTable();
+            wrap.style.display = 'block';
+            document.getElementById('sheet-toolbar').style.display = 'flex';
+            statusEl.innerHTML = `<span style="color:#27ae60;">✅ ${_sheetRows.length} réponse(s) chargée(s)</span>`;
+        }
+
+        function sheetCanWrite() {
+            return _sheetCols && _sheetCols.traite >= 0
+                && !!localStorage.getItem('sheet_admin_secret') && !!SHEET_SCRIPT_URL;
+        }
+
+        function drawSheetTable() {
+            const table = document.getElementById('sheet-table');
+            if (!_sheetCols || !table) return;
+            const c = _sheetCols;
+            const hasTraite = c.traite >= 0;
+            const hideDone  = document.getElementById('sheet-hide-done').checked;
+            const canWrite  = sheetCanWrite();
+
+            // En-tête : colonne « Traité » regroupée en première position
+            let html = '<thead><tr>' + (hasTraite ? '<th title="Traité">✔</th>' : '')
+                + c.headers.map((h, i) => i === c.traite ? '' : `<th>${escHtml(h)}</th>`).join('')
                 + '</tr></thead><tbody>';
 
-            html += dataRows.map(row =>
-                '<tr>' + headers.map((_, i) =>
-                    `<td>${row[i] !== undefined ? row[i] : ''}</td>`
-                ).join('') + '</tr>'
-            ).join('');
+            const visible = _sheetRows.filter(r => !(hideDone && r.done));
+            html += visible.map(r => {
+                const cls = hasTraite ? (r.done ? 'row-done' : 'row-todo') : '';
+                const tip = !hasTraite ? '' : (canWrite
+                    ? (r.done ? `Traité le ${escHtml(r.cells[c.traite])} — décocher pour annuler` : 'Cocher quand la capture est saisie')
+                    : 'Renseignez le code admin pour cocher');
+                const check = hasTraite
+                    ? `<td class="cell-check"><input type="checkbox" ${r.done ? 'checked' : ''} ${canWrite ? '' : 'disabled'}
+                         title="${tip}" onchange="toggleSheetRow(${r.sheetRow}, this)"></td>`
+                    : '';
+                const tds = c.headers.map((_, i) => {
+                    if (i === c.traite) return '';
+                    const badge = (i === Math.max(c.date, 0) && r.isNew) ? '<span class="badge-new">NOUVEAU</span>' : '';
+                    return `<td>${escHtml(r.cells[i])}${badge}</td>`;
+                }).join('');
+                return `<tr class="${cls}" data-row="${r.sheetRow}">${check}${tds}</tr>`;
+            }).join('');
 
-            html += '</tbody>';
-            table.innerHTML = html;
-            wrap.style.display = 'block';
-            statusEl.innerHTML = `<span style="color:#27ae60;">✅ ${dataRows.length} réponse(s) chargée(s)</span>`;
+            table.innerHTML = html + '</tbody>';
+            updateSheetCounters();
+        }
+
+        function updateSheetCounters() {
+            const el = document.getElementById('sheet-counters');
+            if (!el || !_sheetCols) return;
+            const todo = _sheetRows.filter(r => !r.done).length;
+            const done = _sheetRows.length - todo;
+            const news = _sheetRows.filter(r => r.isNew).length;
+
+            if (_sheetCols.traite < 0) {
+                el.innerHTML = `<span style="color:#b9770e;">⚠️ Colonne « Traité » absente — dans le Sheet : menu <b>🐝 Frelon ▸ Préparer la colonne « Traité »</b>.</span>`
+                    + (news ? ` <span class="badge-new">${news} nouveau(x)</span>` : '');
+                return;
+            }
+            let txt = `<b style="color:#b9770e;">${todo}</b> à traiter · ${done} traitée(s)`;
+            if (news) txt += ` <span class="badge-new">${news} nouveau(x)</span>`;
+            if (!sheetCanWrite()) txt += ` <span style="color:#999;">· code admin requis pour cocher</span>`;
+            el.innerHTML = txt;
+        }
+
+        // Coche / décoche « Traité » (écrit dans le Sheet via Apps Script)
+        async function toggleSheetRow(sheetRow, cb) {
+            const r = _sheetRows.find(x => x.sheetRow === sheetRow);
+            if (!r || !_sheetCols) return;
+            const wanted   = cb.checked;
+            const statusEl = document.getElementById('sheet-status');
+            const before   = r.done;
+            const oldCell  = r.cells[_sheetCols.traite];
+            const key = String(r.cells[_sheetCols.nom] ?? '') + '|' + String(r.cells[_sheetCols.email] ?? '');
+
+            // Mise à jour immédiate de l'affichage (la ligne reste à sa place jusqu'au prochain chargement)
+            r.done = wanted;
+            r.cells[_sheetCols.traite] = wanted ? new Date().toLocaleString('fr-FR') : '';
+            drawSheetTable();
+
+            let result = null;
+            try {
+                // Corps en texte brut : pas de pré-vérification CORS, la réponse reste lisible
+                const resp = await fetch(SHEET_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'marquerTraite',
+                        secret: localStorage.getItem('sheet_admin_secret') || '',
+                        row: sheetRow, key, traite: wanted
+                    })
+                });
+                result = await resp.json();
+            } catch (e) { result = null; }   // réponse illisible : l'envoi est probablement parti
+
+            if (result && result.success === false) {
+                r.done = before;                               // refus explicite : on annule
+                r.cells[_sheetCols.traite] = oldCell;
+                drawSheetTable();
+                statusEl.innerHTML = `<span style="color:#e74c3c;">❌ ${escHtml(String(result.error || 'Échec').replace(/^Error:\s*/, ''))}</span>`;
+            } else if (!result) {
+                statusEl.innerHTML = '<span style="color:#b9770e;">⚠️ Envoi effectué mais non confirmé — cliquez sur « Charger » pour vérifier.</span>';
+            } else {
+                statusEl.innerHTML = `<span style="color:#27ae60;">✅ ${_sheetRows.length} réponse(s) chargée(s) — dernière modification enregistrée</span>`;
+            }
         }
 
         // ─────────────────────────────────────────
@@ -948,6 +1120,8 @@
             setTimeout(() => {
                 loadCampaignStatus();
                 loadPhotoFiles();
+                // Réponses du formulaire : chargées d'office si l'ID et la clé sont déjà enregistrés
+                if (localStorage.getItem('sheet_id') && localStorage.getItem('sheet_api_key')) loadSheet();
             }, 200);
         }
 
