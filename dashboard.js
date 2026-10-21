@@ -22,6 +22,37 @@ let _allData = [];
 let _chartTime = null;
 let _chartLocation = null;
 
+// Type de campagne affiché : 'spring' (fondatrices) ou 'autumn' (captures, stats allégées)
+let _viewType = 'spring';   // type actuellement affiché (live ou archive)
+let _liveType = 'spring';   // type de la campagne en cours (campaign.json)
+let _liveFile = 'data.json';// fichier de données de la campagne en cours
+
+// Adapte libellés et onglets selon le type de campagne affiché
+function applyViewType(type) {
+    _viewType = type || 'spring';
+    window._campaignType = _viewType;
+    const autumn = _viewType === 'autumn';
+
+    const title = document.getElementById('summary-title');
+    if (title) title.innerHTML = autumn
+        ? '<i class="fas fa-bullseye"></i> Bilan de la Campagne d\'automne - La Comté'
+        : '<i class="fas fa-bullseye"></i> Bilan de la Saison - La Comté';
+
+    const label = document.getElementById('summary-label');
+    if (label) label.textContent = autumn ? 'Total des captures :' : 'Total des fondatrices piégées :';
+
+    // Pas d'analyse de corrélation en automne (seuil de vol et individus non différenciables)
+    const trendsBtn = document.getElementById('tab-btn-tendances');
+    if (trendsBtn) trendsBtn.style.display = autumn ? 'none' : '';
+    if (autumn) {
+        const panel = document.getElementById('tab-tendances');
+        if (panel && panel.classList.contains('active')) {
+            const first = document.querySelector('.tab-btn');
+            if (first) first.click();
+        }
+    }
+}
+
 
 // ─────────────────────────────────────────────
 // MODE ARCHIVE — chargement temporaire
@@ -38,11 +69,17 @@ async function loadArchiveIndex() {
         const resp = await fetch('archives.json');
         if (!resp.ok) return;
         const index = await resp.json();
-        index.sort((a, b) => b.year - a.year).forEach(s => {
+        // Année décroissante ; à année égale, l'automne (plus tardif) avant le printemps
+        index.sort((a, b) => (b.year - a.year) || ((b.type === 'autumn') - (a.type === 'autumn')))
+        .forEach(s => {
+            const autumn = s.type === 'autumn';
             const opt = document.createElement('option');
             opt.value = s.file;
-            opt.textContent = 'Saison ' + s.year + ' (' + s.total + ' fondatrices)';
+            opt.textContent = autumn
+                ? 'Automne ' + s.year + ' (' + s.total + ' captures)'
+                : 'Saison ' + s.year + ' (' + s.total + ' fondatrices)';
             opt.dataset.year = s.year;
+            opt.dataset.type = s.type || 'spring';
             select.appendChild(opt);
         });
     } catch(e) { /* pas d'archive, sélecteur reste vide */ }
@@ -56,6 +93,7 @@ async function loadArchiveYear() {
     if (!file) { status.textContent = 'Choisissez une saison.'; return; }
 
     const year = select.options[select.selectedIndex].dataset.year;
+    const type = select.options[select.selectedIndex].dataset.type || 'spring';
     status.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Chargement…';
 
     try {
@@ -67,6 +105,7 @@ async function loadArchiveYear() {
         _allData = data;
         _isArchiveMode = true;
         window._dashboardData = _allData;
+        applyViewType(type);
 
         // Mise à jour de la carte et des filtres
         initMap(_allData);
@@ -80,7 +119,7 @@ async function loadArchiveYear() {
         const banner = document.getElementById('archive-mode-banner');
         const title  = document.getElementById('archive-banner-title');
         if (banner) banner.classList.add('active');
-        if (title)  title.textContent = 'Archive — Saison ' + year + ' (' + data.length + ' signalements)';
+        if (title)  title.textContent = 'Archive — ' + (type === 'autumn' ? 'Automne ' : 'Saison ') + year + ' (' + data.length + ' signalements)';
 
         // Mettre à jour le titre du bilan
         const totalStatEl = document.getElementById('total-stat');
@@ -88,7 +127,7 @@ async function loadArchiveYear() {
         const sorted = [...data].sort((a, b) => new Date(b.date) - new Date(a.date));
         if (lastDateEl && sorted.length) lastDateEl.textContent = sorted[0].date;
 
-        status.innerHTML = '<span style="color:#27ae60;">✅ Saison ' + year + ' chargée</span>';
+        status.innerHTML = '<span style="color:#27ae60;">✅ ' + (type === 'autumn' ? 'Automne ' : 'Saison ') + year + ' chargé(e)</span>';
 
     } catch(e) {
         status.innerHTML = '<span style="color:#e74c3c;">❌ ' + e.message + '</span>';
@@ -107,9 +146,10 @@ async function loadLiveData() {
     if (select) select.value = '';
     if (status) status.textContent = '';
 
-    // Recharger data.json
+    // Recharger le fichier de la campagne en cours
     try {
-        const resp = await fetch('data.json');
+        applyViewType(_liveType);
+        const resp = await fetch(_liveFile + '?v=' + Date.now());
         _allData = await resp.json();
         window._dashboardData = _allData;
         initMap(_allData);
@@ -122,7 +162,18 @@ async function loadLiveData() {
 
 async function initDashboard() {
     try {
-        const response = await fetch('data.json');
+        // Campagne en cours : type et fichier de données (défaut : printemps / data.json)
+        try {
+            const campResp = await fetch('campaign.json?v=' + Date.now());
+            if (campResp.ok) {
+                const camp = await campResp.json();
+                _liveType = camp.type || 'spring';
+                _liveFile = camp.dataFile || 'data.json';
+            }
+        } catch(e) { /* campaign.json absent : mode printemps */ }
+        applyViewType(_liveType);
+
+        const response = await fetch(_liveFile + '?v=' + Date.now());
         _allData = await response.json();
 
         // Expose pour l'export PNG
@@ -197,6 +248,8 @@ function updateKeyFigures(data) {
     if (data.length > 0) {
         const sorted = [...data].sort((a, b) => new Date(b.date) - new Date(a.date));
         document.getElementById('last-date').innerText = sorted[0].date;
+    } else {
+        document.getElementById('last-date').innerText = '--';
     }
 }
 
@@ -324,12 +377,29 @@ async function refreshCharts(data) {
 
     const datesCaptures = Object.keys(parDate).sort();
 
+    // Message "aucune donnée" : on conserve le canvas (sinon les rechargements suivants échouent)
+    const timeCanvas = document.getElementById('timeChart');
+    let emptyMsg = document.getElementById('timechart-empty');
+    if (!emptyMsg) {
+        emptyMsg = document.createElement('p');
+        emptyMsg.id = 'timechart-empty';
+        emptyMsg.style.cssText = 'color:#999; font-style:italic; text-align:center; padding:20px; display:none;';
+        emptyMsg.textContent = 'Aucune donnée à afficher.';
+        timeCanvas.parentElement.appendChild(emptyMsg);
+    }
+
     if (datesCaptures.length === 0) {
-        document.getElementById('timeChart').parentElement.innerHTML =
-            '<p style="color:#999; font-style:italic; text-align:center; padding:20px;">Aucune donnée à afficher.</p>';
-        initLocationChart(data);
+        if (_chartTime) { _chartTime.destroy(); _chartTime = null; }
+        timeCanvas.style.display = 'none';
+        emptyMsg.style.display = 'block';
+        refreshLocationChart(data);
         return;
     }
+    timeCanvas.style.display = '';
+    emptyMsg.style.display = 'none';
+
+    const isAutumn     = _viewType === 'autumn';
+    const captureLabel = isAutumn ? 'Captures' : 'Fondatrices piégées';
 
     const startDate = datesCaptures[0];
     const endDate = datesCaptures[datesCaptures.length - 1];
@@ -374,7 +444,7 @@ async function refreshCharts(data) {
                 // Dataset 2 : Captures (barres oranges)
                 {
                     type: 'bar',
-                    label: 'Fondatrices piégées',
+                    label: captureLabel,
                     data: captureValues,
                     backgroundColor: 'rgba(211, 84, 0, 0.70)',
                     borderColor: '#922b00',
@@ -399,8 +469,8 @@ async function refreshCharts(data) {
                     order: 2,
                     spanGaps: true
                 },
-                // Dataset 4 : Seuil 10°C (pointillés rouges)
-                {
+                // Dataset 4 : Seuil 10°C (pointillés rouges) — printemps uniquement
+                ...(isAutumn ? [] : [{
                     type: 'line',
                     label: 'Seuil vol (10°C)',
                     data: seuilValues,
@@ -412,7 +482,7 @@ async function refreshCharts(data) {
                     tension: 0,
                     yAxisID: 'yTemp',
                     order: 1
-                }
+                }])
             ]
         },
         options: {
@@ -428,7 +498,7 @@ async function refreshCharts(data) {
                 tooltip: {
                     callbacks: {
                         label: function(ctx) {
-                            if (ctx.dataset.label === 'Fondatrices piégées')   return ` ${ctx.parsed.y} capture(s)`;
+                            if (ctx.dataset.label === captureLabel)            return ` ${ctx.parsed.y} capture(s)`;
                             if (ctx.dataset.label === 'Seuil vol (10°C)')      return ` Seuil : 10°C`;
                             if (ctx.dataset.label === 'Précipitations (mm)')   return ` ${ctx.parsed.y} mm de pluie`;
                             return ` Moy. diurne : ${ctx.parsed.y}°C`;
