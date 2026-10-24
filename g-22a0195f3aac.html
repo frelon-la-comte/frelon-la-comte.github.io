@@ -112,6 +112,70 @@
         .sheet-toolbar { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;
                          font-size:0.8em; margin-bottom:6px; }
         .sheet-toolbar label { cursor:pointer; color:#555; white-space:nowrap; }
+
+        /* ── Onglets ── */
+        .admin-tabs { display:flex; gap:2px; flex-wrap:wrap; border-bottom:2px solid #e0e0e0; margin-bottom:16px; }
+        .admin-tab { width:auto; margin:0 0 -2px 0; padding:10px 16px; background:none; border:none;
+                     border-bottom:3px solid transparent; color:#888; font-size:0.9em; font-weight:bold;
+                     cursor:pointer; border-radius:0; }
+        .admin-tab:hover { background:none; color:#d35400; }
+        .admin-tab.active { color:#d35400; border-bottom-color:#d35400; }
+        .tab-badge { display:inline-block; background:#e67e22; color:#fff; font-size:0.75em; padding:1px 7px;
+                     border-radius:10px; margin-left:4px; }
+        .admin-tabpanel { display:none; }
+        .admin-tabpanel.active { display:block; }
+        .admin-tabpanel .admin-cell { margin-bottom:16px; }
+        #sheet-table-wrap { max-height: 480px; }
+        .btn-saisir { width:auto; margin:0; padding:2px 9px; font-size:0.85em; background:#2980b9; color:#fff;
+                      border:none; border-radius:5px; cursor:pointer; }
+        .btn-saisir:hover { background:#3498db; }
+        .sheet-table .cell-act { text-align:center; width:44px; }
+        @keyframes flashField { 0% { background:#fff3b0; } 100% { background:#fff; } }
+        .flash { animation: flashField 1.8s ease; }
+        #saisie-source { display:none; font-size:0.8em; background:#eaf4fd; border-left:4px solid #2980b9;
+                         padding:6px 10px; border-radius:4px; margin:0 0 8px 0; color:#1b4f72; }
+        .note-box { font-size:0.8em; background:#f4f9f4; border-left:4px solid #27ae60; padding:8px 10px;
+                    border-radius:4px; margin:6px 0 10px 0; color:#355; }
+
+        /* ── Piégeurs ── */
+        .pg-privacy { font-size:0.82em; background:#fdf2e9; border-left:4px solid #d35400; padding:8px 12px;
+                      border-radius:4px; margin-bottom:10px; color:#6e3a12; }
+        .pg-toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:8px; }
+        .pg-toolbar input[type=search], .pg-toolbar select { margin:0; width:auto; flex:1; min-width:150px; padding:7px 10px; font-size:0.85em; }
+        .pg-btn { width:auto; margin:0; padding:7px 14px; font-size:0.85em; font-weight:bold; border:none; border-radius:6px;
+                  color:#fff; cursor:pointer; display:inline-block; }
+        .pg-btn-green { background:#27ae60; } .pg-btn-green:hover { background:#2ecc71; }
+        .pg-btn-blue  { background:#2980b9; } .pg-btn-blue:hover  { background:#3498db; }
+        .pg-btn-grey  { background:#7f8c8d; } .pg-btn-grey:hover  { background:#95a5a6; }
+        .pg-btn-red   { background:#c0392b; } .pg-btn-red:hover   { background:#e74c3c; }
+        .pg-counters { font-size:0.82em; color:#555; margin:4px 0 8px 0; }
+        .pg-table-wrap { max-height:520px; overflow:auto; border:1px solid #e0e0e0; border-radius:6px; }
+        .pg-table { width:100%; border-collapse:collapse; font-size:0.85em; }
+        .pg-table th { background:#34495e; color:#fff; padding:7px 9px; text-align:left; position:sticky; top:0; white-space:nowrap; }
+        .pg-table td { padding:6px 9px; border-bottom:1px solid #f0f0f0; vertical-align:top; }
+        .pg-table tbody tr { cursor:pointer; }
+        .pg-table tbody tr:hover td { background:#f5faff; }
+        .pg-badge { display:inline-block; padding:1px 9px; border-radius:10px; font-size:0.8em; font-weight:bold; }
+        .pg-actif { background:#d5f5e3; color:#1e8449; }
+        .pg-rendu { background:#e5e8e8; color:#566573; }
+        .pg-sans  { background:#fdebd0; color:#9c640c; }
+        .pg-warn  { color:#c0392b; font-weight:bold; }
+        .pg-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:9999;
+                      align-items:flex-start; justify-content:center; overflow:auto; padding:20px; }
+        .pg-overlay.active { display:flex; }
+        .pg-dialog { background:#fff; border-radius:10px; max-width:680px; width:100%; padding:18px 20px;
+                     box-shadow:0 8px 30px rgba(0,0,0,0.3); }
+        .pg-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px 12px; }
+        .pg-grid label { font-size:0.8em; color:#555; display:block; }
+        .pg-grid .pg-wide { grid-column:1 / -1; }
+        .pg-grid input, .pg-grid textarea, .pg-dot input[type=text], .pg-dot input[type=date] {
+            margin:3px 0 0 0; width:100%; box-sizing:border-box; padding:6px 8px; font-size:0.95em; }
+        .pg-dot { border:1px solid #e0e0e0; border-radius:8px; padding:10px; margin-bottom:8px; background:#fafafa; }
+        .pg-dot-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:6px; }
+        .pg-dot label { font-size:0.75em; color:#777; display:block; }
+        .pg-dot-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; font-size:0.82em; }
+        .pg-actions { display:flex; gap:8px; margin-top:14px; align-items:center; }
+        @media (max-width: 600px) { .pg-grid, .pg-dot-row { grid-template-columns:1fr; } }
         /* Section nouvelle campagne */
         .campaign-section {
             background: #fef9e7;
@@ -217,28 +281,23 @@
                 </button>
             </div>
 
-            <!-- TOKEN — hors grille -->
-            <fieldset style="margin-bottom:16px; border:1px solid #ddd; border-radius:8px; padding:12px 16px;">
-                <legend style="font-weight:bold; color:#2c3e50; padding:0 6px;">
-                    <i class="fas fa-key"></i> Token GitHub
-                </legend>
-                <small>Sauvegardé dans votre navigateur — à saisir une seule fois.</small>
-                <div style="display:flex; gap:8px; align-items:center; margin-top:6px;">
-                    <input type="password" id="github-token" placeholder="ghp_..." oninput="saveToken()" style="margin:0; flex:1;">
-                    <button onclick="clearToken()" title="Effacer la clé" style="width:auto; padding:7px 10px; background:#e74c3c; margin:0; flex-shrink:0;"><i class="fas fa-trash-alt"></i></button>
-                </div>
-                <div id="token-status" style="margin-top:6px; font-size:0.85em;"></div>
-            </fieldset>
+            <!-- ONGLETS -->
+            <div class="admin-tabs" id="admin-tabs">
+                <button class="admin-tab active" data-tab="signalements" onclick="switchAdminTab('signalements')"><i class="fas fa-inbox"></i> Signalements <span class="tab-badge" id="tab-badge-signalements" style="display:none;"></span></button>
+                <button class="admin-tab" data-tab="photos" onclick="switchAdminTab('photos')"><i class="fas fa-camera"></i> Photos</button>
+                <button class="admin-tab" data-tab="campagne" onclick="switchAdminTab('campagne')"><i class="fas fa-calendar-alt"></i> Campagne</button>
+                <button class="admin-tab" data-tab="piegeurs" onclick="switchAdminTab('piegeurs')"><i class="fas fa-user-friends"></i> Piégeurs</button>
+                <button class="admin-tab" data-tab="reglages" onclick="switchAdminTab('reglages')"><i class="fas fa-cog"></i> Réglages</button>
+            </div>
 
-            <!-- GRILLE 2×2 -->
-            <div class="admin-grid">
-
-                <!-- ╔══════════════╗  CELLULE 1 : SIGNALEMENTS -->
-                <div class="admin-cell">
-                    <h4 class="cell-title"><i class="fas fa-bug"></i> Signalements de captures</h4>
+            <!-- ═════ ONGLET : SIGNALEMENTS ═════ -->
+            <section id="tab-signalements" class="admin-tabpanel active">
+                <div class="admin-cell" id="saisie-block">
+                    <h4 class="cell-title"><i class="fas fa-bug"></i> Saisie des captures</h4>
                     <p id="sync-target" style="font-size:0.78em; color:#888; margin:-4px 0 10px 0;"></p>
 
-                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr 50px; gap:8px; margin-bottom:8px;">
+                    <p id="saisie-source"></p>
+                    <div id="saisie-form" style="display:grid; grid-template-columns:1fr 1fr 1fr 50px; gap:8px; margin-bottom:8px;">
                         <input type="date" id="new-date">
                         <input type="text" id="new-lieu" placeholder="Lieu">
                         <input type="number" id="new-nombre" placeholder="Nb" min="1" value="1">
@@ -254,38 +313,29 @@
                         <i class="fas fa-cloud-upload-alt"></i> Envoyer vers GitHub
                     </button>
                     <p id="sync-status" style="font-size:0.82em; margin-top:6px;"></p>
-
-                    <a href="https://thomaspoullie.goatcounter.com" target="_blank" class="btn-admin" style="margin-top:10px;">
-                        <i class="fas fa-chart-line"></i> Statistiques de visite
-                    </a>
-
-                    <!-- LECTURE GOOGLE SHEET -->
-                    <div class="sheet-section">
-                        <h5><i class="fas fa-table"></i> Données du formulaire (Google Sheet)</h5>
-                        <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap;">
-                            <input type="text" id="sheet-id" placeholder="ID du Google Sheet (dans l'URL)" style="margin:0; flex:1; min-width:140px; font-size:0.8em; padding:6px 8px;">
-                            <input type="text" id="sheet-api-key" placeholder="Clé API Google (lecture)" style="margin:0; flex:1; min-width:140px; font-size:0.8em; padding:6px 8px;">
-                            <input type="password" id="sheet-admin-code" placeholder="Code admin (pour cocher « traité »)" oninput="saveSheetAdminCode(this.value)" autocomplete="off" style="margin:0; flex:1; min-width:140px; font-size:0.8em; padding:6px 8px;">
-                            <button onclick="loadSheet()" style="width:auto; padding:6px 12px; font-size:0.8em; background:#2980b9; margin:0; white-space:nowrap;">
-                                <i class="fas fa-sync-alt"></i> Charger
-                            </button>
-                        </div>
-                        <div style="font-size:0.75em; color:#888; margin-bottom:6px;">
-                            <i class="fas fa-info-circle"></i>
-                            Renseignez l'ID du Sheet (visible dans l'URL), une clé API en lecture seule et le code admin
-                            (pour cocher « traité »). Ces valeurs sont sauvegardées localement.
-                        </div>
-                        <div id="sheet-status" style="font-size:0.8em; margin-bottom:6px;"></div>
-                        <div class="sheet-toolbar" id="sheet-toolbar" style="display:none;">
-                            <span id="sheet-counters"></span>
-                            <label><input type="checkbox" id="sheet-hide-done" onchange="onToggleHideDone(this.checked)" style="width:auto; margin:0 4px 0 0; vertical-align:middle;"> Masquer les lignes traitées</label>
-                        </div>
-                        <div class="sheet-table-wrap" id="sheet-table-wrap" style="display:none;">
-                            <table class="sheet-table" id="sheet-table"></table>
-                        </div>
-                    </div>
                 </div>
 
+                <div class="admin-cell">
+                    <h4 class="cell-title"><i class="fas fa-table"></i> Réponses du formulaire</h4>
+                    <div style="display:flex; gap:10px; align-items:center; margin-bottom:8px; flex-wrap:wrap;">
+                        <button onclick="loadSheet()" style="width:auto; padding:6px 14px; font-size:0.85em; background:#2980b9; margin:0; white-space:nowrap;">
+                            <i class="fas fa-sync-alt"></i> Charger / actualiser
+                        </button>
+                        <span style="font-size:0.78em; color:#888;"><i class="fas fa-info-circle"></i> Code admin et identifiants : onglet ⚙️ Réglages</span>
+                    </div>
+                    <div id="sheet-status" style="font-size:0.8em; margin-bottom:6px;"></div>
+                    <div class="sheet-toolbar" id="sheet-toolbar" style="display:none;">
+                        <span id="sheet-counters"></span>
+                        <label><input type="checkbox" id="sheet-hide-done" onchange="onToggleHideDone(this.checked)" style="width:auto; margin:0 4px 0 0; vertical-align:middle;"> Masquer les lignes traitées</label>
+                    </div>
+                    <div class="sheet-table-wrap" id="sheet-table-wrap" style="display:none;">
+                        <table class="sheet-table" id="sheet-table"></table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═════ ONGLET : PHOTOS ═════ -->
+            <section id="tab-photos" class="admin-tabpanel">
                 <!-- ╔══════════════╗  CELLULE 2 : PHOTOS -->
                 <div class="admin-cell">
                     <h4 class="cell-title"><i class="fas fa-camera"></i> Gestion des photos</h4>
@@ -332,22 +382,11 @@
                     </p>
                 </div>
 
-                <!-- ╔══════════════╗  CELLULE 3 : ARCHIVAGE -->
-                <div class="admin-cell">
-                    <h4 class="cell-title"><i class="fas fa-archive"></i> Clôture & Archivage</h4>
-                    <p style="font-size:0.85em; color:#555;">
-                        Archive <code>data.json</code> → <code>archives/AAAA.json</code>, remet les données à zéro
-                        et ferme la campagne. À faire <strong>une seule fois par an</strong>.
-                    </p>
-                    <p style="font-size:0.82em; color:#922b21; font-weight:bold;">
-                        ⚠️ Action irréversible — vérifiez que la sync GitHub est faite avant.
-                    </p>
-                    <button onclick="archiveSeason()" id="btn-archive" style="width:100%; background:#2c3e50;">
-                        <i class="fas fa-box-archive"></i> Archiver la saison et clôturer
-                    </button>
-                    <p id="archive-status" style="font-size:0.82em; margin-top:8px;"></p>
-                </div>
 
+            </section>
+
+            <!-- ═════ ONGLET : CAMPAGNE ═════ -->
+            <section id="tab-campagne" class="admin-tabpanel">
                 <!-- ╔══════════════╗  CELLULE 4 : CAMPAGNE -->
                 <div class="admin-cell">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
@@ -403,7 +442,119 @@
                     <p id="campaign-action-status" style="font-size:0.82em; margin-top:8px;"></p>
                 </div>
 
-            </div><!-- fin .admin-grid -->
+                <!-- ╔══════════════╗  CELLULE 3 : ARCHIVAGE -->
+                <div class="admin-cell">
+                    <h4 class="cell-title"><i class="fas fa-archive"></i> Clôture & Archivage</h4>
+                    <p style="font-size:0.85em; color:#555;">
+                        Archive le fichier de la campagne en cours (<code>data.json</code> ou <code>data_automne.json</code>) → <code>archives/…</code>, remet les données à zéro
+                        et ferme la campagne. À faire <strong>une seule fois par an</strong>.
+                    </p>
+                    <p style="font-size:0.82em; color:#922b21; font-weight:bold;">
+                        ⚠️ Action irréversible — vérifiez que la sync GitHub est faite avant.
+                    </p>
+                    <button onclick="archiveSeason()" id="btn-archive" style="width:100%; background:#2c3e50;">
+                        <i class="fas fa-box-archive"></i> Archiver la saison et clôturer
+                    </button>
+                    <p id="archive-status" style="font-size:0.82em; margin-top:8px;"></p>
+                </div>
+
+
+            </section>
+
+            <!-- ═════ ONGLET : PIÉGEURS (données locales) ═════ -->
+            <section id="tab-piegeurs" class="admin-tabpanel">
+                <div class="admin-cell">
+                    <h4 class="cell-title"><i class="fas fa-user-friends"></i> Piégeurs</h4>
+                    <div class="pg-privacy">
+                        <i class="fas fa-lock"></i> <b>Données personnelles : stockées uniquement dans ce navigateur</b>
+                        (jamais envoyées à GitHub, au Sheet ni ailleurs). Elles disparaissent si vous videz les données du site :
+                        <b>exportez régulièrement une sauvegarde</b> (fichier .json, PDF inclus).
+                    </div>
+                    <div id="pg-backup" style="font-size:0.82em; margin-bottom:8px;"></div>
+                    <div class="pg-toolbar">
+                        <input type="search" id="pg-search" placeholder="🔍 Nom, adresse, téléphone, email…" oninput="renderPiegeurs()">
+                        <select id="pg-filter" onchange="renderPiegeurs()">
+                            <option value="all">Tous</option>
+                            <option value="actif">Piège actif</option>
+                            <option value="rendu">Piège rendu</option>
+                            <option value="sans">Sans piège</option>
+                            <option value="nocontrat">Contrat manquant</option>
+                        </select>
+                        <button class="pg-btn pg-btn-green" onclick="openPiegeur()"><i class="fas fa-plus"></i> Nouveau</button>
+                        <button class="pg-btn pg-btn-blue" onclick="exportPiegeurs()"><i class="fas fa-download"></i> Exporter</button>
+                        <label class="pg-btn pg-btn-grey" style="margin:0;"><i class="fas fa-upload"></i> Importer
+                            <input type="file" id="pg-import" accept="application/json,.json" style="display:none;" onchange="importPiegeurs(this)">
+                        </label>
+                    </div>
+                    <div class="pg-counters" id="pg-counters"></div>
+                    <div class="pg-table-wrap"><table class="pg-table" id="pg-table"></table></div>
+                </div>
+            </section>
+
+            <!-- ═════ ONGLET : RÉGLAGES ═════ -->
+            <section id="tab-reglages" class="admin-tabpanel">
+            <!-- TOKEN -->
+            <fieldset style="margin-bottom:16px; border:1px solid #ddd; border-radius:8px; padding:12px 16px;">
+                <legend style="font-weight:bold; color:#2c3e50; padding:0 6px;">
+                    <i class="fas fa-key"></i> Token GitHub
+                </legend>
+                <small>Sauvegardé dans votre navigateur — à saisir une seule fois.</small>
+                <div style="display:flex; gap:8px; align-items:center; margin-top:6px;">
+                    <input type="password" id="github-token" placeholder="ghp_..." oninput="saveToken()" style="margin:0; flex:1;">
+                    <button onclick="clearToken()" title="Effacer la clé" style="width:auto; padding:7px 10px; background:#e74c3c; margin:0; flex-shrink:0;"><i class="fas fa-trash-alt"></i></button>
+                </div>
+                <div id="token-status" style="margin-top:6px; font-size:0.85em;"></div>
+            </fieldset>
+
+                <fieldset style="margin-bottom:16px; border:1px solid #ddd; border-radius:8px; padding:12px 16px;">
+                    <legend style="font-weight:bold; color:#2c3e50; padding:0 6px;"><i class="fas fa-table"></i> Google Sheet (réponses du formulaire)</legend>
+                    <div class="note-box">
+                        <i class="fas fa-shield-alt"></i> <b>Lecture sécurisée</b> : avec le <b>code admin</b>, le tableau est lu par votre script Apps Script,
+                        et le Sheet peut rester <b>privé</b> (accès restreint). L'ID et la clé API ci-dessous ne servent qu'à l'ancienne méthode
+                        (Sheet partagé par lien) : supprimez-les une fois la lecture sécurisée validée.
+                    </div>
+                    <label style="font-size:0.8em; color:#555;">Code admin (celui de la propriété <code>ADMIN_SECRET</code>)</label>
+                    <input type="password" id="sheet-admin-code" placeholder="Code admin" oninput="saveSheetAdminCode(this.value)" autocomplete="off" style="margin:3px 0 10px 0;">
+                    <label style="font-size:0.8em; color:#555;">Ancienne méthode — ID du Google Sheet</label>
+                    <input type="text" id="sheet-id" placeholder="ID du Google Sheet (dans l'URL)" style="margin:3px 0 10px 0;">
+                    <label style="font-size:0.8em; color:#555;">Ancienne méthode — clé API Google (lecture)</label>
+                    <input type="text" id="sheet-api-key" placeholder="Clé API Google (lecture)" style="margin:3px 0 4px 0;">
+                    <button onclick="clearSheetLegacy()" style="width:auto; padding:5px 12px; font-size:0.8em; background:#c0392b; margin:6px 0 0 0;">
+                        <i class="fas fa-trash-alt"></i> Effacer l'ID et la clé API de ce navigateur
+                    </button>
+                </fieldset>
+
+                <a href="https://thomaspoullie.goatcounter.com" target="_blank" class="btn-admin" style="margin-top:10px;">
+                        <i class="fas fa-chart-line"></i> Statistiques de visite
+                    </a>
+            </section>
+
+            <!-- Fiche piégeur (fenêtre) -->
+            <div id="pg-modal" class="pg-overlay" onclick="if(event.target===this) pgCloseModal()">
+                <div class="pg-dialog">
+                    <h3 id="pg-modal-title" style="margin-top:0;">Fiche piégeur</h3>
+                    <div class="pg-grid">
+                        <label>Nom<input type="text" id="pg-nom" maxlength="100"></label>
+                        <label>Prénom<input type="text" id="pg-prenom" maxlength="100"></label>
+                        <label class="pg-wide">Adresse<input type="text" id="pg-adresse" maxlength="200" placeholder="N° et rue"></label>
+                        <label>Téléphone<input type="tel" id="pg-tel" maxlength="30"></label>
+                        <label>Email<input type="email" id="pg-email" maxlength="120"></label>
+                        <label class="pg-wide">Notes<textarea id="pg-notes" rows="2" maxlength="2000"></textarea></label>
+                    </div>
+                    <h4 style="margin:14px 0 8px 0; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                        Pièges mis à disposition
+                        <button class="pg-btn pg-btn-green" onclick="pgAddDot()"><i class="fas fa-plus"></i> Mise à disposition</button>
+                    </h4>
+                    <div id="pg-dots"></div>
+                    <div class="pg-actions">
+                        <button id="pg-btn-delete" class="pg-btn pg-btn-red" onclick="pgDeletePiegeur()"><i class="fas fa-trash-alt"></i> Supprimer</button>
+                        <span style="flex:1;"></span>
+                        <button class="pg-btn pg-btn-grey" onclick="pgCloseModal()">Annuler</button>
+                        <button class="pg-btn pg-btn-blue" onclick="pgSaveDraft()"><i class="fas fa-save"></i> Enregistrer</button>
+                    </div>
+                </div>
+            </div>
+
         </div><!-- fin #admin-panel -->
     </div>
 
@@ -637,33 +788,73 @@
             document.getElementById('sheet-hide-done').checked = localStorage.getItem('sheet_hide_done') === '1';
         }
 
+        async function fetchSheetViaScript(secret) {
+            const resp = await fetch(SHEET_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'lire', secret })
+            });
+            const json = await resp.json();   // lève une erreur si la réponse est illisible
+            if (!json.success) throw new Error(String(json.error || 'Échec').replace(/^Error:\s*/, ''));
+            if (!Array.isArray(json.values)) throw new Error('Réponse inattendue du script : redéployez-le (nouvelle version) pour activer la lecture.');
+            return json.values;
+        }
+
+        function clearSheetLegacy() {
+            if (!confirm("Effacer l'ID du Sheet et la clé API de ce navigateur ?")) return;
+            localStorage.removeItem('sheet_id');
+            localStorage.removeItem('sheet_api_key');
+            document.getElementById('sheet-id').value = '';
+            document.getElementById('sheet-api-key').value = '';
+        }
+
         async function loadSheet() {
             const sheetId  = document.getElementById('sheet-id').value.trim();
             const apiKey   = document.getElementById('sheet-api-key').value.trim();
+            const secret   = (localStorage.getItem('sheet_admin_secret') || '').trim();
             const statusEl = document.getElementById('sheet-status');
             const wrap     = document.getElementById('sheet-table-wrap');
             const table    = document.getElementById('sheet-table');
 
-            if (!sheetId || !apiKey) {
-                statusEl.innerHTML = '<span style="color:#e74c3c;">⚠️ Renseignez l\'ID du Sheet et la clé API.</span>';
+            const hasScript = !!(secret && SHEET_SCRIPT_URL);
+            const hasApi    = !!(sheetId && apiKey);
+            if (!hasScript && !hasApi) {
+                statusEl.innerHTML = '<span style="color:#e74c3c;">⚠️ Renseignez le code admin (onglet ⚙️ Réglages).</span>';
                 return;
             }
-
-            // Sauvegarde locale pour la prochaine fois
-            localStorage.setItem('sheet_id',      sheetId);
-            localStorage.setItem('sheet_api_key', apiKey);
+            if (hasApi) {
+                localStorage.setItem('sheet_id',      sheetId);
+                localStorage.setItem('sheet_api_key', apiKey);
+            }
 
             statusEl.innerHTML = '<span style="color:#888;"><i class="fas fa-spinner fa-spin"></i> Chargement...</span>';
-            wrap.style.display = 'none';
 
+            // 1. Méthode sécurisée : lecture par le script Apps Script (le Sheet peut rester privé)
+            if (hasScript) {
+                try {
+                    const values = await fetchSheetViaScript(secret);
+                    renderSheetTable(values, table, wrap, statusEl);
+                    statusEl.innerHTML += ' <span style="color:#888;">· lecture sécurisée</span>';
+                    return;
+                } catch (e) {
+                    console.warn('Lecture via le script impossible :', e);
+                    if (!hasApi) {
+                        statusEl.innerHTML = `<span style="color:#e74c3c;">❌ ${escHtml(e.message)}</span>
+                            <br><small style="color:#888;">Vérifiez le code admin et que le script a été redéployé (nouvelle version).</small>`;
+                        wrap.style.display = 'none';
+                        return;
+                    }
+                    // sinon : repli sur l'ancienne méthode ci-dessous
+                }
+            }
+
+            wrap.style.display = 'none';
             try {
-                // On lit l'onglet 1 (Sheet1 / Feuille 1) — toutes les colonnes
+                // Ancienne méthode : clé API (nécessite un Sheet partagé par lien)
                 const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Réponses au formulaire 1`
                     + `?key=${apiKey}&valueRenderOption=FORMATTED_VALUE`;
 
                 const resp = await fetch(url);
                 if (!resp.ok) {
-                    // Essai avec le nom français si Sheet1 échoue
                     if (resp.status === 400) {
                         return loadSheetTab(sheetId, apiKey, 'Feuille 1', statusEl, wrap, table);
                     }
@@ -674,7 +865,7 @@
                 renderSheetTable(data.values || [], table, wrap, statusEl);
 
             } catch(e) {
-                statusEl.innerHTML = `<span style="color:#e74c3c;">❌ ${e.message}</span>
+                statusEl.innerHTML = `<span style="color:#e74c3c;">❌ ${escHtml(e.message)}</span>
                     <br><small style="color:#888;">Vérifiez que la clé API est valide et que le Sheet est partagé en lecture.</small>`;
                 wrap.style.display = 'none';
                 console.error('loadSheet:', e);
@@ -803,7 +994,7 @@
             const canWrite  = sheetCanWrite();
 
             // En-tête : colonne « Traité » regroupée en première position
-            let html = '<thead><tr>' + (hasTraite ? '<th title="Traité">✔</th>' : '')
+            let html = '<thead><tr>' + (hasTraite ? '<th title="Traité">✔</th>' : '') + '<th title="Pré-remplir la saisie de capture">➜</th>'
                 + c.headers.map((h, i) => i === c.traite ? '' : `<th>${escHtml(h)}</th>`).join('')
                 + '</tr></thead><tbody>';
 
@@ -822,7 +1013,8 @@
                     const badge = (i === Math.max(c.date, 0) && r.isNew) ? '<span class="badge-new">NOUVEAU</span>' : '';
                     return `<td>${escHtml(r.cells[i])}${badge}</td>`;
                 }).join('');
-                return `<tr class="${cls}" data-row="${r.sheetRow}">${check}${tds}</tr>`;
+                const act = `<td class="cell-act"><button class="btn-saisir" title="Pré-remplir la saisie de capture avec cette réponse" onclick="prefillFromRow(${r.sheetRow})">➜</button></td>`;
+                return `<tr class="${cls}" data-row="${r.sheetRow}">${check}${act}${tds}</tr>`;
             }).join('');
 
             table.innerHTML = html + '</tbody>';
@@ -835,6 +1027,11 @@
             const todo = _sheetRows.filter(r => !r.done).length;
             const done = _sheetRows.length - todo;
             const news = _sheetRows.filter(r => r.isNew).length;
+            const tabBadge = document.getElementById('tab-badge-signalements');
+            if (tabBadge) {
+                tabBadge.textContent = todo;
+                tabBadge.style.display = (_sheetCols.traite >= 0 && todo > 0) ? 'inline-block' : 'none';
+            }
 
             if (_sheetCols.traite < 0) {
                 el.innerHTML = `<span style="color:#b9770e;">⚠️ Colonne « Traité » absente — dans le Sheet : menu <b>🐝 Frelon ▸ Préparer la colonne « Traité »</b>.</span>`
@@ -886,6 +1083,443 @@
             } else {
                 statusEl.innerHTML = `<span style="color:#27ae60;">✅ ${_sheetRows.length} réponse(s) chargée(s) — dernière modification enregistrée</span>`;
             }
+        }
+
+        // ─────────────────────────────────────────
+        // ONGLETS
+        // ─────────────────────────────────────────
+        function switchAdminTab(name) {
+            document.querySelectorAll('.admin-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+            document.querySelectorAll('.admin-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+            try { localStorage.setItem('admin_tab', name); } catch (e) {}
+            if (name === 'piegeurs') { renderPiegeurs(); renderBackupBanner(); pgRequestPersist(); }
+        }
+
+        function restoreAdminTab() {
+            const t = localStorage.getItem('admin_tab');
+            // L'onglet Piégeurs (données personnelles) n'est jamais rouvert automatiquement
+            if (t && t !== 'piegeurs' && document.getElementById('tab-' + t)) switchAdminTab(t);
+        }
+
+        function stripAccents(s) {
+            return String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        }
+
+        // ─────────────────────────────────────────
+        // PRÉ-REMPLISSAGE DE LA SAISIE DEPUIS UNE RÉPONSE
+        // ─────────────────────────────────────────
+        // Noms de rues = clés de GPS_MAPPING (dashboard.js) : indispensable pour que la carte place le point
+        const RUES_CONNUES = [
+            ["impasse jules elby",     ["impasse jules elby", "impasse elby"]],
+            ["rue jules elby",         ["jules elby", "elby"]],
+            ["rue de l'église",        ["eglise"]],
+            ["grande rue",             ["grande rue"]],
+            ["rue du 14 juillet",      ["14 juillet"]],
+            ["rue de la petite ville", ["petite ville"]],
+            ["rue du 8 mai 1945",      ["8 mai"]],
+            ["rue du chateau",         ["chateau"]],
+            ["rue du 19 mars 1962",    ["19 mars"]],
+            ["rue du 11 novembre",     ["11 novembre"]]
+        ];
+
+        function normaliserLieu(raw) {
+            const txt = String(raw ?? '').trim().replace(/[’`´]/g, "'");
+            const low = stripAccents(txt.toLowerCase());
+            for (const [canon, needles] of RUES_CONNUES) {
+                if (needles.some(n => low.includes(n))) return { value: canon, known: true };
+            }
+            return { value: txt.replace(/^\s*\d+\s*(bis|ter)?\s*[,.\-]?\s*/i, ''), known: false };
+        }
+
+        function prefillFromRow(sheetRow) {
+            const r = _sheetRows.find(x => x.sheetRow === sheetRow);
+            if (!r || !_sheetCols) return;
+            const c = _sheetCols;
+            const idx = (re, fb) => { const i = c.headers.findIndex(h => re.test(normHeader(h))); return i >= 0 ? i : fb; };
+            const lieuIdx = idx(/^lieu/, 2), nbIdx = idx(/^nombre/, 3);
+
+            const d = c.date >= 0 ? parseFrDateTime(r.cells[c.date]) : null;
+            const pad = n => String(n).padStart(2, '0');
+            const iso = d ? `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` : '';
+            const lieu = normaliserLieu(r.cells[lieuIdx]);
+            const nb = parseInt(String(r.cells[nbIdx] ?? '').replace(/\D/g, ''), 10) || 1;
+
+            if (iso) document.getElementById('new-date').value = iso;
+            document.getElementById('new-lieu').value   = lieu.value;
+            document.getElementById('new-nombre').value = nb;
+            ['new-date', 'new-lieu', 'new-nombre'].forEach(id => {
+                const el = document.getElementById(id);
+                el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+            });
+
+            const src = document.getElementById('saisie-source');
+            src.style.display = 'block';
+            src.innerHTML = `Pré-rempli depuis la réponse de <b>${escHtml(r.cells[c.nom])}</b> (${escHtml(r.cells[c.date] ?? '')}).<br>`
+                + `Lieu saisi : « ${escHtml(r.cells[lieuIdx])} » → `
+                + (lieu.known ? `<b>${escHtml(lieu.value)}</b> ✅ rue reconnue`
+                              : `<span style="color:#c0392b;"><b>rue non reconnue</b> — corrigez le lieu (sinon la carte le placera au hasard)</span>`)
+                + `<br><small>La date est celle de la déclaration : ajustez-la si la capture est antérieure. `
+                + `Cliquez sur <b>+</b>, envoyez vers GitHub, puis cochez « traité ».</small>`;
+            document.getElementById('saisie-block').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // ─────────────────────────────────────────
+        // PIÉGEURS — données personnelles, stockées UNIQUEMENT dans ce navigateur
+        //   • fiches : localStorage ('piegeurs_v1')
+        //   • scans PDF des contrats : IndexedDB ('frelon_piegeurs')
+        //   • sauvegarde / restauration : fichier .json (PDF inclus)
+        // ─────────────────────────────────────────
+        const PG_KEY = 'piegeurs_v1';
+        const PG_MAX_PDF = 15 * 1024 * 1024;
+
+        function pgLoad() {
+            try { const a = JSON.parse(localStorage.getItem(PG_KEY) || '[]'); return Array.isArray(a) ? a : []; }
+            catch (e) { return []; }
+        }
+        function pgSave(list) {
+            localStorage.setItem(PG_KEY, JSON.stringify(list));
+            localStorage.setItem('piegeurs_dirty', '1');
+        }
+        function pgSafeId(x) { return String(x ?? '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 64); }
+        function pgNewId() {
+            return pgSafeId((window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+                : 'id' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8));
+        }
+        function fmtDate(iso) {
+            const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+            return m ? `${m[3]}/${m[2]}/${m[1]}` : '';
+        }
+        function todayIso() {
+            const d = new Date(), p = n => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+        }
+        function pgRequestPersist() {
+            try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+        }
+
+        // IndexedDB (PDF)
+        function pgDb() {
+            return new Promise((resolve, reject) => {
+                if (!window.indexedDB) return reject(new Error('IndexedDB indisponible dans ce navigateur'));
+                const rq = indexedDB.open('frelon_piegeurs', 1);
+                rq.onupgradeneeded = () => rq.result.createObjectStore('contrats');
+                rq.onsuccess = () => resolve(rq.result);
+                rq.onerror   = () => reject(rq.error);
+            });
+        }
+        async function pgIdb(mode, fn) {
+            const db = await pgDb();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction('contrats', mode);
+                let out;
+                const rq = fn(tx.objectStore('contrats'));
+                if (rq) rq.onsuccess = () => { out = rq.result; };
+                tx.oncomplete = () => { db.close(); resolve(out); };
+                tx.onerror = tx.onabort = () => { db.close(); reject(tx.error || new Error('Erreur IndexedDB')); };
+            });
+        }
+        const idbPut = (k, v) => pgIdb('readwrite', st => st.put(v, k));
+        const idbGet = (k)    => pgIdb('readonly',  st => st.get(k));
+        const idbDel = (k)    => pgIdb('readwrite', st => st.delete(k));
+
+        function readAsArrayBuffer(file) {
+            return new Promise((resolve, reject) => {
+                const fr = new FileReader();
+                fr.onload  = () => resolve(fr.result);
+                fr.onerror = () => reject(fr.error);
+                fr.readAsArrayBuffer(file);
+            });
+        }
+        function abToBase64(buf) {
+            const bytes = new Uint8Array(buf); let bin = '';
+            for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+            return btoa(bin);
+        }
+        function base64ToAb(b64) {
+            const bin = atob(b64), bytes = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+            return bytes.buffer;
+        }
+
+        // Statut d'un piégeur
+        const pgDots   = p => Array.isArray(p.dotations) ? p.dotations : [];
+        const pgActive = p => pgDots(p).filter(d => !d.dateRetour);
+        function pgStatus(p) { return !pgDots(p).length ? 'sans' : (pgActive(p).length ? 'actif' : 'rendu'); }
+        const pgSorted = p => [...pgDots(p)].sort((a, b) => String(b.dateMise || '').localeCompare(String(a.dateMise || '')));
+
+        function renderPiegeurs() {
+            const table = document.getElementById('pg-table');
+            if (!table) return;
+            const list   = pgLoad();
+            const q      = stripAccents(document.getElementById('pg-search').value.toLowerCase().trim());
+            const filter = document.getElementById('pg-filter').value;
+
+            const nAct = list.filter(p => pgStatus(p) === 'actif').length;
+            const nRen = list.filter(p => pgStatus(p) === 'rendu').length;
+            const nMis = list.filter(p => pgActive(p).some(d => !d.contratNom)).length;
+            document.getElementById('pg-counters').innerHTML =
+                `<b>${list.length}</b> piégeur(s) · <b>${nAct}</b> piège(s) actif(s) · ${nRen} rendu(s)`
+                + (nMis ? ` · <span class="pg-warn">${nMis} contrat(s) manquant(s)</span>` : '');
+
+            const rows = list.filter(p => {
+                const st = pgStatus(p);
+                if (filter === 'actif' && st !== 'actif') return false;
+                if (filter === 'rendu' && st !== 'rendu') return false;
+                if (filter === 'sans'  && st !== 'sans')  return false;
+                if (filter === 'nocontrat' && !pgActive(p).some(d => !d.contratNom)) return false;
+                if (!q) return true;
+                return stripAccents([p.nom, p.prenom, p.adresse, p.tel, p.email, p.notes].join(' ').toLowerCase()).includes(q);
+            }).sort((a, b) => String(a.nom || '').localeCompare(String(b.nom || ''), 'fr')
+                           || String(a.prenom || '').localeCompare(String(b.prenom || ''), 'fr'));
+
+            if (!list.length) {
+                table.innerHTML = '<tbody><tr><td style="padding:18px; color:#999; text-align:center; cursor:default;">Aucun piégeur enregistré. Cliquez sur « Nouveau » ou importez une sauvegarde.</td></tr></tbody>';
+                return;
+            }
+
+            const body = rows.map(p => {
+                const st = pgStatus(p), dots = pgSorted(p), last = dots[0];
+                let piege = '<span class="pg-badge pg-sans">Aucun</span>', contrat = '—';
+                if (st === 'actif') {
+                    const act = pgActive(p).sort((a, b) => String(b.dateMise || '').localeCompare(String(a.dateMise || '')));
+                    piege = `<span class="pg-badge pg-actif">Actif</span> depuis le ${fmtDate(act[0].dateMise) || '?'}`
+                          + (act.length > 1 ? ` (${act.length} pièges)` : '');
+                    contrat = act.map(d => d.contratNom
+                        ? `<a href="#" onclick="event.stopPropagation(); openContrat('${pgSafeId(d.id)}'); return false;">📄 PDF</a>`
+                        : '<span class="pg-warn">⚠️ manquant</span>').join('<br>');
+                } else if (st === 'rendu') {
+                    piege = `<span class="pg-badge pg-rendu">Rendu</span> ${fmtDate(last.dateMise) || '?'} → ${fmtDate(last.dateRetour) || '?'}`;
+                    contrat = last.contratNom
+                        ? `<a href="#" onclick="event.stopPropagation(); openContrat('${pgSafeId(last.id)}'); return false;">📄 PDF</a>` : '—';
+                }
+                if (dots.length > 1) piege += `<br><small style="color:#999;">${dots.length} mises à disposition</small>`;
+                const tel   = p.tel   ? `<a href="tel:${escHtml(p.tel)}" onclick="event.stopPropagation();">${escHtml(p.tel)}</a>` : '';
+                const email = p.email ? `<a href="mailto:${escHtml(p.email)}" onclick="event.stopPropagation();">${escHtml(p.email)}</a>` : '';
+                return `<tr onclick="openPiegeur('${pgSafeId(p.id)}')">
+                    <td><b>${escHtml(p.nom)}</b> ${escHtml(p.prenom)}</td>
+                    <td>${escHtml(p.adresse)}</td>
+                    <td>${tel}${tel && email ? '<br>' : ''}${email}</td>
+                    <td>${piege}</td>
+                    <td>${contrat}</td>
+                </tr>`;
+            }).join('');
+
+            table.innerHTML = '<thead><tr><th>Nom</th><th>Adresse</th><th>Contact</th><th>Piège</th><th>Contrat</th></tr></thead><tbody>'
+                + (body || '<tr><td colspan="5" style="padding:14px; color:#999; text-align:center; cursor:default;">Aucun résultat.</td></tr>')
+                + '</tbody>';
+        }
+
+        function renderBackupBanner() {
+            const el = document.getElementById('pg-backup');
+            if (!el) return;
+            const n = pgLoad().length;
+            const last = localStorage.getItem('piegeurs_last_export');
+            const lastTxt = last ? new Date(last).toLocaleDateString('fr-FR') : null;
+            if (!n) { el.innerHTML = ''; return; }
+            el.innerHTML = localStorage.getItem('piegeurs_dirty') === '1'
+                ? `<span style="color:#c0392b;">⚠️ Modifications non sauvegardées dans un fichier ${lastTxt ? `(dernier export : ${lastTxt})` : '(aucun export à ce jour)'}.</span>`
+                : `<span style="color:#27ae60;">✅ Sauvegarde à jour (export du ${lastTxt}).</span>`;
+        }
+
+        // ── Fiche (fenêtre) ──
+        let _pgDraft = null;
+        let _pgFiles = {};            // id de mise à disposition → File choisi (écrit à l'enregistrement)
+        let _pgDeletedPdf = [];       // ids dont le PDF doit être supprimé
+
+        function openPiegeur(id) {
+            const p = id ? pgLoad().find(x => x.id === id) : null;
+            _pgDraft = p ? JSON.parse(JSON.stringify(p))
+                         : { id: pgNewId(), nom: '', prenom: '', adresse: '', tel: '', email: '', notes: '', dotations: [] };
+            _pgDraft.dotations = pgDots(_pgDraft);
+            _pgFiles = {}; _pgDeletedPdf = [];
+            ['nom', 'prenom', 'adresse', 'tel', 'email', 'notes'].forEach(k => { document.getElementById('pg-' + k).value = _pgDraft[k] || ''; });
+            document.getElementById('pg-modal-title').textContent = p ? 'Fiche piégeur' : 'Nouveau piégeur';
+            document.getElementById('pg-btn-delete').style.display = p ? '' : 'none';
+            renderDotations();
+            document.getElementById('pg-modal').classList.add('active');
+        }
+
+        function pgCloseModal() {
+            document.getElementById('pg-modal').classList.remove('active');
+            _pgDraft = null; _pgFiles = {}; _pgDeletedPdf = [];
+        }
+
+        function renderDotations() {
+            const box = document.getElementById('pg-dots');
+            const dots = pgSorted(_pgDraft);
+            if (!dots.length) { box.innerHTML = '<p style="color:#999; font-size:0.85em; margin:0;">Aucune mise à disposition enregistrée.</p>'; return; }
+            box.innerHTML = dots.map(d => {
+                const id = pgSafeId(d.id);
+                const contrat = d.contratNom
+                    ? `📄 <a href="#" onclick="openContrat('${id}'); return false;">${escHtml(d.contratNom)}</a>
+                       <button class="pg-btn pg-btn-grey" style="padding:2px 8px;" onclick="pgRemoveContrat('${id}')">Retirer</button>`
+                    : `<span class="pg-warn">⚠️ Pas de contrat</span>
+                       <input type="file" accept="application/pdf,.pdf" onchange="pgPickContrat('${id}', this)" style="font-size:0.85em; width:auto; margin:0;">`;
+                return `<div class="pg-dot">
+                    <div class="pg-dot-row">
+                        <label>Mis à disposition le<input type="date" value="${escHtml(d.dateMise)}" onchange="pgDotField('${id}','dateMise',this.value)"></label>
+                        <label>Rendu le (vide = en cours)<input type="date" value="${escHtml(d.dateRetour)}" onchange="pgDotField('${id}','dateRetour',this.value)"></label>
+                        <label>Référence du piège<input type="text" maxlength="60" value="${escHtml(d.ref)}" onchange="pgDotField('${id}','ref',this.value)"></label>
+                    </div>
+                    <div class="pg-dot-actions">
+                        <span>${contrat}</span>
+                        <span style="flex:1;"></span>
+                        <button class="pg-btn pg-btn-grey" style="padding:3px 10px;" onclick="pgDotField('${id}','dateRetour','${todayIso()}'); renderDotations();">Rendu aujourd'hui</button>
+                        <button class="pg-btn pg-btn-red" style="padding:3px 10px;" onclick="pgDelDot('${id}')"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        const pgFindDot = id => _pgDraft.dotations.find(d => pgSafeId(d.id) === id);
+
+        function pgAddDot() {
+            _pgDraft.dotations.push({ id: pgNewId(), ref: '', dateMise: todayIso(), dateRetour: '', contratNom: '' });
+            renderDotations();
+        }
+        function pgDotField(id, field, value) {
+            const d = pgFindDot(id); if (d) d[field] = String(value || '').trim();
+        }
+        function pgDelDot(id) {
+            if (!confirm('Supprimer cette mise à disposition (et son contrat) ?')) return;
+            const d = pgFindDot(id); if (!d) return;
+            if (d.contratNom) _pgDeletedPdf.push(id);
+            delete _pgFiles[id];
+            _pgDraft.dotations = _pgDraft.dotations.filter(x => pgSafeId(x.id) !== id);
+            renderDotations();
+        }
+        function pgPickContrat(id, input) {
+            const f = input.files && input.files[0]; if (!f) return;
+            if (!(f.type === 'application/pdf' || /\.pdf$/i.test(f.name))) { alert('Fichier PDF uniquement.'); input.value = ''; return; }
+            if (f.size > PG_MAX_PDF) { alert('PDF trop volumineux (15 Mo maximum).'); input.value = ''; return; }
+            const d = pgFindDot(id); if (!d) return;
+            _pgFiles[id] = f; d.contratNom = f.name;
+            _pgDeletedPdf = _pgDeletedPdf.filter(x => x !== id);
+            renderDotations();
+        }
+        function pgRemoveContrat(id) {
+            const d = pgFindDot(id); if (!d) return;
+            if (!confirm('Retirer ce contrat ?')) return;
+            d.contratNom = ''; delete _pgFiles[id]; _pgDeletedPdf.push(id);
+            renderDotations();
+        }
+
+        async function openContrat(id) {
+            try {
+                let blob = _pgFiles[id] || null;
+                if (!blob) {
+                    const rec = await idbGet(id);
+                    if (rec) blob = new Blob([rec.data], { type: rec.type || 'application/pdf' });
+                }
+                if (!blob) { alert("PDF introuvable dans ce navigateur (importez votre sauvegarde ?)."); return; }
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+                setTimeout(() => URL.revokeObjectURL(url), 60000);
+            } catch (e) { alert('Impossible d\'ouvrir le PDF : ' + e.message); }
+        }
+
+        async function pgSaveDraft() {
+            const d = _pgDraft; if (!d) return;
+            const v = k => document.getElementById('pg-' + k).value.trim();
+            d.nom = v('nom').slice(0, 100); d.prenom = v('prenom').slice(0, 100); d.adresse = v('adresse').slice(0, 200);
+            d.tel = v('tel').slice(0, 30);  d.email = v('email').slice(0, 120);  d.notes = v('notes').slice(0, 2000);
+            if (!d.nom && !d.prenom) { alert('Renseignez au moins un nom ou un prénom.'); return; }
+            for (const x of d.dotations) {
+                if (!x.dateMise) { alert('Chaque mise à disposition doit avoir une date.'); return; }
+                if (x.dateRetour && x.dateRetour < x.dateMise) { alert('La date de retour précède la date de mise à disposition.'); return; }
+            }
+            try {
+                for (const [id, file] of Object.entries(_pgFiles)) {
+                    await idbPut(id, { data: await readAsArrayBuffer(file), nom: file.name, type: 'application/pdf', size: file.size });
+                }
+                for (const id of _pgDeletedPdf) await idbDel(id);
+            } catch (e) { alert("Impossible d'enregistrer le PDF : " + e.message); return; }
+
+            const list = pgLoad(), i = list.findIndex(x => x.id === d.id);
+            if (i >= 0) list[i] = d; else list.push(d);
+            pgSave(list);
+            pgCloseModal(); renderPiegeurs(); renderBackupBanner();
+        }
+
+        async function pgDeletePiegeur() {
+            const d = _pgDraft; if (!d) return;
+            if (!confirm(`Supprimer définitivement la fiche de ${d.nom || d.prenom} (et ses contrats) ?`)) return;
+            try { for (const x of pgDots(d)) if (x.contratNom) await idbDel(pgSafeId(x.id)); } catch (e) {}
+            pgSave(pgLoad().filter(x => x.id !== d.id));
+            pgCloseModal(); renderPiegeurs(); renderBackupBanner();
+        }
+
+        // ── Sauvegarde / restauration ──
+        function pgDownload(filename, blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = filename;
+            document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 5000);
+        }
+
+        async function exportPiegeurs() {
+            const list = pgLoad();
+            if (!list.length) { alert('Rien à exporter.'); return; }
+            const contrats = {}; let manquants = 0;
+            try {
+                for (const p of list) for (const d of pgDots(p)) {
+                    if (!d.contratNom) continue;
+                    const rec = await idbGet(pgSafeId(d.id));
+                    if (rec) contrats[pgSafeId(d.id)] = { nom: rec.nom, type: rec.type, base64: abToBase64(rec.data) };
+                    else manquants++;
+                }
+            } catch (e) { alert("Export impossible : " + e.message); return; }
+            const payload = { format: 'frelon-piegeurs', version: 1, exporte: new Date().toISOString(), piegeurs: list, contrats };
+            pgDownload(`piegeurs-sauvegarde-${todayIso()}.json`, new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+            localStorage.setItem('piegeurs_dirty', '0');
+            localStorage.setItem('piegeurs_last_export', new Date().toISOString());
+            renderBackupBanner();
+            if (manquants) alert(`${manquants} contrat(s) déclaré(s) mais introuvable(s) dans ce navigateur : non inclus dans la sauvegarde.`);
+        }
+
+        function pgCleanDate(x) { return /^\d{4}-\d{2}-\d{2}$/.test(String(x || '')) ? String(x) : ''; }
+        function pgCleanPiegeur(o) {
+            const str = (x, n) => String(x ?? '').slice(0, n);
+            return {
+                id: pgSafeId(o.id) || pgNewId(),
+                nom: str(o.nom, 100), prenom: str(o.prenom, 100), adresse: str(o.adresse, 200),
+                tel: str(o.tel, 30), email: str(o.email, 120), notes: str(o.notes, 2000),
+                dotations: (Array.isArray(o.dotations) ? o.dotations : []).map(d => ({
+                    id: pgSafeId(d && d.id) || pgNewId(),
+                    ref: str(d && d.ref, 60),
+                    dateMise: pgCleanDate(d && d.dateMise),
+                    dateRetour: pgCleanDate(d && d.dateRetour),
+                    contratNom: str(d && d.contratNom, 200)
+                }))
+            };
+        }
+
+        async function importPiegeurs(input) {
+            const f = input.files && input.files[0]; input.value = '';
+            if (!f) return;
+            try {
+                const data = JSON.parse(await f.text());
+                if (!data || data.format !== 'frelon-piegeurs' || !Array.isArray(data.piegeurs)) throw new Error('Fichier non reconnu');
+                if (!confirm(`Importer ${data.piegeurs.length} fiche(s) ? Les fiches ayant le même identifiant seront remplacées, les autres conservées.`)) return;
+
+                const list = pgLoad();
+                data.piegeurs.forEach(o => {
+                    const p = pgCleanPiegeur(o || {});
+                    const i = list.findIndex(x => x.id === p.id);
+                    if (i >= 0) list[i] = p; else list.push(p);
+                });
+                let nPdf = 0;
+                for (const [id, c] of Object.entries(data.contrats || {})) {
+                    const key = pgSafeId(id); if (!key || !c || !c.base64) continue;
+                    await idbPut(key, { data: base64ToAb(c.base64), nom: String(c.nom || 'contrat.pdf').slice(0, 200), type: 'application/pdf', size: 0 });
+                    nPdf++;
+                }
+                pgSave(list);
+                localStorage.setItem('piegeurs_dirty', '0');
+                renderPiegeurs(); renderBackupBanner();
+                alert(`Import terminé : ${data.piegeurs.length} fiche(s), ${nPdf} contrat(s) PDF.`);
+            } catch (e) { alert("Import impossible : " + e.message); }
         }
 
         // ─────────────────────────────────────────
@@ -1108,6 +1742,7 @@
             // Listes locales (sync, pas de réseau)
             renderPendingList();
             renderPhotoPendingList();
+            restoreAdminTab();
             document.getElementById('new-date').valueAsDate  = new Date();
             document.getElementById('photo-date').valueAsDate = new Date();
             // Indicateur clé API
@@ -1121,7 +1756,8 @@
                 loadCampaignStatus();
                 loadPhotoFiles();
                 // Réponses du formulaire : chargées d'office si l'ID et la clé sont déjà enregistrés
-                if (localStorage.getItem('sheet_id') && localStorage.getItem('sheet_api_key')) loadSheet();
+                if (localStorage.getItem('sheet_admin_secret')
+                    || (localStorage.getItem('sheet_id') && localStorage.getItem('sheet_api_key'))) loadSheet();
             }, 200);
         }
 
