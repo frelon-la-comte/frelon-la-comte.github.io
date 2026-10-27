@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archives des Saisons - Frelon La Comté</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    if (window.localStorage.getItem('skip-gc') === 'true') {
+        window.goatcounter = {no_onload: true}
+    }
+    </script>
+    <script data-goatcounter="https://thomaspoullie.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+    <style>
+        .archive-season {
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 18px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+
+        .archive-season-header {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            color: white;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s;
+        }
+
+        .archive-season-header:hover {
+            background: linear-gradient(135deg, #3d5570, #34495e);
+        }
+
+        .archive-season-header h3 {
+            margin: 0;
+            color: white;
+            font-size: 1.1em;
+        }
+
+        .archive-season-header .season-total {
+            background: #d35400;
+            color: white;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .archive-season-header .toggle-icon {
+            transition: transform 0.3s;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .archive-season-header.open .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .archive-season-body {
+            display: none;
+            padding: 0 20px 15px;
+            background: white;
+        }
+
+        .archive-season-body.open {
+            display: block;
+        }
+
+        /* Résumé visuel de la saison */
+        .season-summary-bar {
+            display: flex;
+            gap: 20px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .season-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 10px 16px;
+            border-radius: 8px;
+            min-width: 80px;
+        }
+
+        .season-stat .stat-value {
+            font-size: 1.6em;
+            font-weight: bold;
+            color: #d35400;
+        }
+
+        .season-stat .stat-label {
+            font-size: 0.75em;
+            color: #888;
+            text-align: center;
+            margin-top: 2px;
+        }
+
+        /* ========================================
+           GRAPHIQUE TEMPOREL DANS L'ARCHIVE
+        ======================================== */
+        .archive-chart-section {
+            margin: 16px 0 10px 0;
+            background: #fafafa;
+            border: 1px solid #ececec;
+            border-radius: 10px;
+            padding: 14px 16px 10px;
+        }
+
+        .archive-chart-section h4 {
+            margin: 0 0 10px 0;
+            color: #34495e;
+            font-size: 0.95em;
+        }
+
+        .archive-chart-wrapper {
+            position: relative;
+            height: 260px;
+        }
+
+        .archive-chart-note {
+            font-size: 0.78em;
+            color: #999;
+            margin-top: 8px;
+        }
+
+        .btn-export-archive {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #27ae60;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 0.8em;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(39,174,96,0.25);
+            transition: all 0.2s ease;
+            margin-top: 8px;
+            width: auto;
+            margin-bottom: 0;
+        }
+        .btn-export-archive:hover {
+            background-color: #2ecc71;
+            transform: translateY(-1px);
+        }
+
+        /* Liste paginée dans l'archive */
+        .archive-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .archive-pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .archive-pagination button {
+            width: auto;
+            padding: 6px 14px;
+            font-size: 0.85em;
+            margin: 0;
+        }
+
+        .archive-pagination button:disabled {
+            background: #ccc;
+            cursor: default;
+        }
+
+        .archive-pagination .page-indicator {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .no-archives {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .no-archives i {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            display: block;
+        }
+                /* ── Bouton export rapport ── */
+        .btn-export-rapport {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: #2980b9;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background 0.2s;
+            width: auto;
+            margin-top: 0;
+            flex-shrink: 0;
+        }
+        .btn-export-rapport:hover { background: #3498db; }
+
+        @media print {
+            @page { size: A4 portrait; margin: 15mm 20mm; }
+            body > *:not(#print-rapport) { display: none !important; }
+            #print-rapport {
+                display: block !important;
+                font-family: 'Segoe UI', sans-serif;
+                font-size: 11px;
+                color: #333;
+            }
+            #print-rapport h1 { color: #d35400; font-size: 18px; margin-bottom: 4px; }
+            #print-rapport .rapport-meta {
+                color: #666; font-size: 10px; margin-bottom: 16px;
+                border-bottom: 2px solid #d35400; padding-bottom: 8px;
+            }
+            #print-rapport .rapport-stats {
+                display: flex; gap: 16px; margin-bottom: 14px; flex-wrap: wrap;
+            }
+            #print-rapport .stat-box {
+                background: #f8f9fa; border: 1px solid #ddd;
+                padding: 8px 14px; border-radius: 4px; text-align: center;
+                -webkit-print-color-adjust: exact; print-color-adjust: exact;
+            }
+            #print-rapport .stat-box .val {
+                font-size: 1.8em; font-weight: bold; color: #d35400; display: block;
+            }
+            #print-rapport .stat-box .lbl { font-size: 0.8em; color: #888; }
+            #print-rapport table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 10px; }
+            #print-rapport th {
+                background: #d35400; color: white; padding: 5px 8px; text-align: left;
+                -webkit-print-color-adjust: exact; print-color-adjust: exact;
+            }
+            #print-rapport td { padding: 4px 8px; border-bottom: 1px solid #eee; }
+            #print-rapport tr:nth-child(even) td {
+                background: #fff8f5;
+                -webkit-print-color-adjust: exact; print-color-adjust: exact;
+            }
+            #print-rapport .rapport-footer {
+                margin-top: 14px; font-size: 9px; color: #aaa;
+                border-top: 1px solid #eee; padding-top: 6px;
+            }
+        }
+
+        /* ── Graphique inter-annuel ── */
+        .interannual-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.09);
+            padding: 22px 26px;
+            margin-bottom: 24px;
+        }
+        .chart-loading {
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 20px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .interannual-card h2 { margin: 0 0 4px 0; font-size: 1.15em; color: #2c3e50; }
+        .interannual-card .subtitle { font-size: 0.82em; color: #888; margin-bottom: 16px; }
+        .chart-toggle { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+        .chart-toggle button {
+            width: auto; padding: 6px 16px; font-size: 0.82em;
+            border-radius: 20px; margin: 0;
+            background: #f0f2f5; color: #555; border: 1px solid #ddd; transition: all 0.2s;
+            font-weight: 600; cursor: pointer;
+        }
+        .chart-toggle button.active { background: #d35400; color: white; border-color: #d35400; }
+        .chart-toggle button:hover:not(.active) { background: #e0e4e8; }
+        .chart-container { position: relative; height: 300px; }
+        .no-data-chart {
+            height: 300px; display: flex; align-items: center; justify-content: center;
+            color: #ccc; font-size: 0.9em; flex-direction: column; gap: 10px;
+            border: 2px dashed #eee; border-radius: 8px;
+        }
+        .stats-summary {
+            display: flex; gap: 12px; margin-top: 18px; flex-wrap: wrap;
+            border-top: 1px solid #f0f0f0; padding-top: 16px;
+        }
+        .stat-pill {
+            background: #f8f9fa; border-radius: 8px; padding: 10px 16px;
+            font-size: 0.82em; color: #777; flex: 1; min-width: 110px; text-align: center;
+            border: 1px solid #efefef;
+        }
+        .stat-pill strong {
+            display: block;
+            font-size: 1.5em;
+            color: #d35400;
+            line-height: 1.2;
+            margin-bottom: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><i class="fas fa-archive"></i> Archives des Saisons</h1>
+        <p>Bilans annuels de la lutte contre le frelon asiatique à La Comté</p>
+        <nav class="main-nav">
+            <a href="index.html" class="nav-button"><i class="fas fa-home"></i> Retour Accueil</a>
+            <a href="dashboard.html" class="nav-button"><i class="fas fa-chart-line"></i> Saison en cours</a>
+        </nav>
+    </header>
+
+    <main>
+                <!-- GRAPHIQUE INTER-ANNUEL -->
+        <div class="interannual-card">
+            <h2><i class="fas fa-chart-bar" style="color:#d35400;"></i> Évolution inter-annuelle</h2>
+            <p class="subtitle">Comparaison des saisons de piégeage — toutes les archives disponibles</p>
+            <div class="chart-toggle">
+                <button class="active" onclick="switchMetric('total', this)">Total fondatrices</button>
+                <button onclick="switchMetric('signalements', this)">Nb signalements</button>
+                <button onclick="switchMetric('lieux', this)">Lieux distincts</button>
+                <button onclick="switchMetric('ratio', this)">Fondatrices / lieu</button>
+            </div>
+            <div class="chart-container">
+                <canvas id="interannualChart"></canvas>
+                <div class="no-data-chart" id="no-data-msg" style="display:none;">
+                    <i class="fas fa-box-open" style="font-size:2em;"></i>
+                    Aucune archive disponible pour le moment.
+                </div>
+            </div>
+            <div class="stats-summary" id="stats-summary"></div>
+        </div>
+        <section class="card card-compact">
+            <p style="color:#555; font-size:0.95em;">
+                <i class="fas fa-info-circle" style="color:#d35400;"></i>
+                Retrouvez ici les bilans complets de chaque saison de piégeage. Cliquez sur une saison pour afficher le détail des captures et le graphique d'évolution.
+            </p>
+            <div id="archives-container">
+                <p><i class="fas fa-spinner fa-spin"></i> Chargement des archives...</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 - La Comté au coeur de la ruche</p>
+        <p><a href="mentions-legales.html" style="color: #666; text-decoration: underline; font-size: 0.8em;">Mentions Légales & RGPD</a></p>
+    </footer>
+
+    <script src="config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ARCHIVE_PAGE_SIZE = 5;
+        const archivePages = {};
+        const loadedSeasons = {};
+
+        // Stockage des instances Chart.js par saison (pour destroy propre)
+        const archiveCharts = {};
+
+        // ── GRAPHIQUE INTER-ANNUEL ─────────────────────────────────────────────
+        let interannualData = [];
+        let interannualChart = null;
+        let currentMetric = 'total';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadArchives();
+            loadInterannualData();
+        });
+
+        async function loadInterannualData() {
+            const canvas = document.getElementById('interannualChart');
+            const noData = document.getElementById('no-data-msg');
+
+            try {
+                const resp = await fetch('archives.json');
+                if (!resp.ok) throw new Error('Aucune archive');
+                const index = await resp.json();
+
+                if (!index || !index.length) {
+                    noData.style.display = 'flex';
+                    canvas.style.display = 'none';
+                    return;
+                }
+
+                // Initialise avec les données de l'index (total connu)
+                interannualData = index.map(s => ({
+                    year: s.year,
+                    total: s.total,
+                    signalements: null,
+                    lieux: null,
+                    ratio: null
+                }));
+
+                // Charge les détails de chaque saison en parallèle
+                await Promise.all(index.map(async (s, i) => {
+                    try {
+                        const r = await fetch(s.file);
+                        const data = await r.json();
+                        interannualData[i].signalements = data.length;
+                        const lieuxDistincts = new Set(data.map(d => d.lieu.trim().toLowerCase())).size;
+                        interannualData[i].lieux = lieuxDistincts;
+                        interannualData[i].ratio = lieuxDistincts > 0
+                            ? parseFloat((s.total / lieuxDistincts).toFixed(1))
+                            : 0;
+                    } catch(e) { /* données partiellement indisponibles */ }
+                }));
+
+                // Trier par année croissante pour l'affichage
+                interannualData.sort((a, b) => a.year - b.year);
+
+                buildInterannualChart('total');
+                buildStatsSummary();
+
+            } catch(e) {
+                noData.style.display = 'flex';
+                canvas.style.display = 'none';
+                console.warn('Inter-annuel:', e);
+            }
+        }
+
+        function switchMetric(metric, btn) {
+            currentMetric = metric;
+            document.querySelectorAll('.chart-toggle button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            buildInterannualChart(metric);
+        }
+
+        function buildInterannualChart(metric) {
+            const canvas = document.getElementById('interannualChart');
+            const noData = document.getElementById('no-data-msg');
+
+            if (!interannualData.length) {
+                noData.style.display = 'flex';
+                canvas.style.display = 'none';
+                return;
+            }
+
+            noData.style.display = 'none';
+            canvas.style.display = '';
+
+            const metricMap = {
+                total:        { key: 'total',        label: 'Fondatrices piégées', color: '#d35400', unit: 'fondatrices' },
+                signalements: { key: 'signalements',  label: 'Signalements',        color: '#2980b9', unit: 'signalements' },
+                lieux:        { key: 'lieux',         label: 'Lieux distincts',     color: '#27ae60', unit: 'lieux' },
+                ratio:        { key: 'ratio',         label: 'Fondatrices / lieu',  color: '#8e44ad', unit: 'fond./lieu' }
+            };
+            const m = metricMap[metric];
+            const labels = interannualData.map(d => 'Saison ' + d.year);
+            const values = interannualData.map(d => d[m.key] ?? 0);
+            const maxVal = Math.max(...values);
+
+            if (interannualChart) { interannualChart.destroy(); interannualChart = null; }
+
+            interannualChart = new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: m.label,
+                        data: values,
+                        backgroundColor: values.map(v =>
+                            v === maxVal ? m.color : m.color + '55'
+                        ),
+                        borderColor: m.color,
+                        borderWidth: 2,
+                        borderRadius: 7,
+                        hoverBackgroundColor: m.color
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => ` ${ctx.parsed.y} ${m.unit}`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: metric === 'ratio' ? 1 : 0, font: { size: 11 } },
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            title: { display: true, text: m.label, font: { size: 11 }, color: m.color }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 12, weight: '600' } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function buildStatsSummary() {
+            if (!interannualData.length) return;
+            const grandTotal = interannualData.reduce((a, d) => a + d.total, 0);
+            const best = interannualData.reduce((a, b) => b.total > a.total ? b : a);
+            const moy = Math.round(grandTotal / interannualData.length);
+
+            document.getElementById('stats-summary').innerHTML = `
+                <div class="stat-pill"><strong>${grandTotal}</strong>Total toutes saisons</div>
+                <div class="stat-pill"><strong>${interannualData.length}</strong>Saisons archivées</div>
+                <div class="stat-pill"><strong>${moy}</strong>Moy. par saison</div>
+                <div class="stat-pill"><strong>${best.year}</strong>Meilleure saison · ${best.total} cap.</div>
+            `;
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
+        async function loadArchives() {
+            const container = document.getElementById('archives-container');
+
+            try {
+                const response = await fetch('archives.json');
+                if (!response.ok) throw new Error('Aucune archive disponible');
+                const archiveIndex = await response.json();
+
+                if (!archiveIndex || archiveIndex.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-archives">
+                            <i class="fas fa-box-open"></i>
+                            <p>Aucune saison archivée pour le moment.</p>
+                            <p><small>Les archives apparaissent ici après la clôture de chaque saison.</small></p>
+                        </div>`;
+                    return;
+                }
+
+                archiveIndex.sort((a, b) => b.year - a.year);
+
+                let html = '';
+                archiveIndex.forEach((season, idx) => {
+                    archivePages[idx] = 0;
+                    html += `
+                        <div class="archive-season" id="season-block-${idx}">
+                            <div class="archive-season-header" onclick="toggleSeason(${idx}, '${season.file}', ${season.year})">
+                                <h3><i class="fas fa-leaf"></i> Saison ${season.year}</h3>
+                                <div style="display:flex; align-items:center; gap:12px;">
+                                    <span class="season-total">${season.total} fondatrice(s)</span>
+                                    <a href="bilan.html?year=${season.year}&src=${season.file}"
+                                       onclick="event.stopPropagation()"
+                                       title="Télécharger le bilan PDF"
+                                       style="display:inline-flex; align-items:center; gap:6px;
+                                              background:#27ae60; color:white; text-decoration:none;
+                                              padding:4px 12px; border-radius:20px; font-size:0.8em;
+                                              font-weight:bold; white-space:nowrap;">
+                                        <i class="fas fa-file-pdf"></i> Bilan PDF
+                                    </a>
+                                    <i class="fas fa-chevron-down toggle-icon"></i>
+                                </div>
+                            </div>
+                            <div class="archive-season-body" id="season-body-${idx}">
+                                <p style="color:#999; font-style:italic; padding: 10px 0;">Chargement...</p>
+                            </div>
+                        </div>`;
+                });
+
+                container.innerHTML = html;
+
+            } catch (e) {
+                container.innerHTML = `
+                    <div class="no-archives">
+                        <i class="fas fa-box-open"></i>
+                        <p>Aucune archive disponible pour le moment.</p>
+                        <p><small>Les bilans des saisons passées apparaîtront ici dès la première clôture de saison depuis le panneau d'administration.</small></p>
+                    </div>`;
+            }
+        }
+
+        async function toggleSeason(idx, file, year) {
+            const header = document.querySelector(`#season-block-${idx} .archive-season-header`);
+            const body = document.getElementById(`season-body-${idx}`);
+            const isOpen = body.classList.contains('open');
+
+            if (isOpen) {
+                body.classList.remove('open');
+                header.classList.remove('open');
+                return;
+            }
+
+            header.classList.add('open');
+            body.classList.add('open');
+
+            if (!loadedSeasons[idx]) {
+                try {
+                    const response = await fetch(file);
+                    const data = await response.json();
+                    loadedSeasons[idx] = [...data].sort((a, b) => new Date(b.date) - new Date(a.date));
+                } catch (e) {
+                    body.innerHTML = '<p style="color:red;">Impossible de charger les données de cette saison.</p>';
+                    return;
+                }
+            }
+
+            renderArchiveSeason(idx, year);
+        }
+
+        async function renderArchiveSeason(idx, year) {
+            const body = document.getElementById(`season-body-${idx}`);
+            const data = loadedSeasons[idx];
+            const page = archivePages[idx] || 0;
+            const totalPages = Math.ceil(data.length / ARCHIVE_PAGE_SIZE);
+            const start = page * ARCHIVE_PAGE_SIZE;
+            const pageData = data.slice(start, start + ARCHIVE_PAGE_SIZE);
+
+            const total = data.reduce((acc, item) => acc + item.nombre, 0);
+            const lieux = new Set(data.map(item => item.lieu)).size;
+            const dates = data.map(item => item.date).sort();
+            const firstDate = dates[0] || '—';
+            const lastDate = dates[dates.length - 1] || '—';
+
+            let html = `
+                <div class="season-summary-bar">
+                    <div class="season-stat">
+                        <span class="stat-value">${total}</span>
+                        <span class="stat-label">Fondatrices piégées</span>
+                    </div>
+                    <div class="season-stat">
+                        <span class="stat-value">${data.length}</span>
+                        <span class="stat-label">Signalements</span>
+                    </div>
+                    <div class="season-stat">
+                        <span class="stat-value">${lieux}</span>
+                        <span class="stat-label">Lieux distincts</span>
+                    </div>
+                    <div class="season-stat" style="min-width:140px;">
+                        <span class="stat-value" style="font-size:0.85em;">${firstDate}</span>
+                        <span class="stat-label">1ère capture</span>
+                    </div>
+                    <div class="season-stat" style="min-width:140px;">
+                        <span class="stat-value" style="font-size:0.85em;">${lastDate}</span>
+                        <span class="stat-label">Dernière capture</span>
+                    </div>
+                </div>
+
+                <!-- GRAPHIQUE TEMPOREL -->
+                <div class="archive-chart-section">
+                    <h4><i class="fas fa-chart-line" style="color:#d35400;"></i> Évolution temporelle — Saison ${year}</h4>
+                    <div class="archive-chart-wrapper">
+                        <canvas id="archive-chart-${idx}"></canvas>
+                    </div>
+                    <p class="archive-chart-note">
+                        <i class="fas fa-thermometer-half"></i> Température : moyenne diurne (lever → coucher du soleil) — source <a href="https://open-meteo.com" target="_blank" style="color:#2980b9;">Open-Meteo</a>.
+                    </p>
+                    <button class="btn-export-archive" onclick="exportArchiveChart(${idx}, ${year})">
+                        <i class="fas fa-image"></i> Exporter le graphique (PNG)
+                    </button>
+                </div>
+
+                <!-- LISTE PAGINÉE -->
+                <ul class="capture-list archive-list">`;
+
+            pageData.forEach(item => {
+                html += `
+                    <li class="capture-item">
+                        <span class="capture-date"><i class="fas fa-calendar-alt"></i> ${item.date}</span>
+                        <span class="capture-info">${item.nombre} frelon(s) — <em>${item.lieu}</em></span>
+                    </li>`;
+            });
+            html += '</ul>';
+
+            if (totalPages > 1) {
+                html += `
+                    <div class="archive-pagination">
+                        <button onclick="changeArchivePage(${idx}, ${year}, -1)" ${page === 0 ? 'disabled' : ''}>
+                            <i class="fas fa-chevron-left"></i> Précédent
+                        </button>
+                        <span class="page-indicator">Volet ${page + 1} / ${totalPages}</span>
+                        <button onclick="changeArchivePage(${idx}, ${year}, 1)" ${page >= totalPages - 1 ? 'disabled' : ''}>
+                            Suivant <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>`;
+            }
+
+            body.innerHTML = html;
+
+            // Construire le graphique après l'injection du HTML
+            await buildArchiveChart(idx, data);
+        }
+
+        function changeArchivePage(idx, year, delta) {
+            const data = loadedSeasons[idx];
+            const totalPages = Math.ceil(data.length / ARCHIVE_PAGE_SIZE);
+            archivePages[idx] = Math.max(0, Math.min((archivePages[idx] || 0) + delta, totalPages - 1));
+            renderArchiveSeason(idx, year);
+        }
+
+        // ── GRAPHIQUE TEMPOREL ────────────────────────────────────────────────
+        async function buildArchiveChart(idx, data) {
+            const canvas = document.getElementById(`archive-chart-${idx}`);
+            if (!canvas) return;
+
+            // Agrégation captures par date
+            const parDate = {};
+            data.forEach(item => {
+                parDate[item.date] = (parDate[item.date] || 0) + item.nombre;
+            });
+
+            const datesCaptures = Object.keys(parDate).sort();
+            if (datesCaptures.length === 0) {
+                canvas.parentElement.innerHTML = '<p class="chart-loading">Aucune donnée à afficher.</p>';
+                return;
+            }
+
+            const startDate = datesCaptures[0];
+            const endDate   = datesCaptures[datesCaptures.length - 1];
+
+            // Plage continue de dates
+            const allDates = [];
+            const cursor = new Date(startDate);
+            const dEnd   = new Date(endDate);
+            while (cursor <= dEnd) {
+                allDates.push(cursor.toISOString().slice(0, 10));
+                cursor.setDate(cursor.getDate() + 1);
+            }
+
+            const captureValues = allDates.map(d => parDate[d] || 0);
+            const seuilValues   = allDates.map(() => 10);
+
+            // Météo Open-Meteo
+            const { tempMap, precipMap } = await fetchWeatherDataArchive(startDate, endDate);
+            const tempValues   = allDates.map(d => tempMap[d]   ?? null);
+            const precipValues = allDates.map(d => precipMap[d] ?? 0);
+
+            // Détruire l'instance précédente si elle existe
+            if (archiveCharts[idx]) {
+                archiveCharts[idx].destroy();
+                archiveCharts[idx] = null;
+            }
+
+            archiveCharts[idx] = new Chart(canvas, {
+                data: {
+                    labels: allDates,
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Précipitations (mm)',
+                            data: precipValues,
+                            backgroundColor: 'rgba(100, 149, 237, 0.25)',
+                            borderColor: 'rgba(100, 149, 237, 0.5)',
+                            borderWidth: 1,
+                            borderRadius: 2,
+                            yAxisID: 'yPrecip',
+                            order: 4
+                        },
+                        {
+                            type: 'bar',
+                            label: 'Fondatrices piégées',
+                            data: captureValues,
+                            backgroundColor: 'rgba(211, 84, 0, 0.70)',
+                            borderColor: '#922b00',
+                            borderWidth: 1,
+                            borderRadius: 3,
+                            yAxisID: 'yCaptures',
+                            order: 3
+                        },
+                        {
+                            type: 'line',
+                            label: 'Moy. diurne (°C)',
+                            data: tempValues,
+                            borderColor: '#2980b9',
+                            backgroundColor: 'rgba(41, 128, 185, 0.06)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 2,
+                            pointBackgroundColor: '#2980b9',
+                            borderWidth: 2,
+                            yAxisID: 'yTemp',
+                            order: 2,
+                            spanGaps: true
+                        },
+                        {
+                            type: 'line',
+                            label: 'Seuil vol (10°C)',
+                            data: seuilValues,
+                            borderColor: '#e74c3c',
+                            borderWidth: 2,
+                            borderDash: [6, 4],
+                            pointRadius: 0,
+                            fill: false,
+                            tension: 0,
+                            yAxisID: 'yTemp',
+                            order: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: { boxWidth: 14, font: { size: 11 }, usePointStyle: true }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    if (ctx.dataset.label === 'Fondatrices piégées')  return ` ${ctx.parsed.y} capture(s)`;
+                                    if (ctx.dataset.label === 'Seuil vol (10°C)')     return ` Seuil : 10°C`;
+                                    if (ctx.dataset.label === 'Précipitations (mm)')  return ` ${ctx.parsed.y} mm de pluie`;
+                                    return ` Moy. diurne : ${ctx.parsed.y}°C`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { maxTicksLimit: 12, maxRotation: 45, font: { size: 10 } }
+                        },
+                        yCaptures: {
+                            type: 'linear',
+                            position: 'left',
+                            beginAtZero: true,
+                            ticks: { precision: 0, color: '#d35400', font: { size: 10 } },
+                            title: { display: true, text: 'Captures', color: '#d35400', font: { size: 11 } },
+                            grid: { color: 'rgba(211, 84, 0, 0.08)' }
+                        },
+                        yTemp: {
+                            type: 'linear',
+                            position: 'right',
+                            ticks: { color: '#2980b9', font: { size: 10 }, callback: v => `${v}°C` },
+                            title: { display: true, text: 'Température (°C)', color: '#2980b9', font: { size: 11 } },
+                            grid: { drawOnChartArea: false }
+                        },
+                        yPrecip: {
+                            type: 'linear',
+                            position: 'right',
+                            beginAtZero: true,
+                            offset: true,
+                            ticks: { color: 'rgba(100,149,237,0.7)', font: { size: 9 }, callback: v => `${v}mm` },
+                            title: { display: true, text: 'Pluie (mm)', color: 'rgba(100,149,237,0.8)', font: { size: 10 } },
+                            grid: { drawOnChartArea: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ── MÉTÉO (API archive Open-Meteo) ────────────────────────────────────
+        async function fetchWeatherDataArchive(startDate, endDate) {
+            const today = new Date().toISOString().slice(0, 10);
+            const safeEnd = endDate > today ? today : endDate;
+
+            const url = `https://archive-api.open-meteo.com/v1/archive` +
+                `?latitude=${CONFIG.lat}&longitude=${CONFIG.lon}` +
+                `&start_date=${startDate}&end_date=${safeEnd}` +
+                `&hourly=temperature_2m` +
+                `&daily=sunrise,sunset,precipitation_sum` +
+                `&timezone=auto`;
+
+            try {
+                const resp = await fetch(url);
+                const json = await resp.json();
+
+                const hourlyIndex = {};
+                json.hourly.time.forEach((t, i) => {
+                    hourlyIndex[t] = json.hourly.temperature_2m[i];
+                });
+
+                const tempMap   = {};
+                const precipMap = {};
+
+                json.daily.time.forEach((date, i) => {
+                    const sunrise = new Date(json.daily.sunrise[i]);
+                    const sunset  = new Date(json.daily.sunset[i]);
+                    const dayTemps = [];
+                    const cur = new Date(sunrise);
+                    cur.setMinutes(0, 0, 0);
+                    while (cur <= sunset) {
+                        const key = `${date}T${String(cur.getHours()).padStart(2, '0')}:00`;
+                        const temp = hourlyIndex[key];
+                        if (temp !== undefined && temp !== null) dayTemps.push(temp);
+                        cur.setHours(cur.getHours() + 1);
+                    }
+                    tempMap[date] = dayTemps.length > 0
+                        ? parseFloat((dayTemps.reduce((a, b) => a + b, 0) / dayTemps.length).toFixed(1))
+                        : null;
+
+                    const p = json.daily.precipitation_sum[i];
+                    precipMap[date] = (p !== undefined && p !== null) ? parseFloat(p.toFixed(1)) : 0;
+                });
+
+                return { tempMap, precipMap };
+
+            } catch (e) {
+                console.warn("Météo archive indisponible :", e);
+                return { tempMap: {}, precipMap: {} };
+            }
+        }
+
+        // ── EXPORT PNG ────────────────────────────────────────────────────────
+        function exportArchiveChart(idx, year) {
+            const canvas = document.getElementById(`archive-chart-${idx}`);
+            if (!canvas) { alert("Graphique non disponible."); return; }
+
+            const exportCanvas = document.createElement('canvas');
+            exportCanvas.width  = canvas.width;
+            exportCanvas.height = canvas.height;
+            const ctx = exportCanvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+            ctx.drawImage(canvas, 0, 0);
+
+            const link = document.createElement('a');
+            link.download = `evolution-piegeage-laconte-${year}.png`;
+            link.href = exportCanvas.toDataURL('image/png');
+            link.click();
+        }
+    </script>
+</body>
+</html>

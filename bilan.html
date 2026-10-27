@@ -349,7 +349,7 @@
         <div class="report-header">
             <div class="report-header-left">
                 <div class="season-badge" id="rpt-year">—</div>
-                <h1><i class="fas fa-bug"></i> Bilan de Saison — Frelon Asiatique</h1>
+                <h1 id="rpt-title"><i class="fas fa-bug"></i> Bilan de Saison — Frelon Asiatique</h1>
                 <div class="subtitle">Commune de La Comté · Plan de lutte collective</div>
             </div>
             <div class="report-header-right">
@@ -449,6 +449,9 @@ const GPS_MAPPING = {
 
 const CENTRE = [50.4256, 2.4993];
 
+// Type de campagne du bilan : 'spring' (fondatrices) ou 'autumn' (captures, individus non différenciés)
+let BILAN_TYPE = 'spring';
+
 // ── INIT ───────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
     // Date de génération
@@ -459,11 +462,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Année depuis l'URL
     const params = new URLSearchParams(window.location.search);
     const year   = params.get('year') || new Date().getFullYear();
-    document.getElementById('rpt-year').innerText = `Saison ${year}`;
-    document.title = `Bilan Saison ${year} — Frelon La Comté`;
+    BILAN_TYPE   = params.get('type') === 'autumn' ? 'autumn' : 'spring';
+    const autumn = BILAN_TYPE === 'autumn';
+    document.getElementById('rpt-year').innerText = `${autumn ? 'Automne' : 'Saison'} ${year}`;
+    document.getElementById('rpt-title').innerHTML =
+        `<i class="fas fa-bug"></i> ${autumn ? "Bilan de la campagne d'automne" : 'Bilan de Saison'} — Frelon Asiatique`;
+    document.title = `Bilan ${autumn ? 'Automne' : 'Saison'} ${year} — Frelon La Comté`;
+    if (autumn) {
+        const note = document.createElement('div');
+        note.style.cssText = 'background:#fff3cd;border-left:4px solid #f39c12;padding:10px 14px;border-radius:6px;font-size:0.82em;color:#856404;';
+        note.innerHTML = "<strong>Campagne d'automne :</strong> les individus piégés peuvent être de futures fondatrices ou des ouvrières, difficilement distinguables. Les chiffres sont donnés à titre indicatif.";
+        document.querySelector('.report-body').prepend(note);
+    }
 
     // Source du fichier
-    const src = params.get('src') || `archives/${year}.json`;
+    const src = params.get('src') || (autumn ? `archives/${year}_automne.json` : `archives/${year}.json`);
     document.getElementById('rpt-footer-src').innerText = src;
 
     // Chargement des données
@@ -500,6 +513,7 @@ function buildStats(data) {
         boxes[i].querySelector('.val').innerText = v;
         if (isSmall[i]) boxes[i].querySelector('.val').classList.add('small');
     });
+    if (BILAN_TYPE === 'autumn') boxes[0].querySelector('.lbl').innerText = 'Captures';
 }
 
 // ── TABLEAU ────────────────────────────────────────────────────────────
@@ -523,10 +537,7 @@ function buildTable(data) {
         return `
             <tr>
                 <td style="color:#aaa; font-weight:bold;">${i + 1}</td>
-                <td>
-                    ${r.label}
-                    ${r.label}
-                </td>
+                <td>${r.label}</td>
                 <td style="text-align:right; font-weight:bold; color:var(--orange);">${r.total}</td>
                 <td style="text-align:right; color:#888;">${r.count}</td>
                 <td class="bar-cell">
@@ -653,6 +664,7 @@ async function buildChart(data) {
     const precipValues = allDates.map(d => precipMap[d] ?? 0);
 
     const canvas = document.getElementById('rpt-chart');
+    const captureLabel = BILAN_TYPE === 'autumn' ? 'Captures' : 'Fondatrices piégées';
     new Chart(canvas, {
         data: {
             labels: allDates,
@@ -663,7 +675,7 @@ async function buildChart(data) {
                     borderWidth: 1, borderRadius: 2, yAxisID: 'yPrecip', order: 4
                 },
                 {
-                    type: 'bar', label: 'Fondatrices piégées', data: captureValues,
+                    type: 'bar', label: captureLabel, data: captureValues,
                     backgroundColor: 'rgba(211,84,0,0.70)', borderColor: '#922b00',
                     borderWidth: 1, borderRadius: 3, yAxisID: 'yCaptures', order: 3
                 },
@@ -673,11 +685,12 @@ async function buildChart(data) {
                     fill: true, tension: 0.4, pointRadius: 2, borderWidth: 2,
                     yAxisID: 'yTemp', order: 2, spanGaps: true
                 },
-                {
+                // Seuil de vol : printemps uniquement
+                ...(BILAN_TYPE === 'autumn' ? [] : [{
                     type: 'line', label: 'Seuil vol (10°C)', data: seuilValues,
                     borderColor: '#e74c3c', borderWidth: 2, borderDash: [6,4],
                     pointRadius: 0, fill: false, tension: 0, yAxisID: 'yTemp', order: 1
-                }
+                }])
             ]
         },
         options: {
@@ -691,7 +704,7 @@ async function buildChart(data) {
                 legend: { display: true, position: 'top',
                     labels: { boxWidth: 12, font: { size: 10 }, usePointStyle: true }},
                 tooltip: { callbacks: { label: ctx => {
-                    if (ctx.dataset.label === 'Fondatrices piégées') return ` ${ctx.parsed.y} capture(s)`;
+                    if (ctx.dataset.label === captureLabel)           return ` ${ctx.parsed.y} capture(s)`;
                     if (ctx.dataset.label === 'Seuil vol (10°C)')    return ` Seuil : 10°C`;
                     if (ctx.dataset.label === 'Précipitations (mm)') return ` ${ctx.parsed.y} mm`;
                     return ` Moy. diurne : ${ctx.parsed.y}°C`;
