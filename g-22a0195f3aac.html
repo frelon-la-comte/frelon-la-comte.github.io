@@ -814,6 +814,7 @@
             const statusEl = document.getElementById('sheet-status');
             const wrap     = document.getElementById('sheet-table-wrap');
             const table    = document.getElementById('sheet-table');
+            let scriptWarn = '';
 
             const hasScript = !!(secret && SHEET_SCRIPT_URL);
             const hasApi    = !!(sheetId && apiKey);
@@ -843,7 +844,8 @@
                         wrap.style.display = 'none';
                         return;
                     }
-                    // sinon : repli sur l'ancienne méthode ci-dessous
+                    // sinon : repli sur l'ancienne méthode ci-dessous, en le signalant clairement
+                    scriptWarn = `<br><span style="color:#c0392b;">⚠️ Lecture sécurisée indisponible (${escHtml(e.message)}) : repli sur la clé API. Redéployez le script Apps Script (nouvelle version).</span>`;
                 }
             }
 
@@ -863,6 +865,7 @@
                 }
                 const data = await resp.json();
                 renderSheetTable(data.values || [], table, wrap, statusEl);
+                if (scriptWarn) statusEl.innerHTML += scriptWarn;
 
             } catch(e) {
                 statusEl.innerHTML = `<span style="color:#e74c3c;">❌ ${escHtml(e.message)}</span>
