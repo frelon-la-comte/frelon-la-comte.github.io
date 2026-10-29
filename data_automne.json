@@ -8,5 +8,10 @@
     "date": "2026-10-28",
     "lieu": "rue du 19 mars 1962",
     "nombre": 1
+  },
+  {
+    "date": "2026-10-28",
+    "lieu": "rue de l'église",
+    "nombre": 1
   }
 ]
