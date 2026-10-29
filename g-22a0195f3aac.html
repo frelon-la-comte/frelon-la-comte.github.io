@@ -5,7 +5,7 @@
     <title>Administration - La Comté</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script data-goatcounter="https://thomaspoullie.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+    <!-- Aucun script tiers sur cette page : elle manipule des données personnelles -->
     <style>
 
         /* ========================================
@@ -176,6 +176,19 @@
         .pg-dot-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; font-size:0.82em; }
         .pg-actions { display:flex; gap:8px; margin-top:14px; align-items:center; }
         @media (max-width: 600px) { .pg-grid, .pg-dot-row { grid-template-columns:1fr; } }
+        .pg-secbar { font-size:0.82em; display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:8px; padding:6px 10px; border-radius:6px; }
+        .pg-secbar.enc   { background:#eafaf1; color:#1e8449; }
+        .pg-secbar.plain { background:#fdebd0; color:#9c640c; }
+        .pg-secbar .pg-btn { padding:4px 10px; }
+        .pg-acces { margin-top:12px; border:1px solid #e0e0e0; border-radius:8px; padding:10px; background:#fafafa; }
+        .pg-acces code { background:#eef2f5; padding:1px 6px; border-radius:4px; }
+        .pg-subnav { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
+        .pg-subtab { background:#ecf0f1; color:#555; }
+        .pg-subtab:hover { background:#dfe6e9; }
+        .pg-subtab.active { background:#d35400; color:#fff; }
+        .pg-trap-num { display:inline-block; background:#34495e; color:#fff; border-radius:6px; padding:0 8px; font-weight:bold; font-size:0.9em; }
+        .pg-timeline td { font-size:0.9em; }
+        .pg-current td { background:#eafaf1; }
         /* Section nouvelle campagne */
         .campaign-section {
             background: #fef9e7;
@@ -462,32 +475,69 @@
             </section>
 
             <!-- ═════ ONGLET : PIÉGEURS (données locales) ═════ -->
-            <section id="tab-piegeurs" class="admin-tabpanel">
+            <section id="tab-piegeurs" class="admin-tabpanel" onclick="pgTouch()" onkeydown="pgTouch()">
                 <div class="admin-cell">
                     <h4 class="cell-title"><i class="fas fa-user-friends"></i> Piégeurs</h4>
+                    <div id="pg-lock" style="display:none; text-align:center; padding:26px 10px;">
+                        <div style="font-size:2.2em;">🔒</div>
+                        <p style="font-weight:bold; margin:6px 0;">Données chiffrées</p>
+                        <p style="font-size:0.85em; color:#666; margin:0 0 8px 0;">Saisissez le mot de passe pour afficher les piégeurs.</p>
+                        <input type="password" id="pg-unlock-pass" autocomplete="current-password" placeholder="Mot de passe"
+                               onkeydown="if(event.key==='Enter') pgUnlockSubmit()" style="max-width:280px; margin:6px auto; display:block;">
+                        <button class="pg-btn pg-btn-blue" onclick="pgUnlockSubmit()">Déverrouiller</button>
+                        <div id="pg-unlock-err" style="color:#c0392b; font-size:0.85em; min-height:1.3em; margin-top:8px;"></div>
+                    </div>
+                    <div id="pg-content">
                     <div class="pg-privacy">
                         <i class="fas fa-lock"></i> <b>Données personnelles : stockées uniquement dans ce navigateur</b>
                         (jamais envoyées à GitHub, au Sheet ni ailleurs). Elles disparaissent si vous videz les données du site :
                         <b>exportez régulièrement une sauvegarde</b> (fichier .json, PDF inclus).
                     </div>
+                    <div id="pg-secbar" class="pg-secbar plain"></div>
                     <div id="pg-backup" style="font-size:0.82em; margin-bottom:8px;"></div>
-                    <div class="pg-toolbar">
-                        <input type="search" id="pg-search" placeholder="🔍 Nom, adresse, téléphone, email…" oninput="renderPiegeurs()">
-                        <select id="pg-filter" onchange="renderPiegeurs()">
-                            <option value="all">Tous</option>
-                            <option value="actif">Piège actif</option>
-                            <option value="rendu">Piège rendu</option>
-                            <option value="sans">Sans piège</option>
-                            <option value="nocontrat">Contrat manquant</option>
-                        </select>
-                        <button class="pg-btn pg-btn-green" onclick="openPiegeur()"><i class="fas fa-plus"></i> Nouveau</button>
+                    <div class="pg-subnav">
+                        <button class="pg-btn pg-subtab active" id="pg-subtab-piegeurs" onclick="pgSwitchView('piegeurs')"><i class="fas fa-user-friends"></i> Piégeurs</button>
+                        <button class="pg-btn pg-subtab" id="pg-subtab-pieges" onclick="pgSwitchView('pieges')"><i class="fas fa-dot-circle"></i> Pièges (n° et historique)</button>
+                        <span style="flex:1;"></span>
                         <button class="pg-btn pg-btn-blue" onclick="exportPiegeurs()"><i class="fas fa-download"></i> Exporter</button>
                         <label class="pg-btn pg-btn-grey" style="margin:0;"><i class="fas fa-upload"></i> Importer
                             <input type="file" id="pg-import" accept="application/json,.json" style="display:none;" onchange="importPiegeurs(this)">
                         </label>
                     </div>
-                    <div class="pg-counters" id="pg-counters"></div>
-                    <div class="pg-table-wrap"><table class="pg-table" id="pg-table"></table></div>
+
+                    <!-- Vue : piégeurs -->
+                    <div id="pg-view-piegeurs">
+                        <div class="pg-toolbar">
+                            <input type="search" id="pg-search" placeholder="🔍 Nom, adresse, téléphone, email, n° de piège…" oninput="renderPiegeurs()">
+                            <select id="pg-filter" onchange="renderPiegeurs()">
+                                <option value="all">Tous</option>
+                                <option value="actif">Piège actif</option>
+                                <option value="rendu">Piège rendu</option>
+                                <option value="sans">Sans piège</option>
+                                <option value="nocontrat">Contrat manquant</option>
+                            </select>
+                            <button class="pg-btn pg-btn-green" onclick="openPiegeur()"><i class="fas fa-plus"></i> Nouveau</button>
+                            <button class="pg-btn pg-btn-blue" onclick="pgOpenSync()" title="Calculer et publier les codes d'accès (users.json)"><i class="fas fa-key"></i> Accès participants</button>
+                        </div>
+                        <div class="pg-counters" id="pg-counters"></div>
+                        <div class="pg-table-wrap"><table class="pg-table" id="pg-table"></table></div>
+                    </div>
+
+                    <!-- Vue : pièges (numéro, emplacement actuel, historique) -->
+                    <div id="pg-view-pieges" style="display:none;">
+                        <div class="pg-toolbar">
+                            <input type="search" id="pg-trap-search" placeholder="🔍 N° de piège, piégeur, adresse, emplacement…" oninput="renderPieges()">
+                            <select id="pg-trap-filter" onchange="renderPieges()">
+                                <option value="all">Tous les pièges</option>
+                                <option value="place">En place</option>
+                                <option value="stock">En stock (rendus)</option>
+                                <option value="conflit">À vérifier</option>
+                            </select>
+                        </div>
+                        <div class="pg-counters" id="pg-trap-counters"></div>
+                        <div class="pg-table-wrap"><table class="pg-table" id="pg-trap-table"></table></div>
+                    </div>
+                    </div><!-- /pg-content -->
                 </div>
             </section>
 
@@ -529,22 +579,70 @@
                     </a>
             </section>
 
+            <!-- Historique d'un piège (fenêtre) -->
+            <div id="pg-trap-modal" class="pg-overlay" onclick="if(event.target===this) pgCloseTrapModal()">
+                <div class="pg-dialog" style="max-width:760px;">
+                    <h3 id="pg-trap-title" style="margin-top:0;"></h3>
+                    <div id="pg-trap-status" style="margin-bottom:10px; font-size:0.9em;"></div>
+                    <div class="pg-table-wrap"><table class="pg-table pg-timeline" id="pg-trap-history"></table></div>
+                    <div class="pg-actions"><span style="flex:1;"></span>
+                        <button class="pg-btn pg-btn-grey" onclick="pgCloseTrapModal()">Fermer</button></div>
+                </div>
+            </div>
+
+            <!-- Mot de passe (fenêtre générique) -->
+            <div id="pg-pass-modal" class="pg-overlay">
+                <div class="pg-dialog" style="max-width:460px;">
+                    <h3 id="pg-pass-title" style="margin-top:0;"></h3>
+                    <p id="pg-pass-info" style="font-size:0.85em; color:#555;"></p>
+                    <input type="password" id="pg-pass-1" autocomplete="new-password" placeholder="Mot de passe" onkeydown="if(event.key==='Enter') pgPassOk()" style="margin:4px 0; width:100%; box-sizing:border-box;">
+                    <input type="password" id="pg-pass-2" autocomplete="new-password" placeholder="Confirmer le mot de passe" onkeydown="if(event.key==='Enter') pgPassOk()" style="margin:4px 0; width:100%; box-sizing:border-box;">
+                    <div id="pg-pass-err" style="color:#c0392b; font-size:0.85em; min-height:1.3em;"></div>
+                    <div class="pg-actions"><span style="flex:1;"></span>
+                        <button class="pg-btn pg-btn-grey" onclick="pgPassCancel()">Annuler</button>
+                        <button class="pg-btn pg-btn-blue" onclick="pgPassOk()">Valider</button></div>
+                </div>
+            </div>
+
+            <!-- Accès participants : synchronisation de users.json -->
+            <div id="pg-sync-modal" class="pg-overlay" onclick="if(event.target===this) pgCloseSync()">
+                <div class="pg-dialog" style="max-width:780px;">
+                    <h3 style="margin-top:0;"><i class="fas fa-key"></i> Accès participants (users.json)</h3>
+                    <p style="font-size:0.82em; color:#555; margin-top:0;">Seuls des <b>hachages</b> sont publiés sur GitHub, jamais les noms. Les entrées déjà présentes dans users.json et non rattachées à une fiche ne sont jamais modifiées.</p>
+                    <div id="pg-sync-body"></div>
+                    <div class="pg-actions"><span style="flex:1;"></span>
+                        <button class="pg-btn pg-btn-grey" onclick="pgCloseSync()">Fermer</button>
+                        <button class="pg-btn pg-btn-green" id="pg-sync-apply" onclick="pgApplySync()" style="display:none;"><i class="fas fa-cloud-upload-alt"></i> Appliquer sur GitHub</button></div>
+                </div>
+            </div>
+
             <!-- Fiche piégeur (fenêtre) -->
             <div id="pg-modal" class="pg-overlay" onclick="if(event.target===this) pgCloseModal()">
                 <div class="pg-dialog">
                     <h3 id="pg-modal-title" style="margin-top:0;">Fiche piégeur</h3>
                     <div class="pg-grid">
-                        <label>Nom<input type="text" id="pg-nom" maxlength="100"></label>
+                        <label>Nom<input type="text" id="pg-nom" maxlength="100" oninput="pgRefreshAccesSoon()"></label>
                         <label>Prénom<input type="text" id="pg-prenom" maxlength="100"></label>
-                        <label class="pg-wide">Adresse<input type="text" id="pg-adresse" maxlength="200" placeholder="N° et rue"></label>
+                        <label class="pg-wide">Adresse<input type="text" id="pg-adresse" maxlength="200" placeholder="N° et rue" oninput="pgRefreshAccesSoon()"></label>
                         <label>Téléphone<input type="tel" id="pg-tel" maxlength="30"></label>
                         <label>Email<input type="email" id="pg-email" maxlength="120"></label>
                         <label class="pg-wide">Notes<textarea id="pg-notes" rows="2" maxlength="2000"></textarea></label>
+                    </div>
+                    <div class="pg-acces">
+                        <div style="font-weight:bold; font-size:0.9em; margin-bottom:6px;"><i class="fas fa-key"></i> Accès au formulaire de signalement</div>
+                        <label style="font-size:0.8em; color:#555; display:block;">N° de rue saisi par le participant (vide = début de l'adresse)
+                            <input type="text" id="pg-rue" maxlength="10" placeholder="auto" oninput="pgRefreshAccesSoon()" style="margin:3px 0 0 0; width:100%; box-sizing:border-box;"></label>
+                        <div id="pg-acces-box" style="font-size:0.85em; margin:8px 0;"></div>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <button class="pg-btn pg-btn-green" onclick="pgPublishAcces()"><i class="fas fa-cloud-upload-alt"></i> Publier l'accès</button>
+                            <button class="pg-btn pg-btn-red" onclick="pgRevokeAcces()"><i class="fas fa-ban"></i> Retirer l'accès</button>
+                        </div>
                     </div>
                     <h4 style="margin:14px 0 8px 0; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                         Pièges mis à disposition
                         <button class="pg-btn pg-btn-green" onclick="pgAddDot()"><i class="fas fa-plus"></i> Mise à disposition</button>
                     </h4>
+                    <datalist id="pg-refs-list"></datalist>
                     <div id="pg-dots"></div>
                     <div class="pg-actions">
                         <button id="pg-btn-delete" class="pg-btn pg-btn-red" onclick="pgDeletePiegeur()"><i class="fas fa-trash-alt"></i> Supprimer</button>
@@ -1095,7 +1193,7 @@
             document.querySelectorAll('.admin-tabpanel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
             document.querySelectorAll('.admin-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
             try { localStorage.setItem('admin_tab', name); } catch (e) {}
-            if (name === 'piegeurs') { renderPiegeurs(); renderBackupBanner(); pgRequestPersist(); }
+            if (name === 'piegeurs') pgEnter();
         }
 
         function restoreAdminTab() {
@@ -1175,12 +1273,20 @@
         const PG_KEY = 'piegeurs_v1';
         const PG_MAX_PDF = 15 * 1024 * 1024;
 
+        // Mode clair : localStorage. Mode chiffré : copie déchiffrée en mémoire uniquement (_pgCache)
         function pgLoad() {
+            if (pgIsEncrypted()) return JSON.parse(JSON.stringify(_pgCache));
             try { const a = JSON.parse(localStorage.getItem(PG_KEY) || '[]'); return Array.isArray(a) ? a : []; }
             catch (e) { return []; }
         }
-        function pgSave(list) {
-            localStorage.setItem(PG_KEY, JSON.stringify(list));
+        async function pgSave(list) {
+            if (pgIsEncrypted()) {
+                if (!_pgDek) throw new Error('Données verrouillées');
+                _pgCache = JSON.parse(JSON.stringify(list));
+                await pgPersistEncrypted();
+            } else {
+                localStorage.setItem(PG_KEY, JSON.stringify(list));
+            }
             localStorage.setItem('piegeurs_dirty', '1');
         }
         function pgSafeId(x) { return String(x ?? '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 64); }
@@ -1252,7 +1358,7 @@
 
         function renderPiegeurs() {
             const table = document.getElementById('pg-table');
-            if (!table) return;
+            if (!table || (pgIsEncrypted() && !_pgDek)) return;
             const list   = pgLoad();
             const q      = stripAccents(document.getElementById('pg-search').value.toLowerCase().trim());
             const filter = document.getElementById('pg-filter').value;
@@ -1271,7 +1377,7 @@
                 if (filter === 'sans'  && st !== 'sans')  return false;
                 if (filter === 'nocontrat' && !pgActive(p).some(d => !d.contratNom)) return false;
                 if (!q) return true;
-                return stripAccents([p.nom, p.prenom, p.adresse, p.tel, p.email, p.notes].join(' ').toLowerCase()).includes(q);
+                return stripAccents([p.nom, p.prenom, p.adresse, p.tel, p.email, p.notes, ...pgDots(p).map(d => (d.ref || '') + ' ' + (d.emplacement || ''))].join(' ').toLowerCase()).includes(q);
             }).sort((a, b) => String(a.nom || '').localeCompare(String(b.nom || ''), 'fr')
                            || String(a.prenom || '').localeCompare(String(b.prenom || ''), 'fr'));
 
@@ -1285,13 +1391,13 @@
                 let piege = '<span class="pg-badge pg-sans">Aucun</span>', contrat = '—';
                 if (st === 'actif') {
                     const act = pgActive(p).sort((a, b) => String(b.dateMise || '').localeCompare(String(a.dateMise || '')));
-                    piege = `<span class="pg-badge pg-actif">Actif</span> depuis le ${fmtDate(act[0].dateMise) || '?'}`
-                          + (act.length > 1 ? ` (${act.length} pièges)` : '');
+                    piege = `<span class="pg-badge pg-actif">Actif</span> ` + act.map(d =>
+                        `${pgTrapBadge(d.ref)} <small style="color:#888;">depuis le ${fmtDate(d.dateMise) || '?'}</small>`).join('<br>');
                     contrat = act.map(d => d.contratNom
                         ? `<a href="#" onclick="event.stopPropagation(); openContrat('${pgSafeId(d.id)}'); return false;">📄 PDF</a>`
                         : '<span class="pg-warn">⚠️ manquant</span>').join('<br>');
                 } else if (st === 'rendu') {
-                    piege = `<span class="pg-badge pg-rendu">Rendu</span> ${fmtDate(last.dateMise) || '?'} → ${fmtDate(last.dateRetour) || '?'}`;
+                    piege = `<span class="pg-badge pg-rendu">Rendu</span> ${pgTrapBadge(last.ref)} <small style="color:#888;">${fmtDate(last.dateMise) || '?'} → ${fmtDate(last.dateRetour) || '?'}</small>`;
                     contrat = last.contratNom
                         ? `<a href="#" onclick="event.stopPropagation(); openContrat('${pgSafeId(last.id)}'); return false;">📄 PDF</a>` : '—';
                 }
@@ -1324,6 +1430,587 @@
                 : `<span style="color:#27ae60;">✅ Sauvegarde à jour (export du ${lastTxt}).</span>`;
         }
 
+
+        // ─────────────────────────────────────────
+        // SUIVI PAR PIÈGE : numéro, emplacement actuel, historique des emplacements
+        // (déduit des mises à disposition : aucune saisie en double)
+        // ─────────────────────────────────────────
+        // Clé de regroupement : « N° 12 », « n°12 » et « 12 » désignent le même piège
+        function pgTrapKey(ref) {
+            return stripAccents(String(ref || '')).toLowerCase().replace(/\s+/g, ' ').trim()
+                .replace(/^(?:n°\s*|(?:numero|num|no)\.?(?=[\s\d])\s*)/, '');
+        }
+        function pgTrapLabel(ref) {
+            const r = String(ref || '').trim();
+            if (!r) return 'sans n°';
+            return /^(n°|no\b\.?|num\b|numéro)/i.test(r) ? r : 'n°' + r;
+        }
+        const pgTrapBadge = ref => ref && String(ref).trim()
+            ? `<span class="pg-trap-num">${escHtml(pgTrapLabel(ref))}</span>`
+            : '<span class="pg-warn">⚠️ sans n°</span>';
+
+        function pgKnownRefs() {
+            const seen = new Map();
+            pgLoad().forEach(p => pgDots(p).forEach(d => {
+                const k = pgTrapKey(d.ref); if (k && !seen.has(k)) seen.set(k, String(d.ref).trim());
+            }));
+            return [...seen.values()].sort((a, b) => a.localeCompare(b, 'fr', { numeric: true }));
+        }
+
+        // Pièges déjà « en place » ailleurs (autre fiche ou autre ligne de cette fiche)
+        function pgActiveConflicts(draft) {
+            const msgs = [], list = pgLoad().filter(p => p.id !== draft.id);
+            const own = new Map();
+            pgDots(draft).filter(d => d.ref && !d.dateRetour).forEach(d => {
+                const k = pgTrapKey(d.ref);
+                if (own.has(k)) msgs.push(`Le piège ${pgTrapLabel(d.ref)} apparaît deux fois en cours sur cette fiche.`);
+                own.set(k, d);
+                list.forEach(p => pgDots(p).forEach(o => {
+                    if (!o.dateRetour && pgTrapKey(o.ref) === k) {
+                        msgs.push(`Le piège ${pgTrapLabel(d.ref)} est déjà marqué « en place » chez ${(p.nom + ' ' + p.prenom).trim()} depuis le ${fmtDate(o.dateMise) || '?'} (sans date de retour).`);
+                    }
+                }));
+            });
+            return msgs;
+        }
+
+        // Regroupe toutes les mises à disposition par numéro de piège
+        function pgBuildTraps() {
+            const map = new Map();
+            pgLoad().forEach(p => pgDots(p).forEach(d => {
+                const k = pgTrapKey(d.ref); if (!k) return;
+                if (!map.has(k)) map.set(k, { key: k, entries: [] });
+                map.get(k).entries.push({
+                    piegeur: p, dot: d,
+                    nom: (p.nom + ' ' + p.prenom).trim(), adresse: p.adresse || '',
+                    dateMise: d.dateMise || '', dateRetour: d.dateRetour || '',
+                    emplacement: d.emplacement || '', contrat: !!d.contratNom
+                });
+            }));
+            return [...map.values()].map(t => {
+                t.entries.sort((a, b) => String(b.dateMise).localeCompare(String(a.dateMise)));
+                t.label = String(t.entries[0].dot.ref).trim();
+                t.actives = t.entries.filter(e => !e.dateRetour);
+                t.status = t.actives.length > 1 ? 'conflit' : (t.actives.length === 1 ? 'place' : 'stock');
+                t.current = t.actives[0] || null;
+                return t;
+            }).sort((a, b) => a.label.localeCompare(b.label, 'fr', { numeric: true }));
+        }
+
+        function pgSwitchView(v) {
+            document.getElementById('pg-view-piegeurs').style.display = v === 'piegeurs' ? '' : 'none';
+            document.getElementById('pg-view-pieges').style.display   = v === 'pieges' ? '' : 'none';
+            document.getElementById('pg-subtab-piegeurs').classList.toggle('active', v === 'piegeurs');
+            document.getElementById('pg-subtab-pieges').classList.toggle('active', v === 'pieges');
+            if (v === 'pieges') renderPieges(); else renderPiegeurs();
+        }
+
+        function renderPieges() {
+            const table = document.getElementById('pg-trap-table');
+            if (!table || (pgIsEncrypted() && !_pgDek)) return;
+            const traps = pgBuildTraps();
+            const q = stripAccents(document.getElementById('pg-trap-search').value.toLowerCase().trim());
+            const filter = document.getElementById('pg-trap-filter').value;
+            const sansNum = pgLoad().reduce((n, p) => n + pgDots(p).filter(d => !pgTrapKey(d.ref)).length, 0);
+
+            const nPlace = traps.filter(t => t.status === 'place').length;
+            const nStock = traps.filter(t => t.status === 'stock').length;
+            const nConf  = traps.filter(t => t.status === 'conflit').length;
+            document.getElementById('pg-trap-counters').innerHTML =
+                `<b>${traps.length}</b> piège(s) suivi(s) · <b>${nPlace}</b> en place · ${nStock} en stock`
+                + (nConf ? ` · <span class="pg-warn">${nConf} à vérifier</span>` : '')
+                + (sansNum ? ` · <span class="pg-warn">${sansNum} mise(s) à disposition sans n°</span>` : '');
+
+            const rows = traps.filter(t => {
+                if (filter !== 'all' && t.status !== filter) return false;
+                if (!q) return true;
+                return stripAccents(t.label + ' ' + t.entries.map(e => [e.nom, e.adresse, e.emplacement].join(' ')).join(' ').toLowerCase()).includes(q);
+            });
+
+            if (!traps.length) {
+                table.innerHTML = '<tbody><tr><td style="padding:18px; color:#999; text-align:center; cursor:default;">Aucun piège numéroté. Indiquez le « N° du piège » dans la fiche d\'un piégeur (mise à disposition).</td></tr></tbody>';
+                return;
+            }
+            const body = rows.map(t => {
+                let etat, ou, emp, depuis;
+                if (t.status === 'place') {
+                    const c = t.current;
+                    etat = '<span class="pg-badge pg-actif">En place</span>';
+                    ou = `<b>${escHtml(c.nom)}</b><br><small style="color:#888;">${escHtml(c.adresse)}</small>`;
+                    emp = escHtml(c.emplacement) || '<span style="color:#bbb;">—</span>';
+                    depuis = fmtDate(c.dateMise) || '?';
+                } else if (t.status === 'conflit') {
+                    etat = '<span class="pg-badge pg-sans">⚠️ À vérifier</span>';
+                    ou = t.actives.map(c => escHtml(c.nom)).join('<br>');
+                    emp = '<span class="pg-warn">en place chez plusieurs piégeurs</span>'; depuis = '';
+                } else {
+                    const l = t.entries[0];
+                    etat = '<span class="pg-badge pg-rendu">En stock</span>';
+                    ou = `<small style="color:#888;">dernier : ${escHtml(l.nom)}</small>`;
+                    emp = '<span style="color:#bbb;">—</span>'; depuis = 'rendu le ' + (fmtDate(l.dateRetour) || '?');
+                }
+                return `<tr onclick="openTrap('${pgSafeId(t.key.replace(/[^a-z0-9_-]/g, '_'))}')" data-trap="${escHtml(t.key)}">
+                    <td>${pgTrapBadge(t.label)}</td><td>${etat}</td><td>${ou}</td><td>${emp}</td><td>${depuis}</td>
+                    <td style="text-align:center;">${t.entries.length}</td></tr>`;
+            }).join('');
+            table.innerHTML = '<thead><tr><th>N°</th><th>Statut</th><th>Chez</th><th>Emplacement</th><th>Depuis</th><th title="Nombre d\'affectations">Aff.</th></tr></thead><tbody>'
+                + (body || '<tr><td colspan="6" style="padding:14px; color:#999; text-align:center; cursor:default;">Aucun résultat.</td></tr>')
+                + '</tbody>';
+        }
+
+        function openTrap(safeKey) {
+            const t = pgBuildTraps().find(x => pgSafeId(x.key.replace(/[^a-z0-9_-]/g, '_')) === safeKey);
+            if (!t) return;
+            document.getElementById('pg-trap-title').innerHTML = `${pgTrapBadge(t.label)} Historique des emplacements`;
+            const c = t.current;
+            document.getElementById('pg-trap-status').innerHTML = t.status === 'place'
+                ? `<span class="pg-badge pg-actif">En place</span> chez <b>${escHtml(c.nom)}</b>${c.adresse ? ' — ' + escHtml(c.adresse) : ''}${c.emplacement ? ' (' + escHtml(c.emplacement) + ')' : ''}, depuis le ${fmtDate(c.dateMise) || '?'}`
+                : t.status === 'conflit'
+                    ? '<span class="pg-warn">⚠️ Ce piège est marqué « en place » chez plusieurs piégeurs : renseignez la date de retour manquante.</span>'
+                    : `<span class="pg-badge pg-rendu">En stock</span> rendu le ${fmtDate(t.entries[0].dateRetour) || '?'}`;
+            const days = (a, b) => {
+                if (!a) return '';
+                const d1 = new Date(a), d2 = b ? new Date(b) : new Date();
+                const n = Math.round((d2 - d1) / 86400000);
+                return isNaN(n) || n < 0 ? '' : `${n} j`;
+            };
+            document.getElementById('pg-trap-history').innerHTML =
+                '<thead><tr><th>Période</th><th>Durée</th><th>Piégeur</th><th>Adresse</th><th>Emplacement</th><th>Contrat</th></tr></thead><tbody>'
+                + t.entries.map(e => `<tr class="${e.dateRetour ? '' : 'pg-current'}" style="cursor:default;">
+                    <td>${fmtDate(e.dateMise) || '?'} → ${e.dateRetour ? fmtDate(e.dateRetour) : '<b>en cours</b>'}</td>
+                    <td>${days(e.dateMise, e.dateRetour)}</td>
+                    <td><a href="#" onclick="pgCloseTrapModal(); pgSwitchView('piegeurs'); openPiegeur('${pgSafeId(e.piegeur.id)}'); return false;">${escHtml(e.nom)}</a></td>
+                    <td>${escHtml(e.adresse)}</td>
+                    <td>${escHtml(e.emplacement) || '<span style="color:#bbb;">—</span>'}</td>
+                    <td>${e.contrat ? `<a href="#" onclick="openContrat('${pgSafeId(e.dot.id)}'); return false;">📄</a>` : '—'}</td></tr>`).join('')
+                + '</tbody>';
+            document.getElementById('pg-trap-modal').classList.add('active');
+        }
+        function pgCloseTrapModal() { document.getElementById('pg-trap-modal').classList.remove('active'); }
+
+
+        // ─────────────────────────────────────────
+        // CHIFFREMENT : AES-256-GCM
+        //   • clé de données (DEK) aléatoire, protégée par une clé dérivée du mot de passe (PBKDF2-SHA256, 600 000 itérations)
+        //   • fiches : localStorage 'piegeurs_v2' (chiffré) ; PDF : IndexedDB (chiffrés)
+        //   • en mémoire : seulement tant que la session est déverrouillée (verrouillage auto après 10 min)
+        // ─────────────────────────────────────────
+        const PG_PBKDF2_ITER = 600000;
+        const PG_AUTOLOCK_MS = 10 * 60 * 1000;
+        let _pgDek = null;
+        let _pgCache = [];
+        let _pgLockTimer = null;
+        let _pgWriteChain = Promise.resolve();
+
+        const pgIsEncrypted = () => !!localStorage.getItem('piegeurs_enc');
+        const b64ToBytes = s => new Uint8Array(base64ToAb(s));
+
+        async function pgKek(pass, salt, iter) {
+            const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+            return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256' }, base,
+                { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+        }
+        async function pgEncrypt(key, bytes) {
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, bytes);
+            return { iv, ct };
+        }
+        const pgDecrypt = (key, iv, ct) => crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+
+        async function pgWrapDek(dek, pass) {
+            const salt = crypto.getRandomValues(new Uint8Array(16));
+            const kek  = await pgKek(pass, salt, PG_PBKDF2_ITER);
+            const w    = await pgEncrypt(kek, await crypto.subtle.exportKey('raw', dek));
+            return { v: 2, kdf: { alg: 'PBKDF2-SHA256', iter: PG_PBKDF2_ITER, salt: abToBase64(salt) },
+                     wrap: { iv: abToBase64(w.iv), ct: abToBase64(w.ct) } };
+        }
+        async function pgUnwrapDek(meta, pass) {
+            if (!meta || !meta.kdf || !meta.wrap) throw new Error('Fichier non reconnu');
+            const iter = Math.min(Math.max(parseInt(meta.kdf.iter, 10) || 0, 100000), 5000000);
+            const kek = await pgKek(pass, b64ToBytes(meta.kdf.salt), iter);
+            let raw;
+            try { raw = await pgDecrypt(kek, b64ToBytes(meta.wrap.iv), b64ToBytes(meta.wrap.ct)); }
+            catch (e) { throw new Error('Mot de passe incorrect'); }
+            return crypto.subtle.importKey('raw', raw, { name: 'AES-GCM' }, true, ['encrypt', 'decrypt']);
+        }
+
+        // Écritures sérialisées : une sauvegarde plus ancienne ne peut jamais écraser une plus récente
+        function pgPersistEncrypted() {
+            const snapshot = JSON.stringify(_pgCache), key = _pgDek;
+            const job = async () => {
+                const e = await pgEncrypt(key, new TextEncoder().encode(snapshot));
+                localStorage.setItem('piegeurs_v2', JSON.stringify({ v: 2, iv: abToBase64(e.iv), ct: abToBase64(e.ct) }));
+            };
+            const p = _pgWriteChain.then(job);
+            _pgWriteChain = p.catch(() => {});
+            return p;
+        }
+
+        // PDF : clair ou chiffré selon le mode (les deux formats peuvent coexister)
+        async function pgPutPdf(id, buf, nom) {
+            if (pgIsEncrypted()) {
+                if (!_pgDek) throw new Error('Données verrouillées');
+                const e = await pgEncrypt(_pgDek, buf);
+                return idbPut(id, { enc: 1, iv: abToBase64(e.iv), ct: e.ct });
+            }
+            return idbPut(id, { data: buf, nom: String(nom || ''), type: 'application/pdf', size: buf.byteLength });
+        }
+        async function pgGetPdf(id) {
+            const rec = await idbGet(id);
+            if (!rec) return null;
+            if (rec.enc) {
+                if (!_pgDek) throw new Error('Données verrouillées');
+                return { data: await pgDecrypt(_pgDek, b64ToBytes(rec.iv), rec.ct), nom: '' };
+            }
+            return { data: rec.data, nom: rec.nom || '' };
+        }
+        // Chiffre les PDF encore en clair (migration, ou migration interrompue)
+        async function pgEncryptRemainingPdfs() {
+            if (!_pgDek) return 0;
+            const keys = (await pgIdb('readonly', st => st.getAllKeys())) || [];
+            let n = 0;
+            for (const k of keys) {
+                const rec = await idbGet(k);
+                if (rec && !rec.enc && rec.data) {
+                    const e = await pgEncrypt(_pgDek, rec.data);
+                    await idbPut(k, { enc: 1, iv: abToBase64(e.iv), ct: e.ct });
+                    n++;
+                }
+            }
+            return n;
+        }
+
+        // Fenêtre de saisie de mot de passe (réutilisée : activation, changement, import)
+        let _passResolve = null;
+        function askPassphrase({ title, info = '', confirm = false }) {
+            return new Promise(resolve => {
+                _passResolve = resolve;
+                const m = document.getElementById('pg-pass-modal');
+                document.getElementById('pg-pass-title').textContent = title;
+                document.getElementById('pg-pass-info').innerHTML = info;
+                document.getElementById('pg-pass-1').value = '';
+                document.getElementById('pg-pass-2').value = '';
+                document.getElementById('pg-pass-2').style.display = confirm ? '' : 'none';
+                document.getElementById('pg-pass-err').textContent = '';
+                m.dataset.confirm = confirm ? '1' : '';
+                m.classList.add('active');
+                setTimeout(() => document.getElementById('pg-pass-1').focus(), 50);
+            });
+        }
+        function pgPassOk() {
+            const m = document.getElementById('pg-pass-modal'), err = document.getElementById('pg-pass-err');
+            const p1 = document.getElementById('pg-pass-1').value, p2 = document.getElementById('pg-pass-2').value;
+            if (m.dataset.confirm) {
+                if (p1.length < 10) { err.textContent = 'Au moins 10 caractères (une phrase de plusieurs mots est idéale).'; return; }
+                if (p1 !== p2)      { err.textContent = 'Les deux saisies sont différentes.'; return; }
+            } else if (!p1) return;
+            m.classList.remove('active');
+            const r = _passResolve; _passResolve = null; if (r) r(p1);
+        }
+        function pgPassCancel() {
+            document.getElementById('pg-pass-modal').classList.remove('active');
+            const r = _passResolve; _passResolve = null; if (r) r(null);
+        }
+
+        async function pgEnableEncryption() {
+            if (pgIsEncrypted()) return;
+            const pass = await askPassphrase({ title: 'Activer le chiffrement', confirm: true,
+                info: "Les fiches et les PDF seront chiffrés dans ce navigateur. <b>Si vous oubliez ce mot de passe, les données sont définitivement perdues</b> (sauvegardes chiffrées comprises) : conservez-le dans un gestionnaire de mots de passe." });
+            if (!pass) return;
+            document.body.style.cursor = 'progress';
+            try {
+                const list = pgLoad();
+                const dek  = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
+                const meta = await pgWrapDek(dek, pass);
+                // 1. copie chiffrée des fiches, puis bascule du mode (la copie en clair reste jusqu'à la fin)
+                _pgDek = dek; _pgCache = list;
+                await pgPersistEncrypted();
+                localStorage.setItem('piegeurs_enc', JSON.stringify(meta));
+                // 2. PDF puis suppression de la copie en clair
+                const n = await pgEncryptRemainingPdfs();
+                localStorage.removeItem(PG_KEY);
+                localStorage.setItem('piegeurs_dirty', '1');
+                pgTouch(); renderSecBar(); renderBackupBanner();
+                alert(`Chiffrement activé (${list.length} fiche(s), ${n} PDF). Pensez à exporter une sauvegarde chiffrée.`);
+            } catch (e) {
+                if (!localStorage.getItem('piegeurs_enc')) { _pgDek = null; _pgCache = []; }
+                alert("Chiffrement impossible : " + e.message);
+            } finally { document.body.style.cursor = ''; }
+        }
+
+        async function pgUnlockSubmit() {
+            const input = document.getElementById('pg-unlock-pass'), err = document.getElementById('pg-unlock-err');
+            const pass = input.value; if (!pass) return;
+            err.style.color = '#888'; err.textContent = 'Vérification…';
+            try {
+                const dek = await pgUnwrapDek(JSON.parse(localStorage.getItem('piegeurs_enc')), pass);
+                const store = JSON.parse(localStorage.getItem('piegeurs_v2') || 'null');
+                let list = [];
+                if (store) list = JSON.parse(new TextDecoder().decode(await pgDecrypt(dek, b64ToBytes(store.iv), b64ToBytes(store.ct))));
+                _pgDek = dek; _pgCache = Array.isArray(list) ? list : [];
+                if (store && localStorage.getItem(PG_KEY)) localStorage.removeItem(PG_KEY);   // reste d'une migration interrompue
+                input.value = ''; err.textContent = '';
+                pgEnter();
+                pgEncryptRemainingPdfs().catch(() => {});
+            } catch (e) {
+                err.style.color = '#c0392b';
+                err.textContent = e.message === 'Mot de passe incorrect' ? 'Mot de passe incorrect.' : 'Erreur : ' + e.message;
+            }
+        }
+
+        function pgLock() {
+            if (!pgIsEncrypted()) return;
+            _pgDek = null; _pgCache = []; _pgDraft = null; _pgFiles = {}; _pgDeletedPdf = []; _pgUsers = null;
+            clearTimeout(_pgLockTimer);
+            ['pg-modal', 'pg-trap-modal', 'pg-sync-modal', 'pg-pass-modal'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('active'); });
+            ['pg-table', 'pg-trap-table', 'pg-trap-history', 'pg-dots', 'pg-sync-body', 'pg-acces-box'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = ''; });
+            pgApplyLockUi();
+        }
+        function pgTouch() {
+            if (!pgIsEncrypted() || !_pgDek) return;
+            clearTimeout(_pgLockTimer);
+            _pgLockTimer = setTimeout(pgLock, PG_AUTOLOCK_MS);
+        }
+        function pgApplyLockUi() {
+            const locked = pgIsEncrypted() && !_pgDek;
+            const c = document.getElementById('pg-content'), l = document.getElementById('pg-lock');
+            if (c) c.style.display = locked ? 'none' : '';
+            if (l) l.style.display = locked ? '' : 'none';
+        }
+        function renderSecBar() {
+            const el = document.getElementById('pg-secbar'); if (!el) return;
+            if (pgIsEncrypted()) {
+                el.className = 'pg-secbar enc';
+                el.innerHTML = `<span>🔒 <b>Données chiffrées</b> (AES-256) — session déverrouillée, verrouillage automatique après 10 min d'inactivité</span><span style="flex:1;"></span>
+                    <button class="pg-btn pg-btn-grey" onclick="pgLock()">Verrouiller</button>
+                    <button class="pg-btn pg-btn-grey" onclick="pgChangePassphrase()">Changer le mot de passe</button>`;
+            } else {
+                el.className = 'pg-secbar plain';
+                el.innerHTML = `<span>🔓 <b>Données non chiffrées</b> dans ce navigateur</span><span style="flex:1;"></span>
+                    <button class="pg-btn pg-btn-green" onclick="pgEnableEncryption()"><i class="fas fa-lock"></i> Activer le chiffrement</button>`;
+            }
+        }
+        async function pgChangePassphrase() {
+            if (!_pgDek) return;
+            const pass = await askPassphrase({ title: 'Nouveau mot de passe', confirm: true,
+                info: "Les anciennes sauvegardes chiffrées restent lisibles avec <b>l'ancien</b> mot de passe." });
+            if (!pass) return;
+            try {
+                localStorage.setItem('piegeurs_enc', JSON.stringify(await pgWrapDek(_pgDek, pass)));
+                alert('Mot de passe changé.');
+            } catch (e) { alert('Changement impossible : ' + e.message); }
+        }
+        function pgEnter() {
+            pgApplyLockUi();
+            if (pgIsEncrypted() && !_pgDek) { setTimeout(() => { const i = document.getElementById('pg-unlock-pass'); if (i) i.focus(); }, 50); return; }
+            renderSecBar(); renderPiegeurs(); renderPieges(); renderBackupBanner(); pgRequestPersist(); pgTouch();
+        }
+
+        // ─────────────────────────────────────────
+        // CODES D'ACCÈS PARTICIPANTS (users.json)
+        //   règle du site : sha256( 3 premières lettres du nom en minuscules + n° de rue )
+        // ─────────────────────────────────────────
+        // Variantes plausibles de saisie : avec/sans accents, avec/sans espaces ou apostrophes (« De Smet » → « de », « des »)
+        function pgPrefixes(nom) {
+            const base = String(nom || '').toLowerCase(), out = new Set();
+            const add = x => { x = x.trim(); if (x) out.add(x); };
+            add(base.slice(0, 3));
+            add(stripAccents(base).slice(0, 3));
+            const compact = base.replace(/[\s'’\-.]/g, '');
+            add(compact.slice(0, 3));
+            add(stripAccents(compact).slice(0, 3));
+            return [...out];
+        }
+        const pgRueFromAddress = adresse => { const m = String(adresse || '').match(/^\s*(\d+)/); return m ? m[1] : ''; };
+
+        function pgAccessCodes(p) {
+            const rue = String(p.rue || '').trim() || pgRueFromAddress(p.adresse);
+            const prefixes = pgPrefixes(p.nom);
+            return { rue, codes: (rue && prefixes.length) ? prefixes.map(x => x + rue) : [] };
+        }
+        async function pgHashes(p) {
+            return Promise.all(pgAccessCodes(p).codes.map(async code => ({ code, hash: await sha256(code) })));
+        }
+
+        // ── GitHub : users.json ──
+        const ghContents = path => `https://api.github.com/repos/${CONFIG.githubUser}/${CONFIG.githubRepo}/contents/${path}`;
+        const ghHeaders = token => ({ 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' });
+
+        async function pgFetchUsers() {
+            const token = localStorage.getItem('gh_token');
+            if (!token) throw new Error('Token GitHub manquant (onglet ⚙️ Réglages).');
+            const r = await fetch(ghContents('users.json') + '?t=' + Date.now(), { headers: ghHeaders(token) });
+            if (r.status === 404) return { list: [], sha: null };
+            if (!r.ok) throw new Error('Lecture de users.json impossible (HTTP ' + r.status + ').');
+            const f = await r.json();
+            const list = JSON.parse(b64_to_utf8(f.content));
+            if (!Array.isArray(list) || list.some(x => typeof x !== 'string')) throw new Error('users.json : format inattendu (tableau de chaînes attendu) — aucune modification faite.');
+            return { list, sha: f.sha };
+        }
+        // Ajoute / retire des hachages en un seul commit (relit le fichier juste avant : pas d'écrasement)
+        async function pgPushUsers({ add = [], remove = [], message }) {
+            const token = localStorage.getItem('gh_token');
+            for (let attempt = 0; attempt < 2; attempt++) {
+                const { list, sha } = await pgFetchUsers();
+                const rm = new Set(remove);
+                const next = list.filter(h => !rm.has(h));
+                add.forEach(h => { if (!next.includes(h)) next.push(h); });
+                if (next.length === list.length && next.every((h, i) => h === list[i])) return { changed: false, list: next };
+                const r = await fetch(ghContents('users.json'), {
+                    method: 'PUT',
+                    headers: { ...ghHeaders(token), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message, content: utf8_to_b64(JSON.stringify(next, null, 2)), ...(sha && { sha }) })
+                });
+                if (r.ok) return { changed: true, list: next };
+                if (r.status !== 409 && r.status !== 422) throw new Error("Écriture de users.json refusée (HTTP " + r.status + "). Le token a-t-il le droit d'écrire ?");
+            }
+            throw new Error('Conflit sur users.json : réessayez dans un instant.');
+        }
+
+        let _pgUsers = null;      // Set des hachages de users.json (état affiché dans la fiche)
+        async function pgUsersCached(force) {
+            if (_pgUsers && !force) return _pgUsers;
+            try { _pgUsers = new Set((await pgFetchUsers()).list); } catch (e) { _pgUsers = null; }
+            return _pgUsers;
+        }
+        async function pgActiveHashesOf(excludeId) {
+            const set = new Set();
+            for (const p of pgLoad()) {
+                if (p.id === excludeId || pgStatus(p) !== 'actif') continue;
+                (await pgHashes(p)).forEach(h => set.add(h.hash));
+            }
+            return set;
+        }
+
+        const pgProbe = () => ({
+            id: _pgDraft ? _pgDraft.id : null,
+            nom: document.getElementById('pg-nom').value, adresse: document.getElementById('pg-adresse').value,
+            rue: document.getElementById('pg-rue').value
+        });
+        let _pgAccesTimer = null;
+        function pgRefreshAccesSoon() { clearTimeout(_pgAccesTimer); _pgAccesTimer = setTimeout(pgRefreshAcces, 250); }
+
+        async function pgRefreshAcces() {
+            const box = document.getElementById('pg-acces-box'); if (!box || !_pgDraft) return;
+            try {
+                const probe = pgProbe(), { rue, codes } = pgAccessCodes(probe);
+                if (!codes.length) {
+                    box.innerHTML = '<span style="color:#999;">Renseignez le nom et un n° de rue (début de l\'adresse, ou champ ci-dessus) pour calculer le code.</span>';
+                    return;
+                }
+                const hs = await pgHashes(probe);
+                if (!_pgDraft) return;
+                const users = await pgUsersCached(false);
+                box.innerHTML = hs.map(h => `<div><code>${escHtml(h.code)}</code> <small style="color:#999;">${h.hash.slice(0, 10)}…</small> `
+                    + (users ? (users.has(h.hash) ? '<span style="color:#1e8449;">✅ actif dans users.json</span>' : '<span style="color:#9c640c;">⛔ absent de users.json</span>')
+                             : '<span style="color:#999;">(état de users.json indisponible)</span>') + '</div>').join('')
+                    + (hs.length > 1 ? '<small style="color:#888;">Plusieurs variantes (accents, espaces) : toutes seront publiées.</small>' : '')
+                    + `<div><small style="color:#888;">Le participant saisit « ${escHtml(hs[0].code.slice(0, hs[0].code.length - rue.length))} » puis « ${escHtml(rue)} ».</small></div>`;
+            } catch (e) {
+                box.innerHTML = `<span style="color:#c0392b;">Calcul du code indisponible : ${escHtml(e.message)}</span>`;
+            }
+        }
+
+        async function pgSetAcces(id, publies) {
+            const acces = { publies, le: new Date().toISOString() };
+            if (_pgDraft && _pgDraft.id === id) _pgDraft.acces = acces;
+            const list = pgLoad(), p = list.find(x => x.id === id);
+            if (p) { p.acces = acces; await pgSave(list); }
+        }
+
+        async function pgPublishAcces() {
+            const probe = pgProbe(), hs = await pgHashes(probe);
+            if (!hs.length) { alert("Impossible de calculer le code : renseignez le nom et le n° de rue."); return; }
+            try {
+                const r = await pgPushUsers({ add: hs.map(h => h.hash), message: `users.json : ajout d'un accès participant (+${hs.length})` });
+                await pgSetAcces(probe.id, hs.map(h => h.hash));
+                await pgUsersCached(true); pgRefreshAcces();
+                alert(r.changed ? "Accès publié sur GitHub. Il sera actif dans 1 à 2 minutes." : "Cet accès était déjà présent dans users.json.");
+            } catch (e) { alert('Publication impossible : ' + e.message); }
+        }
+        async function pgRevokeAcces() {
+            const probe = pgProbe(), hs = (await pgHashes(probe)).map(h => h.hash);
+            const prev = (_pgDraft && _pgDraft.acces && _pgDraft.acces.publies) || [];
+            const others = await pgActiveHashesOf(probe.id);
+            const toRemove = [...new Set([...hs, ...prev])].filter(h => !others.has(h));
+            if (!toRemove.length) { alert("Rien à retirer (ou code partagé avec un autre piégeur actif : conservé)."); return; }
+            if (!confirm(`Retirer ${toRemove.length} code(s) d'accès de users.json ?\nLe participant ne pourra plus utiliser le formulaire.`)) return;
+            try {
+                await pgPushUsers({ remove: toRemove, message: `users.json : retrait d'un accès participant (-${toRemove.length})` });
+                await pgSetAcces(probe.id, []);
+                await pgUsersCached(true); pgRefreshAcces();
+                alert('Accès retiré de users.json (effectif dans 1 à 2 minutes).');
+            } catch (e) { alert('Retrait impossible : ' + e.message); }
+        }
+
+        // ── Synchronisation globale ──
+        let _pgSyncPlan = null;
+        function pgCloseSync() { document.getElementById('pg-sync-modal').classList.remove('active'); }
+
+        async function pgOpenSync() {
+            const body = document.getElementById('pg-sync-body'), apply = document.getElementById('pg-sync-apply');
+            apply.style.display = 'none';
+            body.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Lecture de users.json…</p>';
+            document.getElementById('pg-sync-modal').classList.add('active');
+            try {
+                const { list: users } = await pgFetchUsers();
+                const have = new Set(users), comp = [];
+                for (const p of pgLoad()) comp.push({ p, hs: await pgHashes(p), st: pgStatus(p) });
+                const active = new Set(), known = new Set();
+                comp.forEach(x => x.hs.forEach(h => { if (x.st === 'actif') active.add(h.hash); if (have.has(h.hash)) known.add(h.hash); }));
+
+                const rows = [];
+                comp.forEach(({ p, hs, st }) => {
+                    const name = (p.nom + ' ' + p.prenom).trim() || '(sans nom)';
+                    if (st === 'sans') return;
+                    if (!hs.length) { if (st === 'actif') rows.push({ kind: 'warn', name }); return; }
+                    const codes = hs.map(h => h.code).join(', '), all = hs.map(h => h.hash);
+                    if (st === 'actif') {
+                        const missing = all.filter(h => !have.has(h));
+                        rows.push(missing.length ? { kind: 'add', id: p.id, name, codes, all, todo: missing } : { kind: 'ok', name, codes });
+                    } else {
+                        const rem = all.filter(h => have.has(h) && !active.has(h));
+                        if (rem.length) rows.push({ kind: 'remove', id: p.id, name, codes, todo: rem });
+                    }
+                });
+                _pgSyncPlan = { rows };
+                const orphans = users.length - known.size;
+                const label = { add: '<span class="pg-badge pg-sans">À ajouter</span>', remove: '<span class="pg-badge pg-rendu">Piège rendu : retirer ?</span>',
+                                ok: '<span class="pg-badge pg-actif">Déjà actif</span>', warn: '<span class="pg-warn">⚠️ n° de rue introuvable</span>' };
+                body.innerHTML = (rows.length ? `<div class="pg-table-wrap"><table class="pg-table"><thead><tr><th></th><th>Piégeur</th><th>Code</th><th>État</th></tr></thead><tbody>`
+                    + rows.map((r, i) => `<tr style="cursor:default;"><td>${(r.kind === 'add' || r.kind === 'remove')
+                        ? `<input type="checkbox" id="sync-ck-${i}" ${r.kind === 'add' ? 'checked' : ''}>` : ''}</td>
+                        <td>${escHtml(r.name)}</td><td>${r.codes ? '<code>' + escHtml(r.codes) + '</code>' : '—'}</td><td>${label[r.kind]}</td></tr>`).join('')
+                    + '</tbody></table></div>' : '<p style="color:#999;">Aucun piégeur actif à synchroniser.</p>')
+                    + `<p style="font-size:0.82em; color:#888; margin-bottom:0;">users.json contient ${users.length} entrée(s) ; ${Math.max(orphans, 0)} ne correspond(ent) à aucune fiche (conservée(s) telles quelles).</p>`;
+                apply.style.display = rows.some(r => r.kind === 'add' || r.kind === 'remove') ? '' : 'none';
+            } catch (e) {
+                body.innerHTML = `<p style="color:#c0392b;">❌ ${escHtml(e.message)}</p>`;
+            }
+        }
+
+        async function pgApplySync() {
+            if (!_pgSyncPlan) return;
+            const add = [], remove = [], touched = [];
+            _pgSyncPlan.rows.forEach((r, i) => {
+                const ck = document.getElementById('sync-ck-' + i);
+                if (!ck || !ck.checked) return;
+                if (r.kind === 'add')    { add.push(...r.todo);    touched.push({ id: r.id, publies: r.all }); }
+                if (r.kind === 'remove') { remove.push(...r.todo); touched.push({ id: r.id, publies: [] }); }
+            });
+            if (!add.length && !remove.length) { alert('Rien de coché.'); return; }
+            if (!confirm(`Appliquer sur GitHub : +${add.length} accès, −${remove.length} accès ?`)) return;
+            try {
+                await pgPushUsers({ add, remove, message: `users.json : synchronisation des accès (+${add.length} / -${remove.length})` });
+                const list = pgLoad();
+                touched.forEach(t => { const p = list.find(x => x.id === t.id); if (p) p.acces = { publies: t.publies, le: new Date().toISOString() }; });
+                await pgSave(list);
+                _pgUsers = null;
+                document.getElementById('pg-sync-body').innerHTML = `<p style="color:#1e8449;">✅ users.json mis à jour (+${add.length} / −${remove.length}). Effectif dans 1 à 2 minutes.</p>`;
+                document.getElementById('pg-sync-apply').style.display = 'none';
+            } catch (e) { alert('Synchronisation impossible : ' + e.message); }
+        }
+
         // ── Fiche (fenêtre) ──
         let _pgDraft = null;
         let _pgFiles = {};            // id de mise à disposition → File choisi (écrit à l'enregistrement)
@@ -1335,7 +2022,8 @@
                          : { id: pgNewId(), nom: '', prenom: '', adresse: '', tel: '', email: '', notes: '', dotations: [] };
             _pgDraft.dotations = pgDots(_pgDraft);
             _pgFiles = {}; _pgDeletedPdf = [];
-            ['nom', 'prenom', 'adresse', 'tel', 'email', 'notes'].forEach(k => { document.getElementById('pg-' + k).value = _pgDraft[k] || ''; });
+            ['nom', 'prenom', 'adresse', 'tel', 'email', 'notes', 'rue'].forEach(k => { document.getElementById('pg-' + k).value = _pgDraft[k] || ''; });
+            pgRefreshAcces();
             document.getElementById('pg-modal-title').textContent = p ? 'Fiche piégeur' : 'Nouveau piégeur';
             document.getElementById('pg-btn-delete').style.display = p ? '' : 'none';
             renderDotations();
@@ -1351,6 +2039,8 @@
             const box = document.getElementById('pg-dots');
             const dots = pgSorted(_pgDraft);
             if (!dots.length) { box.innerHTML = '<p style="color:#999; font-size:0.85em; margin:0;">Aucune mise à disposition enregistrée.</p>'; return; }
+            const dl = document.getElementById('pg-refs-list');
+            if (dl) dl.innerHTML = pgKnownRefs().map(r => `<option value="${escHtml(r)}">`).join('');
             box.innerHTML = dots.map(d => {
                 const id = pgSafeId(d.id);
                 const contrat = d.contratNom
@@ -1360,9 +2050,12 @@
                        <input type="file" accept="application/pdf,.pdf" onchange="pgPickContrat('${id}', this)" style="font-size:0.85em; width:auto; margin:0;">`;
                 return `<div class="pg-dot">
                     <div class="pg-dot-row">
+                        <label>N° du piège<input type="text" maxlength="60" list="pg-refs-list" placeholder="ex : 12" value="${escHtml(d.ref)}" onchange="pgDotField('${id}','ref',this.value)"></label>
                         <label>Mis à disposition le<input type="date" value="${escHtml(d.dateMise)}" onchange="pgDotField('${id}','dateMise',this.value)"></label>
                         <label>Rendu le (vide = en cours)<input type="date" value="${escHtml(d.dateRetour)}" onchange="pgDotField('${id}','dateRetour',this.value)"></label>
-                        <label>Référence du piège<input type="text" maxlength="60" value="${escHtml(d.ref)}" onchange="pgDotField('${id}','ref',this.value)"></label>
+                    </div>
+                    <div style="margin-bottom:6px;">
+                        <label>Emplacement du piège (où il est installé)<input type="text" maxlength="120" placeholder="ex : jardin, côté haie sud" value="${escHtml(d.emplacement)}" onchange="pgDotField('${id}','emplacement',this.value)"></label>
                     </div>
                     <div class="pg-dot-actions">
                         <span>${contrat}</span>
@@ -1377,7 +2070,7 @@
         const pgFindDot = id => _pgDraft.dotations.find(d => pgSafeId(d.id) === id);
 
         function pgAddDot() {
-            _pgDraft.dotations.push({ id: pgNewId(), ref: '', dateMise: todayIso(), dateRetour: '', contratNom: '' });
+            _pgDraft.dotations.push({ id: pgNewId(), ref: '', emplacement: '', dateMise: todayIso(), dateRetour: '', contratNom: '' });
             renderDotations();
         }
         function pgDotField(id, field, value) {
@@ -1411,8 +2104,8 @@
             try {
                 let blob = _pgFiles[id] || null;
                 if (!blob) {
-                    const rec = await idbGet(id);
-                    if (rec) blob = new Blob([rec.data], { type: rec.type || 'application/pdf' });
+                    const rec = await pgGetPdf(id);
+                    if (rec) blob = new Blob([rec.data], { type: 'application/pdf' });
                 }
                 if (!blob) { alert("PDF introuvable dans ce navigateur (importez votre sauvegarde ?)."); return; }
                 const url = URL.createObjectURL(blob);
@@ -1426,30 +2119,34 @@
             const v = k => document.getElementById('pg-' + k).value.trim();
             d.nom = v('nom').slice(0, 100); d.prenom = v('prenom').slice(0, 100); d.adresse = v('adresse').slice(0, 200);
             d.tel = v('tel').slice(0, 30);  d.email = v('email').slice(0, 120);  d.notes = v('notes').slice(0, 2000);
+            d.rue = v('rue').slice(0, 10);
             if (!d.nom && !d.prenom) { alert('Renseignez au moins un nom ou un prénom.'); return; }
             for (const x of d.dotations) {
                 if (!x.dateMise) { alert('Chaque mise à disposition doit avoir une date.'); return; }
                 if (x.dateRetour && x.dateRetour < x.dateMise) { alert('La date de retour précède la date de mise à disposition.'); return; }
             }
+            // Un même n° de piège ne peut pas être en place à deux endroits à la fois
+            const conflits = pgActiveConflicts(d);
+            if (conflits.length && !confirm('⚠️ ' + conflits.join('\n') + '\n\nEnregistrer quand même ?')) return;
             try {
                 for (const [id, file] of Object.entries(_pgFiles)) {
-                    await idbPut(id, { data: await readAsArrayBuffer(file), nom: file.name, type: 'application/pdf', size: file.size });
+                    await pgPutPdf(id, await readAsArrayBuffer(file), file.name);
                 }
                 for (const id of _pgDeletedPdf) await idbDel(id);
             } catch (e) { alert("Impossible d'enregistrer le PDF : " + e.message); return; }
 
             const list = pgLoad(), i = list.findIndex(x => x.id === d.id);
             if (i >= 0) list[i] = d; else list.push(d);
-            pgSave(list);
-            pgCloseModal(); renderPiegeurs(); renderBackupBanner();
+            try { await pgSave(list); } catch (e) { alert("Enregistrement impossible : " + e.message); return; }
+            pgCloseModal(); renderPiegeurs(); renderPieges(); renderBackupBanner();
         }
 
         async function pgDeletePiegeur() {
             const d = _pgDraft; if (!d) return;
             if (!confirm(`Supprimer définitivement la fiche de ${d.nom || d.prenom} (et ses contrats) ?`)) return;
             try { for (const x of pgDots(d)) if (x.contratNom) await idbDel(pgSafeId(x.id)); } catch (e) {}
-            pgSave(pgLoad().filter(x => x.id !== d.id));
-            pgCloseModal(); renderPiegeurs(); renderBackupBanner();
+            await pgSave(pgLoad().filter(x => x.id !== d.id));
+            pgCloseModal(); renderPiegeurs(); renderPieges(); renderBackupBanner();
         }
 
         // ── Sauvegarde / restauration ──
@@ -1468,13 +2165,22 @@
             try {
                 for (const p of list) for (const d of pgDots(p)) {
                     if (!d.contratNom) continue;
-                    const rec = await idbGet(pgSafeId(d.id));
-                    if (rec) contrats[pgSafeId(d.id)] = { nom: rec.nom, type: rec.type, base64: abToBase64(rec.data) };
+                    const rec = await pgGetPdf(pgSafeId(d.id));
+                    if (rec) contrats[pgSafeId(d.id)] = { nom: rec.nom || d.contratNom, type: 'application/pdf', base64: abToBase64(rec.data) };
                     else manquants++;
                 }
             } catch (e) { alert("Export impossible : " + e.message); return; }
             const payload = { format: 'frelon-piegeurs', version: 1, exporte: new Date().toISOString(), piegeurs: list, contrats };
-            pgDownload(`piegeurs-sauvegarde-${todayIso()}.json`, new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+            if (pgIsEncrypted()) {
+                // Sauvegarde chiffrée : même clé de données, enveloppe protégée par le mot de passe en vigueur
+                const meta = JSON.parse(localStorage.getItem('piegeurs_enc'));
+                const e = await pgEncrypt(_pgDek, new TextEncoder().encode(JSON.stringify(payload)));
+                const file = { format: 'frelon-piegeurs-enc', version: 2, exporte: payload.exporte, kdf: meta.kdf, wrap: meta.wrap,
+                               iv: abToBase64(e.iv), ct: abToBase64(e.ct) };
+                pgDownload(`piegeurs-sauvegarde-chiffree-${todayIso()}.json`, new Blob([JSON.stringify(file)], { type: 'application/json' }));
+            } else {
+                pgDownload(`piegeurs-sauvegarde-${todayIso()}.json`, new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+            }
             localStorage.setItem('piegeurs_dirty', '0');
             localStorage.setItem('piegeurs_last_export', new Date().toISOString());
             renderBackupBanner();
@@ -1491,10 +2197,14 @@
                 dotations: (Array.isArray(o.dotations) ? o.dotations : []).map(d => ({
                     id: pgSafeId(d && d.id) || pgNewId(),
                     ref: str(d && d.ref, 60),
+                    emplacement: str(d && d.emplacement, 120),
                     dateMise: pgCleanDate(d && d.dateMise),
                     dateRetour: pgCleanDate(d && d.dateRetour),
                     contratNom: str(d && d.contratNom, 200)
-                }))
+                })),
+                rue: str(o.rue, 10),
+                acces: (o.acces && Array.isArray(o.acces.publies))
+                    ? { publies: o.acces.publies.filter(h => /^[0-9a-f]{64}$/.test(String(h))).slice(0, 10), le: str(o.acces.le, 40) } : undefined
             };
         }
 
@@ -1502,7 +2212,14 @@
             const f = input.files && input.files[0]; input.value = '';
             if (!f) return;
             try {
-                const data = JSON.parse(await f.text());
+                let data = JSON.parse(await f.text());
+                if (data && data.format === 'frelon-piegeurs-enc') {
+                    const pass = await askPassphrase({ title: 'Sauvegarde chiffrée', confirm: false,
+                        info: "Saisissez le mot de passe <b>en vigueur au moment de l'export</b>." });
+                    if (!pass) return;
+                    const dek = await pgUnwrapDek(data, pass);
+                    data = JSON.parse(new TextDecoder().decode(await pgDecrypt(dek, b64ToBytes(data.iv), b64ToBytes(data.ct))));
+                }
                 if (!data || data.format !== 'frelon-piegeurs' || !Array.isArray(data.piegeurs)) throw new Error('Fichier non reconnu');
                 if (!confirm(`Importer ${data.piegeurs.length} fiche(s) ? Les fiches ayant le même identifiant seront remplacées, les autres conservées.`)) return;
 
@@ -1515,12 +2232,12 @@
                 let nPdf = 0;
                 for (const [id, c] of Object.entries(data.contrats || {})) {
                     const key = pgSafeId(id); if (!key || !c || !c.base64) continue;
-                    await idbPut(key, { data: base64ToAb(c.base64), nom: String(c.nom || 'contrat.pdf').slice(0, 200), type: 'application/pdf', size: 0 });
+                    await pgPutPdf(key, base64ToAb(c.base64), String(c.nom || 'contrat.pdf').slice(0, 200));
                     nPdf++;
                 }
-                pgSave(list);
+                await pgSave(list);
                 localStorage.setItem('piegeurs_dirty', '0');
-                renderPiegeurs(); renderBackupBanner();
+                renderPiegeurs(); renderPieges(); renderBackupBanner();
                 alert(`Import terminé : ${data.piegeurs.length} fiche(s), ${nPdf} contrat(s) PDF.`);
             } catch (e) { alert("Import impossible : " + e.message); }
         }
