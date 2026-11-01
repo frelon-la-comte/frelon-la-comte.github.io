@@ -297,6 +297,10 @@
     </footer>
 
     <script>
+    // Tout texte issu de photos.json est échappé avant insertion dans la page
+    function escapeHtml(v) {
+        return String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
     const PHOTOS_PER_PAGE = 20; // 5 lignes × 4 colonnes desktop
 
     let allPhotos      = [];
@@ -316,7 +320,11 @@
         try {
             const resp = await fetch('photos.json');
             if (!resp.ok) throw new Error('photos.json introuvable');
-            allPhotos = await resp.json();
+            // Entrées invalides ignorées : nom de fichier restreint au dossier photos/ (pas de « / », pas de « .. »)
+            allPhotos = (await resp.json())
+                .filter(p => p && typeof p.fichier === 'string' && /^[\p{L}\p{N}_.\- ()]+\.(jpg|jpeg|png|webp)$/iu.test(p.fichier)
+                          && !p.fichier.includes('..') && typeof p.date === 'string')
+                .map(p => ({ ...p, lieu: String(p.lieu ?? ''), nombre: Number(p.nombre) > 0 ? Number(p.nombre) : null }));
             allPhotos.sort((a, b) => b.date.localeCompare(a.date));
             filteredPhotos = [...allPhotos];
 
@@ -399,13 +407,13 @@
         grid.innerHTML = pageData.map((p, i) => `
             <div class="photo-card" onclick="openLightbox(${start + i})">
                 <img
-                    src="photos/${p.fichier}"
-                    alt="Capture du ${p.date} — ${p.lieu}"
+                    src="photos/${escapeHtml(encodeURI(p.fichier))}"
+                    alt="Capture du ${escapeHtml(p.date)} — ${escapeHtml(p.lieu)}"
                     loading="lazy"
                     onerror="this.src=''; this.style.background='#eee'; this.alt='Photo non disponible';">
                 <div class="photo-card-info">
-                    <div class="photo-date"><i class="fas fa-calendar-alt"></i> ${p.date}</div>
-                    <div class="photo-lieu"><i class="fas fa-map-marker-alt"></i> ${p.lieu}</div>
+                    <div class="photo-date"><i class="fas fa-calendar-alt"></i> ${escapeHtml(p.date)}</div>
+                    <div class="photo-lieu"><i class="fas fa-map-marker-alt"></i> ${escapeHtml(p.lieu)}</div>
                     ${p.nombre ? `<div class="photo-nombre"><i class="fas fa-bug"></i> ${p.nombre} frelon(s)</div>` : ''}
                 </div>
             </div>`).join('');
@@ -443,9 +451,9 @@
 
     function showLightboxItem() {
         const p = filteredPhotos[lightboxIndex];
-        document.getElementById('lightbox-img').src = `photos/${p.fichier}`;
+        document.getElementById('lightbox-img').src = `photos/${encodeURI(p.fichier)}`;
         document.getElementById('lightbox-caption').innerHTML =
-            `<strong>${p.date}</strong> — ${p.lieu}` +
+            `<strong>${escapeHtml(p.date)}</strong> — ${escapeHtml(p.lieu)}` +
             (p.nombre ? ` · <i class="fas fa-bug"></i> ${p.nombre} frelon(s)` : '') +
             `<br><small style="opacity:0.6;">${lightboxIndex + 1} / ${filteredPhotos.length}</small>`;
     }

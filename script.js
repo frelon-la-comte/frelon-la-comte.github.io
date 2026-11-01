@@ -2,6 +2,29 @@ document.addEventListener('DOMContentLoaded', () => {
     loadCampaignAndInit();
 });
 
+// ── SÉCURITÉ ──────────────────────────────────────────────────────────────
+// Tout texte issu d'un fichier JSON (data.json, campaign.json…) est échappé avant d'être inséré dans la page :
+// ces fichiers peuvent reprendre, à l'origine, du texte saisi par des visiteurs.
+function escapeHtml(v) {
+    return String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function normaliserCaptures(data) {
+    // Données lues : seules les entrées bien formées sont conservées, et « nombre » est toujours un entier
+    if (!Array.isArray(data)) return [];
+    return data
+        .filter(d => d && typeof d.date === 'string' && typeof d.lieu === 'string')
+        .map(d => ({ ...d, nombre: Math.max(0, parseInt(d.nombre, 10) || 0) }));
+}
+
+function escapeCampaign(c) {
+    const o = { ...c };
+    ['year', 'message', 'dateOuverture', 'dateCloture', 'status', 'type', 'season'].forEach(k => {
+        if (o[k] !== undefined && o[k] !== null) o[k] = escapeHtml(o[k]);
+    });
+    return o;
+}
+
 function adaptLabels(type) {
     if (type !== 'autumn') return;
 
@@ -71,6 +94,7 @@ async function loadCampaignAndInit() {
 }
 
 function blockFormClosed(campaign) {
+    campaign = escapeCampaign(campaign);
     const authSection = document.getElementById('auth-section');
     const form        = document.getElementById('signalement-form');
 
@@ -102,6 +126,7 @@ function blockFormClosed(campaign) {
 // --- 1. GESTION MÉTÉO — Moyenne diurne sur 5 jours (lever → coucher du soleil) ---
 async function fetchWeather(campaign) {
     const statusDiv = document.getElementById('weather-status');
+    if (campaign) campaign = escapeCampaign(campaign);
 
     // ── Banderole statut campagne ──
     let campagneBanner = '';
@@ -219,7 +244,7 @@ const PAGE_SIZE = 5;
 async function loadTrappingData(dataFile = 'data.json') {
     try {
         const response = await fetch(dataFile + '?v=' + Date.now());
-        const data = await response.json();
+        const data = normaliserCaptures(await response.json());
         
         // Tri du plus récent au plus ancien
         allTrappingData = [...data].sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -253,8 +278,8 @@ function renderPage() {
     pageData.forEach(item => {
         html += `
             <li class="capture-item">
-                <span class="capture-date"><i class="fas fa-calendar-alt"></i> ${item.date}</span>
-                <span class="capture-info">${item.nombre} ${unit} — <em>${item.lieu}</em></span>
+                <span class="capture-date"><i class="fas fa-calendar-alt"></i> ${escapeHtml(item.date)}</span>
+                <span class="capture-info">${escapeHtml(item.nombre)} ${unit} — <em>${escapeHtml(item.lieu)}</em></span>
             </li>`;
     });
     html += '</ul>';

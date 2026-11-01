@@ -1,3 +1,16 @@
+// ── SÉCURITÉ ──────────────────────────────────────────────────────────────
+function escapeHtml(v) {
+    return String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// Format strict d'une capture : tout ce qui est écrit dans data.json (public) passe par ce filtre
+const CAPTURE_LIEU_RE = /^[\p{L}\p{N} '’\-.,()\/°]{1,80}$/u;
+function isValidCapture(c) {
+    return !!c && /^\d{4}-\d{2}-\d{2}$/.test(String(c.date))
+        && typeof c.lieu === 'string' && CAPTURE_LIEU_RE.test(c.lieu.trim())
+        && Number.isInteger(c.nombre) && c.nombre >= 1 && c.nombre <= 999;
+}
+
 async function sha256(message) {
     const msgBuffer = new TextEncoder().encode(message);
     const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -50,7 +63,7 @@ function updateTokenStatus(present) {
         el.innerHTML =
             '<span style="color:#27ae60; font-weight:bold;">'
             + '<i class="fas fa-check-circle"></i> Clé enregistrée</span>'
-            + ' <span style="color:#888; font-size:0.9em;">(' + masked + ')</span>';
+            + ' <span style="color:#888; font-size:0.9em;">(' + escapeHtml(masked) + ')</span>';
     } else {
         el.innerHTML =
             '<span style="color:#e74c3c;">'
@@ -65,7 +78,7 @@ function getPendingData() {
 
 function addToLocal() {
     const date = document.getElementById('new-date').value;
-    const lieu = document.getElementById('new-lieu').value;
+    const lieu = document.getElementById('new-lieu').value.trim();
     const nombre = parseInt(document.getElementById('new-nombre').value);
 
     if (!date || !lieu || !nombre) {
@@ -74,6 +87,10 @@ function addToLocal() {
     }
 
     const newItem = { date, lieu, nombre };
+    if (!isValidCapture(newItem)) {
+        alert("Saisie refusée : le lieu ne peut contenir que des lettres, chiffres, espaces et . , ' - ( ) / (80 caractères max) et le nombre doit être compris entre 1 et 999.");
+        return;
+    }
     const list = getPendingData();
     list.push(newItem);
     
@@ -95,7 +112,7 @@ function renderPendingList() {
     }
 
     list.forEach((item, index) => {
-        ul.innerHTML += `<li>${item.date} - ${item.lieu} (${item.nombre}) <button onclick="deleteLocal(${index})" style="width:auto; padding:2px 5px; font-size:0.8em; background:red;">X</button></li>`;
+        ul.innerHTML += `<li>${escapeHtml(item.date)} - ${escapeHtml(item.lieu)} (${escapeHtml(item.nombre)}) <button onclick="deleteLocal(${index})" style="width:auto; padding:2px 5px; font-size:0.8em; background:red;">X</button></li>`;
     });
 }
 
@@ -138,6 +155,10 @@ async function syncToGithub() {
     const token = localStorage.getItem('gh_token');
     const status = document.getElementById('sync-status');
     const pendingData = getPendingData();
+    if (pendingData.some(item => !isValidCapture(item))) {
+        alert("Des données en attente ne respectent pas le format attendu (date, lieu, nombre). Supprimez-les puis ressaisissez-les.");
+        return;
+    }
 
     if (!token) {
         alert("Erreur : Veuillez renseigner votre Token GitHub dans la configuration.");
@@ -191,13 +212,13 @@ async function syncToGithub() {
 
         if (!updateResponse.ok) throw new Error("Erreur lors de l'écriture sur GitHub");
 
-        status.innerHTML = `<span class='success'>✅ ${pendingData.length} ajout(s) envoyé(s) vers <strong>${camp.dataFile}</strong>. Le site sera à jour dans 1 ou 2 minutes.</span>`;
+        status.innerHTML = `<span class='success'>✅ ${pendingData.length} ajout(s) envoyé(s) vers <strong>${escapeHtml(camp.dataFile)}</strong>. Le site sera à jour dans 1 ou 2 minutes.</span>`;
         localStorage.removeItem('pending_frelons');
         renderPendingList();
 
     } catch (error) {
         console.error(error);
-        status.innerHTML = `<span class='error'>❌ Erreur : ${error.message}</span>`;
+        status.innerHTML = `<span class='error'>❌ Erreur : ${escapeHtml(error.message)}</span>`;
     } finally {
         btn.disabled = false;
     }
@@ -379,7 +400,7 @@ async function archiveSeason() {
         status.innerHTML = `
             <span class='success'>
                 ✅ Campagne ${typeLabel} ${year} archivée ! (${total} captures)<br>
-                ${activeFile} réinitialisé — campaign.json passé en statut "fermé".<br>
+                ${escapeHtml(activeFile)} réinitialisé — campaign.json passé en statut "fermé".<br>
                 <a href="archives.html" style="color:#27ae60;">→ Voir les archives</a>
             </span>`;
 
@@ -388,7 +409,7 @@ async function archiveSeason() {
 
     } catch (error) {
         console.error(error);
-        status.innerHTML = `<span class='error'>❌ Erreur : ${error.message}</span>`;
+        status.innerHTML = `<span class='error'>❌ Erreur : ${escapeHtml(error.message)}</span>`;
     } finally {
         btn.disabled = false;
     }

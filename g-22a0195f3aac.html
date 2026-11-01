@@ -2,6 +2,8 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <!-- Politique de sécurité : même si du code malveillant s'exécutait ici, il ne pourrait pas envoyer de données vers un autre site -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self' https://api.github.com https://script.google.com https://script.googleusercontent.com https://sheets.googleapis.com; object-src 'none'; base-uri 'none'; form-action 'none'">
     <title>Administration - La Comté</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -698,7 +700,7 @@
                 }
                 const files = await dirResp.json();
                 const imageFiles = files
-                    .filter(f => f.type === 'file' && /\.(jpg|jpeg|png|webp)$/i.test(f.name))
+                    .filter(f => f.type === 'file' && /^[\p{L}\p{N}_.\- ]+\.(jpg|jpeg|png|webp)$/iu.test(f.name))
                     .map(f => f.name)
                     .sort();
 
@@ -740,7 +742,7 @@
                 }).join('');
 
             } catch(e) {
-                container.innerHTML = `<em style="color:#e74c3c;">Erreur : ${e.message}</em>`;
+                container.innerHTML = `<em style="color:#e74c3c;">Erreur : ${escHtml(e.message)}</em>`;
             }
         }
 
@@ -774,6 +776,11 @@
                 alert('Veuillez remplir la date, le lieu et le nom du fichier.');
                 return;
             }
+            if (!/^[\p{L}\p{N}_.\- ]+\.(jpg|jpeg|png|webp)$/iu.test(fichier) || fichier.includes('..')
+                || !CAPTURE_LIEU_RE.test(lieu)) {
+                alert("Saisie refusée : nom de fichier (lettres, chiffres, _ . - et extension jpg/jpeg/png/webp) ou lieu (lettres, chiffres, espaces et . , ' - ( ) /) invalide.");
+                return;
+            }
 
             const entry = { date, lieu, fichier, nombre };
             const list  = getPendingPhotos();
@@ -795,8 +802,8 @@
                 ? '<li>Aucune photo en attente.</li>'
                 : list.map((p, i) => `
                     <li>
-                        ${p.date} — ${p.lieu} — <em>${p.fichier}</em>
-                        (${p.nombre || '?'} frelon(s))
+                        ${escHtml(p.date)} — ${escHtml(p.lieu)} — <em>${escHtml(p.fichier)}</em>
+                        (${escHtml(p.nombre || '?')} frelon(s))
                         <button onclick="deletePhotoLocal(${i})"
                             style="width:auto;padding:1px 6px;font-size:0.8em;
                                    background:red;margin-left:8px;">X</button>
@@ -863,7 +870,7 @@
                 renderPhotoPendingList();
 
             } catch (err) {
-                status.innerHTML = `<span class="error">❌ ${err.message}</span>`;
+                status.innerHTML = `<span class="error">❌ ${escHtml(err.message)}</span>`;
             } finally {
                 btn.disabled = false;
             }
@@ -985,7 +992,7 @@
                 const data = await resp.json();
                 renderSheetTable(data.values || [], table, wrap, statusEl);
             } catch(e) {
-                statusEl.innerHTML = `<span style="color:#e74c3c;">❌ ${e.message}</span>
+                statusEl.innerHTML = `<span style="color:#e74c3c;">❌ ${escHtml(e.message)}</span>
                     <br><small style="color:#888;">Essayez de préciser le nom exact de l'onglet dans l'URL.</small>`;
             }
         }
@@ -1229,7 +1236,9 @@
             for (const [canon, needles] of RUES_CONNUES) {
                 if (needles.some(n => low.includes(n))) return { value: canon, known: true };
             }
-            return { value: txt.replace(/^\s*\d+\s*(bis|ter)?\s*[,.\-]?\s*/i, ''), known: false };
+            // Rue inconnue : le texte d'un visiteur n'est jamais repris tel quel (seuls lettres, chiffres, espaces et . , ' - ( ) / sont conservés)
+            const propre = txt.replace(/^\s*\d+\s*(bis|ter)?\s*[,.\-]?\s*/i, '').replace(/[^\p{L}\p{N} '’\-.,()\/°]/gu, '').slice(0, 80);
+            return { value: propre, known: false };
         }
 
         function prefillFromRow(sheetRow) {
@@ -2317,7 +2326,7 @@
             } catch(e) {
                 badge.className = 'campaign-status-badge badge-closed';
                 badge.innerText = '⚠️ Erreur';
-                info.innerHTML  = '<span style="color:#c0392b;">' + e.message + '</span>'
+                info.innerHTML  = '<span style="color:#c0392b;">' + escHtml(e.message) + '</span>'
                     + '<br><small>Vérifiez que campaign.json est bien à la racine du repo.</small>';
                 if (openForm) openForm.style.display = 'block';
                 console.error('loadCampaignStatus error:', e);
@@ -2417,7 +2426,7 @@
                     setTimeout(loadCampaignStatus, 1500);
                 }
             } catch (e) {
-                status.innerHTML = `<span class="error">❌ ${e.message}</span>`;
+                status.innerHTML = `<span class="error">❌ ${escHtml(e.message)}</span>`;
             } finally {
                 document.getElementById('btn-open-campaign').disabled = false;
             }

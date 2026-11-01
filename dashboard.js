@@ -2,6 +2,18 @@ document.addEventListener('DOMContentLoaded', () => {
     initDashboard();
 });
 
+// Tout texte issu d'un fichier JSON est échappé avant insertion dans la page ou dans une bulle de la carte
+function normaliserCaptures(data) {
+    // Données lues : seules les entrées bien formées sont conservées, et « nombre » est toujours un entier
+    if (!Array.isArray(data)) return [];
+    return data
+        .filter(d => d && typeof d.date === 'string' && typeof d.lieu === 'string')
+        .map(d => ({ ...d, nombre: Math.max(0, parseInt(d.nombre, 10) || 0) }));
+}
+function escapeHtml(v) {
+    return String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 // --- COORDONNÉES APPROXIMATIVES DES RUES DE LA COMTÉ (62150) ---
 const GPS_MAPPING = {
     "centre": [50.4256, 2.4993],
@@ -15,7 +27,6 @@ const GPS_MAPPING = {
     "rue du chateau": [50.4242, 2.5010],
     "rue du 19 mars 1962": [50.4244, 2.4963],
     "rue du 11 novembre": [50.4255, 2.4937],
-    "rue d'houdain":[50.4315, 2.5068]
 };
 
 // Stockage global des données complètes et des instances de graphiques
@@ -100,7 +111,7 @@ async function loadArchiveYear() {
     try {
         const resp = await fetch(file);
         if (!resp.ok) throw new Error('Fichier introuvable');
-        const data = await resp.json();
+        const data = normaliserCaptures(await resp.json());
 
         // Remplace _allData par les données de l'archive
         _allData = data;
@@ -128,10 +139,10 @@ async function loadArchiveYear() {
         const sorted = [...data].sort((a, b) => new Date(b.date) - new Date(a.date));
         if (lastDateEl && sorted.length) lastDateEl.textContent = sorted[0].date;
 
-        status.innerHTML = '<span style="color:#27ae60;">✅ ' + (type === 'autumn' ? 'Automne ' : 'Saison ') + year + ' chargé(e)</span>';
+        status.innerHTML = '<span style="color:#27ae60;">✅ ' + (type === 'autumn' ? 'Automne ' : 'Saison ') + escapeHtml(year) + ' chargé(e)</span>';
 
     } catch(e) {
-        status.innerHTML = '<span style="color:#e74c3c;">❌ ' + e.message + '</span>';
+        status.innerHTML = '<span style="color:#e74c3c;">❌ ' + escapeHtml(e.message) + '</span>';
     }
 }
 
@@ -151,7 +162,7 @@ async function loadLiveData() {
     try {
         applyViewType(_liveType);
         const resp = await fetch(_liveFile + '?v=' + Date.now());
-        _allData = await resp.json();
+        _allData = normaliserCaptures(await resp.json());
         window._dashboardData = _allData;
         initMap(_allData);
         initFilterBounds(_allData);
@@ -175,7 +186,7 @@ async function initDashboard() {
         applyViewType(_liveType);
 
         const response = await fetch(_liveFile + '?v=' + Date.now());
-        _allData = await response.json();
+        _allData = normaliserCaptures(await response.json());
 
         // Expose pour l'export PNG
         window._dashboardData = _allData;
@@ -299,10 +310,10 @@ function initMap(data) {
             fillOpacity: 0.75
         }).addTo(map);
 
-        const detailDates = lieu.dates.join('<br>');
+        const detailDates = lieu.dates.map(escapeHtml).join('<br>');
         circle.bindPopup(
-            `<b>${lieu.label}</b><br>` +
-            `<b>Total : ${lieu.total} frelon(s)</b><br>` +
+            `<b>${escapeHtml(lieu.label)}</b><br>` +
+            `<b>Total : ${escapeHtml(lieu.total)} frelon(s)</b><br>` +
             `<hr style="margin:5px 0">` +
             `<small>${detailDates}</small>`
         );
